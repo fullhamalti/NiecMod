@@ -1,2 +1,2 @@
 # NiecMod
-NiecMod is mod testing in Sims 3
+NiecMod is testing mod in Sims 3
