@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{8B827402-503D-44C0-8D84-CD51597F0CE6}</ProjectGuid>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>NiecMod</RootNamespace>
+    <AssemblyName>62713162223959</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <NoWin32Manifest>False</NoWin32Manifest>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <NoStdLib>True</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
+    <RunCodeAnalysis>False</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>True</Optimize>
+    <NoStdLib>True</NoStdLib>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <NoStdLib>True</NoStdLib>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <StartAction>Project</StartAction>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefineConstants>TRACE;DEBUG;debugopendgsa,__My,GameVersion_0_Release_2_0_209,NIECMOD_DEBUG_MESSAGE,NIECMOD_NATIVE_DEBUG_ASSERT,NUMNAMEASS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>8192</FileAlignment>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <OutputPath>I:\DGSBuild\</OutputPath>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- <Reference Include="mscorlib" /> -->
+    <Reference Include="mscorlib">
+      <HintPath>Lib\LibSafe\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="NiecS3Mod">
+      <HintPath>Lib\NiecS3Mod.dll</HintPath>
+    </Reference>
+    <Reference Include="NRaasRegister, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Lib\LibSafe\NRaasRegister.dll</HintPath>
+    </Reference>
+    <Reference Include="ScriptCore">
+      <HintPath>Lib\LibSafe\ScriptCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SimIFace">
+      <HintPath>Lib\LibSafe\SimIFace.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sims3GameplayObjects">
+      <HintPath>Lib\LibSafe\Sims3GameplayObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sims3GameplaySystems">
+      <HintPath>Lib\LibSafe\Sims3GameplaySystems.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sims3Metadata">
+      <HintPath>Lib\LibSafe\Sims3Metadata.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sims3StoreObjects">
+      <HintPath>Lib\LibSafe\Sims3StoreObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="SystemMod">
+      <HintPath>Lib\SystemMod.dll</HintPath>
+    </Reference>
+    <Reference Include="UI">
+      <HintPath>Lib\LibSafe\UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Interactions\Interactions_ClassOther.cs" />
+    <Compile Include="Interactions\Overrides\NonOpenDGS\GRSOv.cs" />
+    <Compile Include="Interactions\Overrides\NonOpenDGS\Object_ActorsSim.cs" />
+    <Compile Include="Interactions\Overrides\NonOpenDGS_InteractionOverrides.cs" />
+    <Compile Include="Interactions\Overrides\NonOpenDGS_KillSimOverride.cs" />
+    <Compile Include="Interactions\Overrides\Object_BonehildaCoffin.cs" />
+    <Compile Include="Interactions\Overrides\OverrideClass.cs" />
+    <Compile Include="niecstd.cs" />
+    <Compile Include="Nra\ACoreC_Ces.cs" />
+    <Compile Include="Nra\Bim.cs" />
+    <Compile Include="Nra\CInvote.cs" />
+    <Compile Include="Nra\NCopyableTextDialog.cs" />
+    <Compile Include="Nra\NiecPosture.cs" />
+    <Compile Include="Nra\niec_native_func.cs" />
+    <Compile Include="Nra\niec_script_func.cs" />
+    <Compile Include="Nra\NMoveThings.cs" />
+    <Compile Include="Nra\NPCSimCanDisgraced.cs" />
+    <Compile Include="Nra\NResetEx.cs" />
+    <Compile Include="Nra\NStackTrace.cs" />
+    <Compile Include="Nra\SCOSR.cs" />
+    <Compile Include="Situations\ArrestSuspectSituation.cs" />
+    <None Include="DisAllow\EmptASDy1.cs" />
+    <Content Include="CopMod\Class1.cs">
+      <SubType>Code</SubType>
+    </Content>
+    <Compile Include="Situations\NiecHelperSituation.cs" />
+    <Compile Include="Helpers\Annihilation.cs" />
+    <Compile Include="Helpers\Create.cs" />
+    <Compile Include="Interactions\AllActorsKillSim.cs" />
+    <Compile Include="Interactions\AllPauseNiec.cs" />
+    <Compile Include="Interactions\CancelAllInteractions.cs" />
+    <Content Include="Interactions\Class1.cs">
+      <SubType>Code</SubType>
+    </Content>
+    <Compile Include="Interactions\ExtKillSimNiec.cs" />
+    <Compile Include="Interactions\ExtKillSimNiecNoGrim.cs" />
+    <Compile Include="Interactions\ForceKillSimNiec.cs" />
+    <Compile Include="Interactions\ForceTestGrim.cs" />
+    <Compile Include="Interactions\ForceExitXXX.cs" />
+    <Compile Include="Interactions\HelloChatESRB.cs" />
+    <Compile Include="Interactions\Hidden\AllPauseNiecDone.cs" />
+    <Compile Include="Interactions\Hidden\CCnlean.cs" />
+    <Compile Include="Interactions\Hidden\NotKillSimNPCOnly.cs" />
+    <Compile Include="Interactions\KillForce.cs" />
+    <Compile Include="Interactions\KillInLotCurrent.cs" />
+    <Compile Include="Interactions\LineSAT.cs" />
+    <Compile Include="Interactions\ObjectNiec.cs" />
+    <Compile Include="Interactions\Objects\EnableAndDisble.cs" />
+    <Compile Include="Interactions\Objects\NiecObjectAsktoAdd.cs" />
+    <Compile Include="Interactions\Objects\TriasTrvalKiAsktoAdd.cs" />
+    <Compile Include="Interactions\ResetIntroTutorial.cs" />
+    <Compile Include="Interactions\TestAllKillSim.cs" />
+    <Compile Include="Interactions\TestReapSoul.cs" />
+    <None Include="TestGrimReaper\GrimReaperSituation.cs" />
+    <Compile Include="Interactions\TheNiecReapSoul.cs" />
+    <Compile Include="KillNiec\KillAnnihilationTask.cs" />
+    <Compile Include="KillNiec\KillTimerTask.cs" />
+    <Compile Include="KillNiec\MineKillHelper.cs" />
+    <Compile Include="MakeSimPro\MakeSim.cs" />
+    <Compile Include="Nra\NFinalizeDeath.cs" />
+    <Compile Include="Nra\NiecException.cs" />
+    <Compile Include="Nra\NiecModException.cs" />
+    <Compile Include="Nra\SafeNRaas.cs" />
+    <Compile Include="Nra\SpeedTrap.cs" />
+    <Compile Include="Nra\TimeDeather.cs" />
+    <Compile Include="Nra\NTunable.cs" />
+    <None Include="Objects\Javpan.cs" />
+    <Compile Include="Objects\TriasTrvalKi.cs" />
+    <None Include="Temp\Class1.cs" />
+    <Compile Include="Persistable Static\Class1.cs" />
+    <Compile Include="Situations\NiecSocialWorkerChildAbuseSituation.cs" />
+    <Compile Include="Task\AllDelDescTask.cs" />
+    <Compile Include="Task\SimDescCleanseTask.cs" />
+    <Compile Include="Temp\Class2.cs" />
+    <Compile Include="Utilities\LocalizeString.cs" />
+    <None Include="DisAllow\InstChild.cs" />
+    <None Include="DisAllow\Empty1.cs" />
+    <None Include="DisAllow\Police.cs" />
+    <Compile Include="Interactions\ForceAddFamily.cs" />
+    <Compile Include="Interactions\ForceEnableSave.cs" />
+    <Compile Include="Interactions\ForceRequestGrimReaper.cs" />
+    <Compile Include="Instantiator.cs" />
+    <Compile Include="KillNiec\KillSimNiec.cs" />
+    <Compile Include="Objects\DoorGuitar.cs" />
+    <Compile Include="Objects\DoorOfLifeAndDeath.cs" />
+    <Compile Include="Objects\NiecAutoKill.cs" />
+    <Compile Include="Objects\NiecObject.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
