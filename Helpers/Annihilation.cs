@@ -1,4 +1,4 @@
-﻿using Sims3.Gameplay;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.ActorSystems.Children;
@@ -196,6 +196,13 @@ namespace Niec.iCommonSpace
                     textReason = " Sim Is Occult Imaginary Friend";
                     return false;
                 }
+
+                if (targetSim.SimDescription == null)
+                {
+                    textReason = " Non-EA targetSim.SimDescription == null";
+                    return false;
+                }
+
                 if (targetSim.SimDescription.AssignedRole is NPCAnimal)
                 {
                     textReason = " Assigned Role NPC Animal";
