@@ -1,4 +1,4 @@
-﻿namespace Sims3.Gameplay.NiecRoot
+namespace Sims3.Gameplay.NiecRoot
 {
     #region Using Directives
     using System;
@@ -2387,9 +2387,13 @@
                                 CreateGraveStone();
                                 NFinalizeDeath.Assert(mGrave != null, "mGrave is null");
                             }
+
                             try
                             {
-                                mGrave.GhostSetup(Target, false);
+                                if (___bOpenDGSIsInstalled_)
+                                    mGrave.GhostSetup(Target, false);
+                                else 
+                                    NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
                             }
                             catch (ResetException)
                             { throw; }
@@ -4148,7 +4152,10 @@
 
                 try
                 {
-                    mGrave.GhostSetup(Target, false);
+                    if (___bOpenDGSIsInstalled_)
+                        mGrave.GhostSetup(Target, false);
+                    else
+                        NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
                 }
                 catch (ResetException)
                 { throw; }
@@ -4409,13 +4416,16 @@
                             Target.SimDescription.mDeathStyle = SimDescription.DeathType.Burn;
                             Target.SimDescription.IsGhost = true;
                         }
+
                         try
                         {
-                            mGrave.GhostSetup(Target, false);
+                            if (___bOpenDGSIsInstalled_)
+                                mGrave.GhostSetup(Target, false);
+                            else
+                                NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
                         }
                         catch (ResetException)
                         {
-
                             throw;
                         }
                         catch
@@ -5781,7 +5791,10 @@
 
                                 try
                                 {
-                                    mGrave.GhostSetup(Target, false);
+                                    if (___bOpenDGSIsInstalled_)
+                                        mGrave.GhostSetup(Target, false);
+                                    else 
+                                        NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
                                 }
                                 catch (ResetException)
                                 {throw;}
@@ -6511,7 +6524,12 @@
                             break;
                         case 102u:
                             Target.SetPosition(mGhostPosition);
-                            mGrave.GhostSetup(Target, false);
+
+                            if (___bOpenDGSIsInstalled_)
+                                mGrave.GhostSetup(Target, false);
+                            else
+                                NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
+
                             Target.SetHiddenFlags(HiddenFlags.Nothing);
                             if (mDeathEffect != null)
                             {
@@ -7265,9 +7283,12 @@
             public void MermaidDehydratedToGhostSequence()
             {
                 StartGhostExplosion();
+
                 NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
                 mSMCDeath.RequestState(true, "y", "PoseDehydrate");
+
                 Target.FadeOut();
+
                 mDeathEffect = mGrave.GetSimToGhostEffect(Target, mGhostPosition);
                 if (mDeathEffect != null)
                 {
@@ -7275,17 +7296,29 @@
                     mSMCDeath.SetEffectActor("deathEffect", mDeathEffect);
                     mDeathEffect.Start();
                 }
+
                 Target.SetPosition(mGhostPosition);
-                mGrave.GhostSetup(Target, false);
+
+                if (___bOpenDGSIsInstalled_)
+                    mGrave.GhostSetup(Target, false);
+                else
+                    NFinalizeDeath.SafeXGhostSetup(mGrave, Target, false, false);
+
                 Target.SetHiddenFlags(HiddenFlags.Nothing);
+
                 if (mDeathEffect != null)
                 {
                     mDeathEffect.Stop();
                     mDeathEffect = null;
                 }
+
                 Target.FadeIn();
+
+                NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+
                 mSMCDeath.RequestState(true, "y", "DehydrateToFloat");
                 mSMCDeath.RequestState(false, "y", "GhostFloating");
+
                 StopGhostExplosion();
             }
         }
