@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Created by SharpDevelop.
  * User: Niec 2018
  * Date: 20/10/2018
@@ -7192,9 +7192,10 @@ System.NullReferenceException: A null value was found where an object instance w
                 _b_WaitAssert = false;
             }
         }
-        
 
-
+       //public static IntPtr GetFunctionPtr() { 
+       //    new NFinalizeDeath.FunctionX(NFinalizeDeath.DTESTMOK).method_ptr;
+       //}
 
         public unsafe static void Assert(string message) { Assert(false, message); }
         private unsafe static void assertbool_internal(bool condition, string message)
@@ -19554,9 +19555,11 @@ public static
         {
             if (cacheGetAssemblies == null)
                 cacheGetAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            return cacheGetAssemblies.Clone() as Assembly[];
+
+            return (Assembly[])cacheGetAssemblies.Clone();
         }
 
+        // Kill Mono Security :D
         public unsafe static
             void RemovePreventGetAssemblies()
         {
@@ -19565,6 +19568,7 @@ public static
             {
                 var m01 = (MonoMethod)typeof(AppDomain).GetMethod
                     ("GetAssemblies", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] { typeof(bool) }, null);
+
                 if (m01 == null)
                     return;
 
@@ -19578,6 +19582,7 @@ public static
             }
         }
 
+        // Kill Mono Security :D
         public unsafe static
             bool PreventGetAssemblies()
         {
@@ -19640,8 +19645,15 @@ public static
             var b0 = niec_script_func.niecmod_script_set_custom_native_function(m01.mhandle, new IntPtr() { value = (void*)func_address });
             niec_native_func.OutputDebugString("Done! R: " + b0);
 
+            Assert(
+               AppDomain.CurrentDomain.GetAssemblies().Length == 0,
+               "AppDomain.CurrentDomain.GetAssemblies().Length == 0 failed."
+            );
+
             return b0;
         }
+
+        // Kill Mono Security :D
         public unsafe static
             bool SafePreventGetAssemblies()
         {
@@ -19677,6 +19689,8 @@ public static
             // B3 ........    mov eax, assemblyList.obj_address()
             // C3             ret
 
+            var assertCheckL = 0;
+
             if (cacheGetAssembliesEmtpyX == null)
             {
                 //cacheGetAssembliesEmtpyX = new Assembly[] { 
@@ -19692,19 +19706,19 @@ public static
 
                 var tListAssembly = new List<Assembly>();
 
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("mscorlib"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("SimIFace"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("mscorlib"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("SimIFace"));
 
                 //tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("System"));
                 //tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("System.Xml"));
 
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("Sims3GameplayObjects"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("Sims3GameplaySystems"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("Sims3GameplayObjects"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("Sims3GameplaySystems"));
 
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("NRaasTraveler"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("NRaasErrorTrap"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("NRaasGoHere"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssembly("NRaasSelector"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasTraveler"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasErrorTrap"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasGoHere"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasSelector"));
 
                 while (tListAssembly.Remove(null));
 
@@ -19718,7 +19732,11 @@ public static
                     "GCAppDomain_SafePreventGetAssemblies()" + ((uint)cacheGetAssembliesEmtpyX.obj_address() * 2) + "GC" + GetRandomID() + func_address,
                     cacheGetAssembliesEmtpyX
                 );
+
+                assertCheckL = cacheGetAssembliesEmtpyX.Length;
             }
+            else 
+                assertCheckL = cacheGetAssembliesEmtpyX.Length;
 
             var t2 = (uint)cacheGetAssembliesEmtpyX.obj_address();
             var func_addresstemp = func_address + 1;
@@ -19730,8 +19748,15 @@ public static
             var b0 = niec_script_func.niecmod_script_set_custom_native_function(m01.mhandle, new IntPtr() { value = (void*)func_address });
             niec_native_func.OutputDebugString("Done! R: " + b0);
 
+            Assert(
+                assertCheckL == AppDomain.CurrentDomain.GetAssemblies().Length,
+                "assertCheckL == AppDomain.CurrentDomain.GetAssemblies().Length failed."
+            );
+
             return b0;
         }
+
+        // Kill Mono Security :D
         public unsafe static
             bool UnsafePreventGetAssemblies()
         {
@@ -19774,12 +19799,19 @@ public static
 
             niec_native_func.OutputDebugString("Done! R: " + b0);
             func_address_xoreret_all = func_address;
+
+            Assert(
+               AppDomain.CurrentDomain.GetAssemblies() == null,
+               "AppDomain.CurrentDomain.GetAssemblies() == null failed."
+            );
+
             return b0;
         }
+
         public unsafe static bool NiecModIs64Bit()
         {
 #if NiecMod_Native_64_bit
-            return sizeof(void*) == 0x8;
+            return true;
 #else 
             return false;
 #endif
@@ -19801,6 +19833,7 @@ public static
         public static uint func_address_xoreret_all = 0;
         public static uint func_address_ret_all = 0;
 
+        // Kill Mono Security :D
         public unsafe static
             bool PreventSetYieldingDisabled()
         {
@@ -19933,6 +19966,7 @@ public static
             catch (ResetException) { throw; }
             catch (Exception)
             { }
+
             foreach (var item in asdrt)
             {
                 if (item == null)
@@ -19959,6 +19993,7 @@ public static
                     item.mLotId = 0;
                 }
             }
+
             foreach (Lot lot in LotManager.AllLots)
             {
                 if (lot == null) continue;
@@ -20671,6 +20706,226 @@ public static
             }
         }
 
+        public static void SafeXGhostSetup(Urnstone grave, Sim ghost, bool addReactionBroadcast, bool isAngry)
+        {
+            var simd = ghost.SimDescription;
+            if (simd == null)
+                return;
+
+            if (ghost.CurrentOutfitCategory == OutfitCategories.Naked)
+                ghost.SwitchToOutfitWithoutSpin(Sim.ClothesChangeReason.Force, OutfitCategories.Everyday);
+
+            if (simd.ChildOrAbove)
+            {
+                grave.GhostTurnDeathEffectOff(VisualEffect.TransitionType.SoftTransition);
+                bool deathFreeze = false;
+
+                switch (simd.DeathStyle)
+                {
+                    case SimDescription.DeathType.Burn:
+                    case SimDescription.DeathType.Meteor:
+                    case SimDescription.DeathType.Jetpack:
+
+                        if (simd.Child)
+                            grave.mDeathEffect = VisualEffect.Create("ghostBurnSmokeChild");
+                        else
+                            grave.mDeathEffect = VisualEffect.Create("ghostBurnSmokeAdult");
+
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Spine2);
+                        grave.mDeathEffect.Start();
+
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.Hygiene, -80f);
+
+                        break;
+                    case SimDescription.DeathType.Drown:
+                    case SimDescription.DeathType.WateryGrave:
+
+                        if (simd.Age == CASAgeGenderFlags.Child) // if (simd.Child)
+                            grave.mDeathEffect = VisualEffect.Create("ghostDrownDripsChild");
+                        else
+                            grave.mDeathEffect = VisualEffect.Create("ghostDrownDripsAdult");
+
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Pelvis);
+                        grave.mDeathEffect.Start();
+
+                        break;
+                    case SimDescription.DeathType.Electrocution:
+                        grave.TurnOnGhostElectrocutionEffects(ghost);
+                        break;
+                    case SimDescription.DeathType.OldAge:
+
+                        grave.mDeathEffect = VisualEffect.Create("ghostOldAge");
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Pelvis);
+                        grave.mDeathEffect.Start();
+
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.Fun, -80f);
+
+                        break;
+                    case SimDescription.DeathType.Starve:
+
+                        simd.SetBodyShape(-1f, 0f);
+
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.Hunger, -80f);
+
+                        break;
+                    case SimDescription.DeathType.MummyCurse:
+                        grave.TurnOnGhostMummysCurseEffects(ghost);
+                        break;
+                    case SimDescription.DeathType.Thirst:
+
+                        simd.SetBodyShape(-1f, 0f);
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.VampireThirst, -50f);
+
+                        grave.mDeathEffect = VisualEffect.Create("ep3GhostVampire");
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Spine2);
+                        grave.mDeathEffect.Start();
+
+                        break;
+                    case SimDescription.DeathType.PetOldAgeGood:
+                    case SimDescription.DeathType.PetOldAgeBad:
+                        switch (simd.Species)
+                        {
+                            case CASAgeGenderFlags.Horse:
+                                grave.mDeathEffect = VisualEffect.Create("ep5GhostHorse");
+                                break;
+                            case CASAgeGenderFlags.Dog:
+                                grave.mDeathEffect = VisualEffect.Create("ep5GhostDog");
+                                break;
+                            case CASAgeGenderFlags.Cat:
+                            case CASAgeGenderFlags.LittleDog:
+                                grave.mDeathEffect = VisualEffect.Create("ep5GhostSmPet");
+                                break;
+                        }
+
+                        if (grave.mDeathEffect != null)
+                        {
+                            grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Spine2);
+                            grave.mDeathEffect.Start();
+                        }
+
+                        break;
+                    case SimDescription.DeathType.Transmuted:
+                    case SimDescription.DeathType.HauntingCurse:
+                        grave.TurnOnComplexEffects(ghost);
+                        break;
+                    case SimDescription.DeathType.JellyBeanDeath:
+
+                        grave.mDeathEffect = VisualEffect.Create("ep7GhostJellyBean_ghost");
+
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Spine0);
+                        grave.mDeathEffect.Start();
+
+                        break;
+                    case SimDescription.DeathType.Freeze:
+
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.Temperature, -80f);
+
+                        grave.mDeathEffect = SimTemperature.GetParentedAndStartedColdBreathVisualEffectForSim(ghost);
+                        deathFreeze = true;
+
+                        break;
+                    case SimDescription.DeathType.BluntForceTrauma:
+
+                        grave.mDeathEffect = VisualEffect.Create("ep9GhostMurphyBed_ghost");
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Spine2);
+                        grave.mDeathEffect.Start();
+
+                        break;
+                    case SimDescription.DeathType.Ranting:
+                        grave.TurnOnComplexEffects(ghost);
+                        break;
+                    case SimDescription.DeathType.Shark:
+                    case SimDescription.DeathType.ScubaDrown:
+
+                        grave.mDeathEffect = VisualEffect.Create("ep10ScubaGhostBubbles");
+                        if (grave.mDeathEffect == null)
+                            break;
+
+                        grave.mDeathEffect.ParentTo(ghost, Sim.FXJoints.Mouth);
+                        grave.mDeathEffect.Start();
+
+                        break;
+                    case SimDescription.DeathType.MermaidDehydrated:
+
+                        if (ghost.Motives != null)
+                            ghost.Motives.SetValue(CommodityKind.MermaidDermalHydration, -80f);
+
+                        break;
+                }
+
+                if (!deathFreeze && ghost.Motives != null)
+                    ghost.Motives.SetValue(CommodityKind.Temperature, 0f);
+            }
+
+            if (simd.OccultManager != null)
+            {
+                var occultFairy = simd.OccultManager.GetOccultType(OccultTypes.Fairy) as OccultFairy;
+                if (occultFairy != null)
+                {
+                    occultFairy.GrantWings();
+                }
+            }
+
+            if (simd.SupernaturalData == null || simd.SupernaturalData.OccultType == OccultTypes.None)
+            {
+                simd.AddSupernaturalData(OccultTypes.Ghost);
+                var casGhostData = simd.SupernaturalData as CASGhostData;
+                if (casGhostData != null)
+                {
+                    casGhostData.DeathStyle = simd.DeathStyle;
+                }
+            }
+
+            if (!simd.IsEP11Bot)
+                World.ObjectSetGhostState(ghost.ObjectId, (uint)simd.DeathStyle, (uint)simd.AgeGenderSpecies);
+            else
+                World.ObjectSetGhostState(ghost.ObjectId, 23, (uint)simd.AgeGenderSpecies);
+
+            if (ghost.Autonomy != null && ghost.Autonomy.Motives != null && ghost.Autonomy.InteractionScorer != null)
+                ghost.Autonomy.Motives.CreateMotive(ghost, ghost.Autonomy.InteractionScorer, CommodityKind.BeGhostly);
+
+            simd.IsGhost = true;
+
+            if (!simd.IsFrankenstein && ghost.SimRoutingComponent != null && !ghost.SimRoutingComponent.IsWalkStyleRequested(Sim.WalkStyle.GhostWalk))
+            {
+                ghost.RequestWalkStyle(Sim.WalkStyle.GhostWalk);
+            }
+
+            if (addReactionBroadcast && ghost.GhostReactionBroadcast == null)
+            {
+                if (isAngry)
+                    ghost.GhostReactionBroadcast = new ReactionBroadcaster
+                        (ghost, grave.ReactToGhostBroadcastParams, GhostHunter.GhostHunterJob.OnPanicStart, null);
+                else
+                    ghost.GhostReactionBroadcast = new ReactionBroadcaster
+                        (ghost, grave.ReactToGhostBroadcastParams, Urnstone.OnReactToGhost, null);
+
+                ghost.SimsReactedToGhost = new List<Sim>();
+            }
+        }
 
         public static void SafeXGhostCleanup(Urnstone grave, Sim ghost, bool modifyHousehold, bool bDestroyHousehold)
         {
