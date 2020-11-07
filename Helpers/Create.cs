@@ -1,4 +1,3 @@
-﻿
 
 using System;
 
@@ -549,6 +548,8 @@ namespace NiecMod.Helpers
                 NFinalizeDeath.Assert(testOutfit.IsValid, "GetOutfit(OutfitCategories.Everyday, 0) testOutfit.IsValid failed.");
             }
         }
+
+        // Kill Mono Security :D
         public static void pmgas_command() {
             if (NFinalizeDeath.GameIs64Bit(true))
                 return;
@@ -574,6 +575,33 @@ namespace NiecMod.Helpers
             }
         }
 
+        public static void tmsfunc1_oaseritert()
+        {
+            NFinalizeDeath.DTESTM();
+            NFinalizeDeath.DTESTMOK();
+        }
+
+        public static void tmsfunc1_oaseritertX()
+        {
+            try
+            {
+                if (NFinalizeDeath.CheckAccept("Call DTESTM Debugger??"))
+                    NFinalizeDeath.Debugger_Break();
+
+                if (NFinalizeDeath.DTESTM())
+                {
+                    NFinalizeDeath.Show_MessageDialog("Done you can set IL custom your script function :)");
+                }
+                else
+                {
+                    NFinalizeDeath.Show_MessageDialog("Failed. Try Again?");
+                }
+            }
+            catch (Exception)
+            { NFinalizeDeath.Show_MessageDialog("Exception. Try Again"); }
+        }
+
+        // Kill Mono Security :D
         public static void tmsfunc1_command()
         {
             if (NFinalizeDeath.GameIs64Bit(true))
@@ -620,22 +648,12 @@ namespace NiecMod.Helpers
 
             niec_std.mono_runtime_install_handlers();
 
-            if (NFinalizeDeath.CheckAccept("Call DTESTM Debugger??"))
-                NFinalizeDeath.Debugger_Break();
-
-            try
+            if (NFinalizeDeath.CheckAccept("Call DTESTM() And DTESTMOK()??"))
             {
-                if (NFinalizeDeath.DTESTM())
-                {
-                    NFinalizeDeath.Show_MessageDialog("Done you can set IL custom your script function :)");
-                }
-                else
-                {
-                    NFinalizeDeath.Show_MessageDialog("Failed. Try Again?");
-                }
+                tmsfunc1_oaseritert();
             }
-            catch (Exception)
-            { NFinalizeDeath.Show_MessageDialog("Exception. Try Again"); }
+
+            tmsfunc1_oaseritertX();
         }
 
         public static void testagssdall_command()
@@ -3971,6 +3989,8 @@ namespace NiecMod.Helpers
                 goto t;
 
             }
+            else if (acroe && niec_native_func.cache_done_niecmod_native_message_box)
+                niec_native_func.MessageBox(0, "Play Ready?", "NiecMod", 0);
 
             if (!ispac)
             {
@@ -4128,6 +4148,14 @@ namespace NiecMod.Helpers
                 sim_list.Clear();
             }
 
+            if (isPbobsNull)
+            {
+                NFinalizeDeath.FixUpPlumbBobSingletonNull();
+                NFinalizeDeath.TestSetActiveActor(null, false);
+            }
+
+            NFinalizeDeath.MsCorlibModifed_Exlists(false);
+
             if (unsafe_test_readmem)
             {
                 test_read_mem();
@@ -4140,12 +4168,6 @@ namespace NiecMod.Helpers
                     }
                     GC.Collect();
                 });
-            }
-
-            if (isPbobsNull)
-            {
-                NFinalizeDeath.FixUpPlumbBobSingletonNull();
-                NFinalizeDeath.TestSetActiveActor(null, false);
             }
 
             NFinalizeDeath.MsCorlibModifed_Exlists(false);
@@ -17473,6 +17495,4 @@ namespace NiecMod.Helpers
             return lot.EntryPoint();
         }
     }
-
-
 }
