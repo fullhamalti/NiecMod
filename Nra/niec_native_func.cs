@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace NiecMod.Nra
 {
+    // Kill Mono Security ;)
     public class niec_native_func
     {
         [Flags]
@@ -579,28 +580,19 @@ namespace NiecMod.Nra
             return niecmod_native_message_box(hWnd, text, caption, uType);
         }
 
-        public static byte[] ReadFile(string path)
-        {
-            if (path == null || path.Length == 0)
-                throw new ArgumentNullException("path");
-
-            var p = niecmod_native_file_read(path);
-            if ((uint)p == 0)
-                throw new ArgumentException();
-
-            var r = new byte[20000];
-            Marshal.Copy(p, r, 0, 100);
-            return r;
-        }
-
-
-
-
-
-
-
-
-
+        //public static byte[] ReadFile(string path)
+        //{
+        //    if (path == null || path.Length == 0)
+        //        throw new ArgumentNullException("path");
+        //
+        //    var p = niecmod_native_file_read(path);
+        //    if ((uint)p == 0)
+        //        throw new ArgumentException();
+        //
+        //    var r = new byte[20000];
+        //    Marshal.Copy(p, r, 0, 100);
+        //    return r;
+        //}
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -611,12 +603,6 @@ namespace NiecMod.Nra
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void niecmod_native_exit_game(int exitcode);
-
-
-
-
-
-
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -637,14 +623,6 @@ namespace NiecMod.Nra
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern object niecmod_native_get_object_for_nonptr_64bit(ulong obj_address);
-
-
-
-
-
-
-
-
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
