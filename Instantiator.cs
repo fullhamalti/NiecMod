@@ -102,6 +102,8 @@ using System.Reflection;
 using Sims3.NiecModList.Persistable;
 using Sims3.Gameplay.NiecRoot;
 using Niec.iCommonSpace;
+using Sims3.Gameplay.Objects.RabbitHoles;
+using Sims3.Gameplay.Objects.Electronics;
 //using NRaas.NiecMod.Interactions;
 
 
@@ -138,9 +140,11 @@ namespace NiecMod
         [Tunable, TunableComment("Readly?")]
         protected static bool kMEBOXRealy = true;
 
+        public static bool osdiertoeryo = false;
+
         public static string DGSModsAssembly = "DGSMods";
 
-        private static EventListener sSimInstantiatedListener = null;
+        //private static EventListener sSimInstantiatedListener = null;
 
         public static AlarmHandle mait =  AlarmHandle.kInvalidHandle;
 
@@ -174,28 +178,61 @@ namespace NiecMod
                             {
                                 mField.SetValue(null, typeof(KillSimNiecX.NiecDefinitionDeathInteraction));
                             }
-
                         }
                     }
-
                 }
-                else { SafeCallInitClassNA(); niec_std.mono_runtime_install_handlers(); KillPro.CacheNiecS3Mod(); CreateAutoPoNull(); CreateNaviteTa(); CreateTaskAutoKillSim(); NiecHelperSituation.InitClass(); }
-                AssemblyCheckByNiec.Create_Cache_DMM_TestH_XML();
+                else {
+                    niec_std.mono_runtime_install_handlers();
+
+
+
+                    try
+                    {
+                        NFinalizeDeath.StartCreateTaskFNHSWOW();
+                        if (!NFinalizeDeath.MsCorlibModifed_IsExLists())
+                        {
+                            SafeCallInitClassSYN();
+                        }
+                        SafeCallInitClassNAW();
+                        KillPro.CacheNiecS3Mod();
+                        CreateAutoPoNull();
+                        CreateNaviteTa();
+                        CreateTaskAutoKillSim();
+                        NiecHelperSituation.InitClass();
+                    }
+                    catch (Exception)
+                    { }
+                   
+                }
+
+                AssemblyCheckByNiec.create_cache_dmm_testh_xml();
 
                 if (!NiecHelperSituation.isdgmods && (!NiecHelperSituation.___bOpenDGSIsInstalled_ && !NiecHelperSituation.__acorewIsnstalled__))
                     LoadSaveManager.ObjectGroupSaving += OnSavingGame;
 
                 try
                 {
-                    PreLinkDGSMODS();
+                    if (!AssemblyCheckByNiec.IsInstalled("OpenDGS"))
+                    {
+                        PreLinkDGSMODS();
+
+                        NiecHelperSituation.InitClass();
+                    }
                 }
                 catch (Exception)
                 { }
+
+
+                if (!AssemblyCheckByNiec.IsInstalled("OpenDGS"))
+                {
+                    SafeCallInitClassNA();
+                }
+
             }
             catch
             { }
-        
-            World.OnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
+
+            World.OnWorldLoadFinishedEventHandler += OnWorldLoadFinishedHandler;
             World.OnStartupAppEventHandler += OnStartupApp;
             World.OnWorldQuitEventHandler += OnWorldQuit;
 
@@ -217,42 +254,808 @@ namespace NiecMod
             { }
         }
 
-        public static void SafeCallInitClassNA()
+        [Tunable]
+        public static bool kDontCallDGSACore = false;
+
+
+        public static bool isdjreert = false;
+
+        public static bool aH = false;
+        public static bool aHh = false;
+        public static bool ahHH = false;
+        public static bool ahHHh = false;
+        public static bool ahHHHh = false;
+        public static bool ahHHHHh = false;
+        public static bool ahHHHHHh = false;
+
+        public static bool NGOInject = false;
+        public static bool NSDInject = false; 
+        public static bool NGInject = false;
+
+        public static bool NACSDCInject = false;
+        public static bool NFSInject = false;
+
+        public static bool NHHInject = false;
+
+        public static bool NLMInject = false;
+
+        public static bool NSFWInject = false;
+
+        public static bool NSCGUInject = false;
+
+        public static bool NIMTInject = false;
+        public static bool NIOPInject = false;
+        public static bool NAUTOInject = false;
+
+        public static bool NSIFROUNEInject = false;
+
+        public static bool NOtherCLASS_Inject = false;
+
+        public static bool NMotiveMood_Inject = false;
+
+        public static bool SYNInject = false;
+
+        public static void SafeCallInitClassSYN()
         {
+            if (NFinalizeDeath.GameIs64Bit(false))
+            {
+                try
+                {
+                    throw new NotSupportedException("Sims 3 64 bit version not supported.");
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+            }
+
+#if !GameVersion_0_Release_2_0_209
             try
             {
-                if (NFinalizeDeath.GameIs64Bit(false))
-                    return;
+                 throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+            }
+            catch (Exception)
+            {
+                return;
+            }
+#else
 
+            try
+            {
+                NFinalizeDeath.SafeCall(() =>
+                {
+                    if (!RootIsOpenDGSInstalled)
+                    {
+                        niec_native_func.init_class();
+                        if ((uint)nativbllv == 0)
+                            nativbllv = niec_native_func.LoadDLLNativeLibrary("Vrty.dll");
+                    }
+                    SYNInject = false;
+
+                    try
+                    {
+                        SYNInject = NInjetMethed.NSystemEx_InjectMethod();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        SYNInject = false;
+                    }
+
+                    if (!SYNInject)
+                    {
+                        NFinalizeDeath.Assert("SYNInject failed.");
+                        SYNInject = true;
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                return;
+            }
+#endif
+            if (!SYNInject)
+            {
+                NFinalizeDeath.Assert("SYNInject failed.");
+            }
+        }
+
+        public static void SafeCallInitClassNAW()
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+            {
+                try
+                {
+                    throw new NotSupportedException("Sims 3 64 bit version not supported.");
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+            }
+           
+#if !GameVersion_0_Release_2_0_209
+            try
+            {
+                 throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+            }
+            catch (Exception)
+            {
+                return;
+            }
+#else
+
+            try
+            {
                 NFinalizeDeath.SafeCall(() =>
                 {
                     niec_native_func.init_class();
                     nativbllv = niec_native_func.LoadDLLNativeLibrary("Vrty.dll");
-                    if (!RootIsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore"))
+                    isdjreert = true;
+
+                    NFinalizeDeath.SafeCall(NFinalizeDeath.UnusedGetFuncPtr);
+                    NFinalizeDeath.TestRunSEDInitProductFlags();
+
+                    aH = false;
+                    aHh = false;
+                    ahHH = false;
+                    ahHHh = false;
+                    ahHHHh = false;
+                    ahHHHHh = false;
+                    ahHHHHHh = false;
+
+                    NGOInject = false;
+                    NSDInject = false;
+                    NGInject = false;
+
+                    NACSDCInject = false;
+                    NFSInject = false;
+
+                    NHHInject = false;
+
+                    NLMInject = false;
+
+                    NSFWInject = false;
+
+                    NSCGUInject = false;
+
+                    NIMTInject = false;
+                    NIOPInject = false;
+                    NAUTOInject = false;
+
+                    NSIFROUNEInject = false;
+
+                    NOtherCLASS_Inject = false;
+                    NMotiveMood_Inject = false;
+
+
+                    if (AssemblyCheckByNiec.IsInstalled("AweCore"))
                     {
-                        if (NFinalizeDeath.SafePreventGetAssemblies())
+                        try
                         {
-                            otryirtuyortyoerd = true;
+                            aHh = NInjetMethed.ACoreMain_InjectMethed(typeof(NFinalizeDeath).GetMethod("TestRunSEDInitProductFlags"));
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            NFinalizeDeath.Assert("SafePreventGetAssemblies() failed.");
-                            return;
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            aHh = false;
+                        }
+
+                       
+
+                        try
+                        {
+                            ahHH = NInjetMethed.BimUpdate_InjectMethedACore(typeof(UpdateBim).GetMethod("UpdateSim_Update", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            ahHH = false;
+                        }
+
+                        try
+                        {
+                            NGInject = NInjetMethed.NGenetics_InjectOtherMethed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NGInject = false;
+                        }
+                        try
+                        {
+                            NACSDCInject = NInjetMethed.NACoreSBC_InjectOtherMethed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NACSDCInject = false;
+                        }
+
+                        try
+                        {
+                            NHHInject = NInjetMethed.NHousehold_InjectOtherMehed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NHHInject = false;
+                        }
+                        try
+                        {
+                            NLMInject = NInjetMethed.NLotManger_InjectOtherMethed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NLMInject = false;
+                        }
+                        try
+                        {
+                            NSCGUInject = NInjetMethed.NSCGameUtils_InjectOtherMethed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NSCGUInject = false;
+                        }
+                        try
+                        {
+                            NAUTOInject = NInjetMethed.NAuto_InjectOtherMethed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NAUTOInject = false;
+                        }
+                        try
+                        {
+                            NSIFROUNEInject = NInjetMethed.NSIFRoute_InjectMethod();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NSIFROUNEInject = false;
                         }
                     }
-                    if (kMEBOXRealy)
+                    else
+                    {
+                        aHh = true;
+                        ahHH = true;
+                        NGInject = true;
+                        NACSDCInject = true;
+                        NHHInject = true;
+                        NLMInject = true;
+                        NSCGUInject = true;
+                        NAUTOInject = true;
+                        NSIFROUNEInject = true;
+                    }
+
+                    try
+                    {
+                        NOtherCLASS_Inject = NInjetMethed.NOtherClass_InjectMethod();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NOtherCLASS_Inject = false;
+                    }
+
+                    try
+                    {
+                        NMotiveMood_Inject = NInjetMethed.NMotive_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NMotiveMood_Inject = false;
+                    }
+
+                    try
+                    {
+                        NGOInject = NInjetMethed.NGameObject_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NGOInject = false;
+                    }
+
+                    try
+                    {
+                        NIMTInject = NInjetMethed.NIMT_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NIMTInject = false;
+                    }
+                    try
+                    {
+                        NIOPInject = NInjetMethed.NIOP_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NIOPInject = false;
+                    }
+
+
+                    try
+                    {
+                        NSDInject = NInjetMethed.BimDesc_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NSDInject = false;
+                    }
+
+                    bool issimiface2020 =
+#if TESTSimIFace
+                        AssemblyCheckByNiec.DGSSimIFaceIsInstalled();
+#else
+                        false;
+#endif
+
+                    if (!issimiface2020)
+                    {
+                        try
+                        {
+                            NSFWInject = NInjetMethed.NSimFaceWorld_InjectOtherMehed();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            NSFWInject = false;
+                        }
+                    }
+                    else 
+                        NSFWInject = true;
+
+                    try
+                    {
+                        NFSInject = NInjetMethed.NFireS_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        NFSInject = false;
+                    }
+
+                
+
+                   
+
+                    //if (!NiecMod.Instantiator.osdiertoeryo)
+                    if (NFinalizeDeath.GetGoodType("DGSMods.Instantiator", false) == null)
+                    {
+                        try
+                        {
+                            ahHHHHHh = NInjetMethed.NEvertTracker_InjectOtherMethed(null);
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            ahHHHHHh = false;
+                        }
+
+                    }
+                    else
+                    {
+                        ahHHHHHh = true;
+                    }
+
+
+
+                    try
+                    {
+                        ahHHh = NInjetMethed.Bim_InjectKillMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        ahHHh = false;
+                    }
+
+
+
+
+                    try
+                    {
+                        ahHHHh = NInjetMethed.Bim_InjectOtherMethed();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        ahHHHh = false;
+                    }
+
+                    try
+                    {
+                        ahHHHHh = NInjetMethed.PlumbBob_InjectAAAndSAA();
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        ahHHHHh = false;
+                    }
+
+
+
+
+
+                    if (!ahHHHHHh)
+                    {
+                        NFinalizeDeath.Assert("InjectEventX failed.");
+                        ahHHHHHh = true;
+                    }
+                    if (!ahHHHHh)
+                    {
+                        NFinalizeDeath.Assert("PlumbBob_InjectAAAndSAA failed.");
+                        ahHHHHh = true;
+                    }
+                    if (!ahHHHh)
+                    {
+                        NFinalizeDeath.Assert("Bim_InjectCanKillAndIsDyingMethed failed.");
+                        ahHHHh = true;
+                    }
+                    if (!ahHHh)
+                    {
+                        NFinalizeDeath.Assert("Bim_InjectKillMethed failed.");
+                        ahHHh = true;
+                    }
+                    if (!aHh)
+                    {
+                        NFinalizeDeath.Assert("AwCORInjectMethed failed.");
+                        aHh = true;
+                    }
+                    if (!ahHH)
+                    {
+                        NFinalizeDeath.Assert("InjectMethedACore failed.");
+                        ahHH = true;
+                    }
+                    if (!NGInject)
+                    {
+                        NFinalizeDeath.Assert("NGInject failed.");
+                        NGInject = true;
+                    }
+                    if (!NGOInject)
+                    {
+                        NFinalizeDeath.Assert("NGOInject failed.");
+                        NGOInject = true;
+                    }
+                    if (!NSDInject)
+                    {
+                        NFinalizeDeath.Assert("NSDInject failed.");
+                        NSDInject = true;
+                    }
+                    if (!NACSDCInject)
+                    {
+                        NFinalizeDeath.Assert("NACSDCInject failed.");
+                        NACSDCInject = true;
+                    }
+                    if (!NFSInject)
+                    {
+                        NFinalizeDeath.Assert("NFSInject failed.");
+                        NFSInject = true;
+                    }
+                    if (!NHHInject) 
+                    {
+                        NFinalizeDeath.Assert("NHHInject failed.");
+                        NHHInject = true;
+                    }
+                    if (!NLMInject)
+                    {
+                        NFinalizeDeath.Assert("NLMInject failed.");
+                        NLMInject = true;
+                    }
+                    if (!NSFWInject)
+                    {
+                        NFinalizeDeath.Assert("NSFWInject failed.");
+                        NSFWInject = true;
+                    }
+                    if (!NSCGUInject)
+                    {
+                        NFinalizeDeath.Assert("NSCGUInject failed.");
+                        NSCGUInject = true;
+                    }
+                    if (!NIMTInject)
+                    {
+                        NFinalizeDeath.Assert("NIMTInject failed.");
+                        NIMTInject = true;
+                    }
+                    if (!NIOPInject)
+                    {
+                        NFinalizeDeath.Assert("NIOPInject failed.");
+                        NSFWInject = true;
+                    }
+                    if (!NAUTOInject)
+                    {
+                        NFinalizeDeath.Assert("NAUTOInject failed.");
+                        NAUTOInject = true;
+                    }
+                    if (!NSIFROUNEInject)
+                    {
+                        NFinalizeDeath.Assert("NSIFROUNEInject failed.");
+                        NSIFROUNEInject = true;
+                    }
+                    if (!NOtherCLASS_Inject)
+                    {
+                        NFinalizeDeath.Assert("NOtherCLASS_Inject failed.");
+                        NOtherCLASS_Inject = true;
+                    }
+                    if (!NMotiveMood_Inject)
+                    {
+                        NFinalizeDeath.Assert("NMotiveMood_Inject failed.");
+                        NMotiveMood_Inject = true;
+                    }
+                    try
+                    {
+                     
+                        if (aH)
+                            Sims3.SimIFace.GameUtils.InitProductFlags();
+
+                        aH = niec_script_func.niecmod_script_copy_ptr_func_to_func(typeof(NFinalizeDeath).GetMethod("TestRunSEDInitProductFlags"), typeof(GameUtils).GetMethod("InitProductFlags"), false, false, true, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                        aH = false;
+                    }
+
+                    if (!aH)
+                        NFinalizeDeath.Assert("InjectRunSEDInitProductFlags failed.");
+                });
+            }
+            catch { }
+
+            if (!aH)
+                NFinalizeDeath.Assert("InjectRunSEDInitProductFlags failed.");
+
+            if (!aHh)
+                NFinalizeDeath.Assert("AwCORInjectMethed failed.");
+
+            if (!ahHH)
+                NFinalizeDeath.Assert("InjectMethedACore failed.");
+
+            if (!ahHHh)
+                NFinalizeDeath.Assert("Bim_InjectKillMethed failed.");
+
+            if (!ahHHHh)
+                NFinalizeDeath.Assert("Bim_InjectCanKillAndIsDyingMethed failed.");
+
+            if (!ahHHHHh)
+                NFinalizeDeath.Assert("PlumbBob_InjectAAAndSAA failed.");
+
+            if (!ahHHHHHh)
+                NFinalizeDeath.Assert("InjectEventX failed.");
+
+            if (!NGInject)
+                NFinalizeDeath.Assert("NGInject failed.");
+
+            if (!NGOInject)
+                NFinalizeDeath.Assert("NGOInject failed.");
+
+            if (!NSDInject)
+                NFinalizeDeath.Assert("NSDInject failed.");
+
+            if (!NACSDCInject)
+                NFinalizeDeath.Assert("NACSDCInject failed.");
+
+            if (!NFSInject)
+                NFinalizeDeath.Assert("NFSInject failed.");
+
+            if (!NHHInject)
+                NFinalizeDeath.Assert("NHHInject failed.");
+
+            if (!NLMInject)
+                NFinalizeDeath.Assert("NLMInject failed.");
+
+            if (!NSFWInject)
+                NFinalizeDeath.Assert("NSFWInject failed.");
+
+            if (!NSCGUInject)
+                NFinalizeDeath.Assert("NSCGUInject failed.");
+
+            if (!NIMTInject)
+                NFinalizeDeath.Assert("NIMTInject failed.");
+
+            if (!NIOPInject)
+                NFinalizeDeath.Assert("NIOPInject failed.");
+
+            if (!NAUTOInject)
+                NFinalizeDeath.Assert("NAUTOInject failed.");
+
+            if (!NSIFROUNEInject)
+                NFinalizeDeath.Assert("NSIFROUNEInject failed.");
+
+            if (!NMotiveMood_Inject)
+                NFinalizeDeath.Assert("NMotiveMood_Inject failed.");
+
+            if (!NOtherCLASS_Inject)
+                NFinalizeDeath.Assert("NOtherCLASS_Inject failed.");
+#endif
+        }
+
+        internal static IntPtr myAssemblyPtr = new IntPtr(0);
+        internal static IntPtr dgsmAssemblyPtr = new IntPtr(0);
+        internal static IntPtr ascAssemblyPtr = new IntPtr(0);
+        internal static IntPtr kwAssemblyPtr = new IntPtr(0);
+        internal static IntPtr nspAssemblyPtr = new IntPtr(0);
+
+        internal static IntPtr ildorAAssemblyPtr = new IntPtr(0);
+        internal static IntPtr ildorCAssemblyPtr = new IntPtr(0);
+        internal static IntPtr ildorPAssemblyPtr = new IntPtr(0);
+
+        internal static IntPtr scAssemblyPtr = new IntPtr(0);
+
+        public static bool OKPSR = false;
+
+        public static void SafeCallInitClassNA()
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+            {
+                try
+                {
+                    throw new NotSupportedException("Sims 3 64 bit version not supported.");
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+            }
+#if !GameVersion_0_Release_2_0_209
+            try
+            {
+                 throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+            }
+            catch (Exception)
+            {
+                return;
+            }
+#else
+            try
+            {
+                if (!isdjreert)
+                    return;
+
+                NFinalizeDeath.SafeCall(() =>
+                {
+                    OKPSR = false;
+                    myAssemblyPtr = typeof(NFinalizeDeath).Assembly._mono_assembly;
+
+                    var p = NFinalizeDeath.GetGoodType("Awesome.Main", false);
+                    if (p != null)
+                    {
+                        ascAssemblyPtr = p.Assembly._mono_assembly;
+                    }
+                    if (ascAssemblyPtr != new IntPtr(0))
+                    {
+                        p = NFinalizeDeath.GetGoodType("Oniki.Utilities.SimTools", false);
+                        if (p != null)
+                        {
+                            kwAssemblyPtr = p.Assembly._mono_assembly;
+                        }
+
+                        p = NFinalizeDeath.GetGoodType("NRaas.StoryProgressionModule", false);
+                        if (p != null)
+                        {
+                            nspAssemblyPtr = p.Assembly._mono_assembly;
+                        }
+
+                        var a = AssemblyCheckByNiec.FindAssembly("lizcandorCommon");
+                        if (a != null)
+                        {
+                            ildorCAssemblyPtr = a._mono_assembly;
+                        }
+
+                        a = AssemblyCheckByNiec.FindAssembly("lizcandorAttraction");
+                        if (a != null)
+                        {
+                            ildorAAssemblyPtr = a._mono_assembly;
+                        }
+
+                        a = AssemblyCheckByNiec.FindAssembly("lizcandorPolyamory");
+                        if (a != null)
+                        {
+                            ildorPAssemblyPtr = a._mono_assembly;
+                        }
+
+                        a = AssemblyCheckByNiec.FindAssembly("ScriptCore");
+                        if (a != null)
+                        {
+                            scAssemblyPtr = a._mono_assembly;
+                        }
+
+                        try
+                        {
+                            OKPSR = NFinalizeDeath.SafePreventGetAssembliesPro();
+                        }
+                        catch (Exception ex)
+                        {
+                            NiecException.SendTextExceptionToDebugger(ex);
+                            OKPSR = false;
+                        }
+
+                        if (!OKPSR)
+                        {
+                            NFinalizeDeath.Assert("OKPSR Failed.");
+                        }
+                    }
+                    else
+                        OKPSR = true;
+
+                    // Mono bug that.
+
+                    //if (!RootIsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore"))
+                    //{
+                    //    bool p = false;
+                    //    if (osdiertoeryo)
+                    //    {
+                    //        p = NFinalizeDeath.SafePreventGetAssemblies();
+                    //    }
+                    //    else
+                    //    {
+                    //        Assembly myAssembly = typeof(Instantiator).Assembly;
+                    //        List<Assembly> aX = new List<Assembly>();
+                    //
+                    //        foreach (var item in NFinalizeDeath.GetAssemblies())
+                    //        {
+                    //            if (item == null) 
+                    //                continue;
+                    //
+                    //            if (myAssembly == item || myAssembly._mono_assembly == item._mono_assembly)
+                    //            {
+                    //                aX.Add(item);
+                    //                continue;
+                    //            }
+                    //
+                    //            var v = item.GetName();
+                    //            if (v == null)
+                    //                continue;
+                    //            if (v.Name == null) 
+                    //                continue;
+                    //
+                    //            if (v.Name.Contains("AweCore") || v.Name.Contains("AwesomeMod") || v.Name.Contains("Oniki_KinkyMod") || v.Name.Contains("NRaasStoryProgression"))
+                    //            {
+                    //                aX.Add(item);
+                    //            }
+                    //        }
+                    //
+                    //        p = NFinalizeDeath.SafePreventGetAssembliesEx(aX.ToArray());
+                    //    }
+                    //
+                    //    if (p)
+                    //    {
+                    //        otryirtuyortyoerd = true;
+                    //    }
+                    //    else
+                    //    {
+                    //        NFinalizeDeath.Assert("SafePreventGetAssemblies() || SafePreventGetAssembliesEx() failed.");
+                    //        return;
+                    //    }
+                    //}
+
+                    if (isdjreert && kMEBOXRealy)
                     {
                         niec_native_func.MessageBox(0, "Welcome to NiecMod\nNiecMod is free and open source\n\nHave Fun ;)", "NiecMod", 0);
                     }
                 });
             }
             catch (Exception)
-            { }
+            { NFinalizeDeath.Assert("SafeCallInitClassNA failed."); }
+
+            if (!OKPSR)
+            {
+                NFinalizeDeath.Assert("OKPSR Failed.");
+            }
+#endif
         }
 
         public static void AntiNPCACoreModSlowTickSim()
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 5; i++)
             {
                 NiecTask.Perform(ScriptExecuteType.Threaded,delegate {
                     while (true)
@@ -260,7 +1063,7 @@ namespace NiecMod
                         Simulator.Sleep(0);
                         //if (ScriptCore.GameUtils.GameUtils_GetGameTimeScaleImpl() == 0)
                         //    continue;
-                        if (NFinalizeDeath.SC_GetObjects<Sim>().Length >= 10)
+                        if (NFinalizeDeath.SC_GetObjects<Sim>().Length >= 50)
                             continue;
                         NiecRunCommand.native_testcpu_debug(null, null);
                         
@@ -274,13 +1077,13 @@ namespace NiecMod
                 {
                     Simulator.Sleep(0);
 
-                    if (ScriptCore.GameUtils.GameUtils_GetGameTimeScaleImpl() == 1f)
+                    if (ScriptCore.GameUtils.GameUtils_GetGameTimeScaleImpl() == 1f || ScriptCore.GameUtils.GameUtils_GetGameTimeScaleImpl() < 0.9f)
                         continue;
 
                     //var ic = NFinalizeDeath.SC_GetObjects<Sim>().Length;
-                    if (NFinalizeDeath.SC_GetObjects<Sim>().Length < 4)
+                    if (NFinalizeDeath.SC_GetObjects<Sim>().Length < 15)
                     {
-                        for (int i = 0; i < 9; i++)
+                        for (int i = 0; i < 10; i++)
                         {
                             NiecRunCommand.native_testcpu_debug(null, null);
                         }
@@ -416,7 +1219,7 @@ namespace NiecMod
         public unsafe static void OnWorldQuit(object sender, EventArgs args) 
         {
             bool p = false;
-            if (!NiecHelperSituation.___bOpenDGSIsInstalled_  && GameStates.IsGameShuttingDown && !NiecRunCommand.ShouldUseUnWiz && NiecHelperSituation.__acorewIsnstalled__ && !NiecHelperSituation.isdgmods)
+            if (!NiecHelperSituation.___bOpenDGSIsInstalled_ && !NInjetMethed.DoneInjectOuit && GameStates.IsGameShuttingDown && !NiecRunCommand.ShouldUseUnWiz && NiecHelperSituation.__acorewIsnstalled__ && !NiecHelperSituation.isdgmods)
             {
                 //NFinalizeDeath.World_NativeInstance = 0x10000000u;
                 NFinalizeDeath.SafeCall(() =>
@@ -478,6 +1281,7 @@ namespace NiecMod
 
             if (!RootIsOpenDGSInstalled)
             {
+                //NWorldFerry<NiecHelperSituation>.LoadCargo(true);
                 Sims3.Gameplay.EventSystem.EventTracker.sInstance = new Sims3.Gameplay.EventSystem.EventTracker();
             }
             try
@@ -491,7 +1295,7 @@ namespace NiecMod
                             if (p)
                                 NFinalizeDeath.MsCorlibModifed_Exlists(false);
                             //NFinalizeDeath.SimDescCleanse(item, true, false);
-                            SimDescCleanseTask.SafeCallSimDescCleanse(item);
+                            SimDescCleanseTask.SafeCallSimDescCleanseO(item);
                         }
                     }
                 }
@@ -535,7 +1339,7 @@ namespace NiecMod
                         foreach (var item in simDescList)
                         {
                             //NFinalizeDeath.SimDescCleanse(item, true, false);
-                            SimDescCleanseTask.SafeCallSimDescCleanse(item);
+                            SimDescCleanseTask.SafeCallSimDescCleanseO(item);
                         }
                     }
                 }
@@ -804,6 +1608,10 @@ namespace NiecMod
                     {
                         //Sim[] simlist = Sims3.Gameplay.Queries.GetObjects<Sim>();
                         //var psim = NFinalizeDeath.SC_GetObjects<Sim>();
+
+                        if (ScriptCore.CameraController.Camera_GetTarget() == NFinalizeDeath.__Vector3_Em)
+                            continue;
+
                         foreach (var ActorFor in NFinalizeDeath.SC_GetObjects<Sim>())
                         {
                             sleep++;
@@ -1081,6 +1889,9 @@ namespace NiecMod
             }
         }
 
+       
+
+
         public static void PreLinkDGSMODS()
         {
             foreach (var item in NFinalizeDeath.GetAssemblies())
@@ -1094,6 +1905,7 @@ namespace NiecMod
                     var px = ax.GetField("kNInstantiator", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                     if (px != null)
                     {
+                        dgsmAssemblyPtr = px.DeclaringType.Assembly._mono_assembly;
                         px.SetValue(null, true);
                         return;
                     }
@@ -1462,6 +2274,10 @@ namespace NiecMod
                             while (true)
                             {
                                 Simulator.Sleep(0);
+
+                                if (ScriptCore.CameraController.Camera_GetTarget() == NFinalizeDeath.__Vector3_Em)
+                                    continue;
+
                                 try
                                 {
                                     var sim_list = NFinalizeDeath.SC_GetObjects<Sim>();
@@ -1727,10 +2543,11 @@ namespace NiecMod
 
                         NFinalizeDeath.field_NeedNewSituations = true;
 
+
                         if (CommandSystem.Exists())
                             CommandSystem.ExecuteCommandString("niecmod autosave");
 
-                        for (int i = 0; i < 3; i++)
+                        //for (int i = 0; i < 3; i++)
                         {
                             NiecTask.Perform(ScriptExecuteType.Threaded, NFinalizeDeath.LoopReAllNHSOnTick);
                         }
@@ -1862,7 +2679,7 @@ namespace NiecMod
 
                             }
                         });
-                        if (!AssemblyCheckByNiec.IsInstalled(DGSModsAssembly))
+                        if (!Instantiator.osdiertoeryo) //!AssemblyCheckByNiec.IsInstalled(DGSModsAssembly))
                             NiecTask.Perform(delegate
                             {
                                 List<ulong> ul = new List<ulong>();
@@ -2040,6 +2857,8 @@ namespace NiecMod
                                             global::Sims3.Gameplay.ActorSystems.InteractionQueue yInteractionQueue = ActorFor.InteractionQueue;
                                             if (yInteractionQueue == null || yInteractionQueue.mInteractionList == null)
                                                 continue;
+
+                                            niec_std.list_remove(yInteractionQueue.mInteractionList, null);
 
                                             if (!simd.IsGhost && yInteractionQueue.HasInteractionOfType(Urnstone.KillSim.Singleton))
                                             {
@@ -3001,20 +3820,22 @@ namespace NiecMod
             { }
             try
             {
-                foreach (Sim sim in NFinalizeDeath.SC_GetObjects<Sim>())
-                {
-                    if (sim != null)
-                    {
-                        AddInteractions(sim);
-                    }
-                }
+                //foreach (Sim sim in NFinalizeDeath.SC_GetObjects<Sim>())
+                //{
+                //    if (sim != null)
+                //    {
+                //        AddInteractions(sim);
+                //    }
+                //}
+
+
+                NInteractionHelper.InitInjection();
+
             }  
             catch (Exception exception)
             {
                 Exception(exception);
             } 
-            if (sSimInstantiatedListener == null)
-            sSimInstantiatedListener = EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));  
         }
 
 
@@ -3071,6 +3892,10 @@ namespace NiecMod
 
             if (!AddedNiecCore)
             {
+               //if (Instantiator.otryirtuyortyoerd)
+               //{
+               //    NFinalizeDeath.CallingAssemblyDebuggerDEBUG();
+               //}
                 try
                 {
                     Sims3.Gameplay.NiecInteractions.InteractionOverrideClass.Init();
@@ -3121,11 +3946,24 @@ namespace NiecMod
                 Commands.sGameCommands.Register("ntest", "Usage: ncload. Test Fix Error", Commands.CommandType.General, new CommandHandler(TestCommandI));
 
                 Commands.sGameCommands.Register("nforcecrachgame", "Usage: nforcecrachgame. Force Sims3 Game Crash", Commands.CommandType.General, new CommandHandler(Nforcecrachgame));
+
+
+              
+
                 if (!RootIsOpenDGSInstalled)
                 {
+                    if (ListCollon.SafeObjectGC != null)
+                    {
+                        try
+                        {
+                            ListCollon.SafeObjectGC.Add(Commands.sGameCommands.mCommands.table.Clone());
+                        }
+                        catch (Exception)
+                        { }
+                    }
+
                     try
                     {
-                        //NFinalizeDeath.SafeCall(NFinalizeDeath.PreventSetYieldingDisabled);
                         NiecTask.Perform(TestPreventSetYieldingDisabled);
                     }
                     catch (Exception)
@@ -3145,8 +3983,11 @@ namespace NiecMod
             //catch (Exception)
             //{ }
 
+            NFinalizeDeath.SafeCall(NFinalizeDeath.UnusedGetFuncPtr);
+
             if (NFinalizeDeath.PreventSetYieldingDisabled())
             {
+                ScriptCore.Simulator.Simulator_SetYieldingDisabledImpl(false);
                 ScriptCore.Simulator.Simulator_SetYieldingDisabledImpl(true);
                 var p = Simulator.CheckYieldingContext(false);
 
@@ -3155,7 +3996,7 @@ namespace NiecMod
 
                 ScriptCore.Simulator.Simulator_SetYieldingDisabledImpl(false);
 
-                NFinalizeDeath.Assert(p, "TestPreventSetYieldingDisabled: CheckYieldingContext() failed");
+                NFinalizeDeath.Assert(p, "TestPreventSetYieldingDisabled\nCheckYieldingContext() failed");
             }
         }
         public static void TestPreventSetYieldingDisabled2()
@@ -3175,7 +4016,7 @@ namespace NiecMod
 
                 ScriptCore.Simulator.Simulator_SetYieldingDisabledImpl(false);
 
-                NFinalizeDeath.Assert(p, "TestPreventSetYieldingDisabled2: CheckYieldingContext() failed");
+                NFinalizeDeath.Assert(p, "TestPreventSetYieldingDisabled\nCheckYieldingContext() failed");
             }
         }
 
@@ -3634,7 +4475,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                         //Household mec = description.Household;
                         if (b)
                         {
-                            SimDescCleanseTask.SafeCallSimDescCleanse(description);
+                            SimDescCleanseTask.SafeCallSimDescCleanseO(description);
                         }
                         else NFinalizeDeath.SimDescCleanse(description, true, false);
                         //NFinalizeDeath.HouseholdCleanse(mec);
@@ -4609,7 +5450,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                             //MiniSimDescription.sMiniSims = null;
                             //MiniSimDescription.sMiniSims = new Dictionary<ulong, MiniSimDescription>();
                             NFinalizeDeath.DeleteAllMiniSimDescription();
-                            Create.CreateActiveHouseholdAndActiveActor(null);
+                            Create.CreateActiveHouseholdAndActiveActor(null, false);
 
 
 
@@ -6249,22 +7090,15 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             return result;
         }
 
-
-        protected static ListenerAction OnSimInstantiated(Event e)
+        public static void AddInteractionsGO(GameObject o)
         {
-            try
+            if (o == null)
+                return;
+
+            if (o is Computer || o is CityHall)
             {
-                Sim sim = e.TargetObject as Sim;
-                if (sim != null)
-                {
-                    AddInteractions(sim);
-                }
+                NFinalizeDeath.GO_AddInteraction(o, NiecMod.Interactions.Objects.NRCODImmediateInteraction.Singleton, true);
             }
-            catch (Exception exception)
-            {
-                Exception(exception);
-            }
-            return ListenerAction.Keep;
         }
 
         public static void AddInteractions(Sim sim) 
@@ -6280,10 +7114,12 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             var typee = ObjectNiec.Singleton.GetType(); // fast code ;)
             foreach (InteractionObjectPair pair in sim.mInteractions)
             {
+                if (pair == null)
+                    return;
+
                 if (pair.mInteraction.GetType() == typee)
-            	{
-            		return;
-            	}
+                    return;
+
             }
 
             sim.AddInteraction(ForceEnableSave.Singleton);
@@ -6323,10 +7159,15 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 return true;
             }
         }
+
+
+      
+
         public static bool WriteLog(Exception exception)
         {
             try
             {
+                NiecException.SendTextExceptionToDebugger(exception);
                 new ScriptError(null, exception, 0).WriteMiniScriptError();
                 return true;
             }
