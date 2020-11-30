@@ -148,6 +148,282 @@ namespace Sims3.NiecHelp.Tasks
     }
 
 
+    public class NDelayFunctionTask : Task // Battery user Fail Fix
+    {
+        private StopWatch mTimer;
+
+        private readonly int mDelay;
+
+        private readonly object mParam;
+
+        private readonly object mParam_1;
+
+        private readonly FunctionWithParam mFunction;
+
+        private ScriptExecuteType _ScriptExecuteType = ScriptExecuteType.Task;
+
+        public bool shouldRun = false;
+
+        public NDelayFunctionTask(FunctionWithParam function, object param)
+        {
+            if (function == null)
+                throw new ArgumentNullException("function");
+
+            mFunction = function;
+            mParam = param;
+            mDelay = 500;
+        }
+
+        public NDelayFunctionTask(FunctionWithParam function, object param, int delay)
+        {
+            if (function == null)
+                throw new ArgumentNullException("function");
+
+            mFunction = function;
+            mParam = param;
+            mDelay = delay;
+        }
+
+        public NDelayFunctionTask(FunctionWithParam function, object param, object param_1, int delay)
+        {
+            if (function == null)
+                throw new ArgumentNullException("function");
+
+            mFunction = function;
+            mParam = param;
+            mParam_1 = param_1;
+            mDelay = delay;
+        }
+
+        public override void Dispose()
+        {
+            if (mTimer != null)
+            {
+                mTimer.Dispose();
+                mTimer = null;
+            }
+
+            if (base.ObjectId.mValue != 0)
+            {
+                Simulator.DestroyObject(base.ObjectId);
+                base.ObjectId = ObjectGuid.InvalidObjectGuid;
+            }
+
+            base.Dispose();
+        }
+
+        public override void Simulate()
+        {
+            mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
+            if (mTimer == null)
+            {
+                Dispose();
+                return;
+            }
+
+            if (shouldRun)
+            {
+                Dispose();
+                return;
+            }
+
+            shouldRun = true;
+
+            mTimer.Start();
+
+            while (true)
+            {
+                if (mTimer != null && mTimer.GetElapsedTime() == mDelay)
+                {
+                    mFunction(mParam);
+                    Simulator.Sleep(0);
+                    continue;
+                }
+
+                Simulator.Sleep(0);
+
+                if (mTimer == null)
+                {
+                    break;
+                }
+            }
+        }
+
+        // my custom methed
+        public ObjectGuid AddToSimulator()
+        {
+            return Simulator.AddObject(this);
+        }
+
+        public static NDelayFunctionTask GetCurrentTask()  // fast code
+        {
+            return ScriptCore.Simulator.Simulator_GetTaskImpl(ScriptCore.Simulator.Simulator_GetCurrentTaskImpl(), false) as NDelayFunctionTask;
+        }
+
+        public void SetExecuteType(ScriptExecuteType type)
+        {
+            if (type == ScriptExecuteType.None || type == ScriptExecuteType.InitFailed)
+                _ScriptExecuteType = ScriptExecuteType.Task;
+            else
+                _ScriptExecuteType = type;
+        }
+
+        public override ScriptExecuteType ExecuteType
+        {
+            get
+            {
+                return _ScriptExecuteType;
+            }
+        }
+
+        public static ObjectGuid CreateAndAddToSimulator(ScriptExecuteType executeType, FunctionWithParam func, object pobj, object pobj1, int delay)
+        {
+            var p = new NDelayFunctionTask(func, pobj, pobj1, delay);
+            p.SetExecuteType(executeType);
+            return p.AddToSimulator();
+        }
+    }
+
+
+    public class NRepeatingFunctionTask : Task // Battery user Fail Fix
+    {
+        private StopWatch mTimer;
+
+        private readonly int mDelay;
+
+        private readonly object mParam;
+
+        private readonly FunctionWithParam mFunction;
+
+        private ScriptExecuteType _ScriptExecuteType = ScriptExecuteType.Task;
+
+        public bool shouldRun = false;
+
+        public NRepeatingFunctionTask(FunctionWithParam function, object param)
+        {
+            if (function == null)
+                throw new ArgumentNullException("function");
+
+            mFunction = function;
+            mParam = param;
+            mDelay = 500;
+        }
+
+        public NRepeatingFunctionTask(FunctionWithParam function, object param, int delay)
+        {
+            if (function == null)
+                throw new ArgumentNullException("function");
+
+            mFunction = function;
+            mParam = param;
+            mDelay = delay;
+        }
+
+        public override void Dispose()
+        {
+            if (mTimer != null)
+            {
+                mTimer.Dispose();
+                mTimer = null;
+            }
+
+            if (base.ObjectId.mValue != 0)
+            {
+                Simulator.DestroyObject(base.ObjectId);
+                base.ObjectId = ObjectGuid.InvalidObjectGuid;
+            }
+
+            base.Dispose();
+        }
+
+        public override void Simulate()
+        {
+            mTimer = StopWatch.Create(StopWatch.TickStyles.Milliseconds);
+            if (mTimer == null)
+            {
+                Dispose();
+                return;
+            }
+           
+            if (shouldRun)
+            {
+                Dispose();
+                return;
+            }
+
+            shouldRun = true;
+
+            mTimer.Start();
+
+            do
+            {
+                if (GameUtils.IsPaused())
+                {
+                    Simulator.Sleep(0);
+                    mTimer.Stop();
+                }
+                else
+                {
+                    if (GameUtils.IsPaused())
+                    {
+                        Simulator.Sleep(0);
+                        continue;
+                    }
+
+                    mTimer.Restart();
+
+                    while (mTimer != null && mTimer.GetElapsedTime() < mDelay)
+                    {
+                        Simulator.Sleep(0);
+                    }
+
+                    mFunction(mParam);
+
+                    Simulator.Sleep(0);
+                }
+            }
+            while (mTimer != null);
+        }
+
+        // my custom methed
+        public ObjectGuid AddToSimulator()
+        {
+            return Simulator.AddObject(this);
+        }
+
+        public static NRepeatingFunctionTask GetCurrentTask() // fast code
+        {
+            return ScriptCore.Simulator.Simulator_GetTaskImpl(ScriptCore.Simulator.Simulator_GetCurrentTaskImpl(), false) as NRepeatingFunctionTask;
+        }
+
+        public void SetExecuteType(ScriptExecuteType type)
+        {
+            if (type == ScriptExecuteType.None || type == ScriptExecuteType.InitFailed)
+                _ScriptExecuteType = ScriptExecuteType.Task;
+            else 
+                _ScriptExecuteType = type;
+        }
+
+        public override ScriptExecuteType ExecuteType
+        {
+            get
+            {
+                return _ScriptExecuteType;
+            }
+        }
+
+        public static ObjectGuid CreateAndAddToSimulator(ScriptExecuteType executeType, FunctionWithParam func, object paramobj, int delay)
+        {
+            var p = new NRepeatingFunctionTask(func, paramobj, delay);
+            p.SetExecuteType(executeType);
+            return p.AddToSimulator();
+        }
+    }
+
+
+
+
+
 
 
     public class NiecNraTask
@@ -156,26 +432,18 @@ namespace Sims3.NiecHelp.Tasks
 
     }
 
-    //public interface Partet
-    //{
-    //
-    //}
-
-    public class NiecTask : Task//, Partet
+    public class NiecTask : Task
     {
         internal static StringBuilder ErrorRuntimeFound = new StringBuilder();
         public static bool IsOpenDGSInstalled = AssemblyCheckByNiec.IsInstalled("OpenDGS");
         public static void SSetFakeObjectId(ObjectGuid value, out NiecTask currentTask)
         {
-            //if (task.mFakeObjectId == ObjectGuid.InvalidObjectGuid)
-            //currentTask = Simulator.CurrentTask;
 
             currentTask = null;
 
             NiecTask task = Simulator.GetTask(Simulator.CurrentTask) as NiecTask;
             if (task != null) {
                 currentTask = task;
-                //task.mTaskC = current;
                 task.mObjectId = value;
             }
 
@@ -208,6 +476,8 @@ namespace Sims3.NiecHelp.Tasks
         public bool errorRuntimeFound = false;
         public bool needNoErrorRuntimeNoFound = false;
         public bool needNoErrorRuntime = false;
+        public object nData = null;
+
 
         NiecNraTask.NraFunction mFunction;
         ScriptExecuteType _ScriptExecuteType;

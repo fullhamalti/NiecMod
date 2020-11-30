@@ -107,7 +107,7 @@ namespace NiecMod.KillNiec
         private static object Create_Cache_DMM_TestH_XML_ODGSECX = null;
         private static object Create_Cache_DMM_TestH_XML_ODGSEDX = null;
 
-        internal static void Create_Cache_DMM_TestH_XML() {
+        internal static void create_cache_dmm_testh_xml() {
             if (!NeedCacheCCDTHXML) return;
             else
             {
@@ -282,7 +282,7 @@ namespace NiecMod.KillNiec
                             return assemblyLoadad && typeII.GetMethod("OnQueueStomp", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null;
                         }
 
-                        assemblyLoadad = (FindAssembly(assembly) != null);
+                        assemblyLoadad = (FindAssembly(assembly) != null) || NFinalizeDeath.GetGoodType("Awesome.StoryBus.Core", false) != null;
                         sAssemblies.Add(assembly, assemblyLoadad);
 
                         var methed = typeII.GetMethod("OnQueueStomp", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -431,182 +431,6 @@ namespace NiecMod.KillNiec
     /// </summary>
     public class KillSimNiecX
     {
-        /*
-        //public HelperNra helperNra;
-        public Sim simaa;
-
-        public Vehicle rtyryds()
-        {
-            try
-            {
-                Vehicle vehicle;
-
-
-                if (!simaa.IsInActiveHousehold)
-                {
-                    vehicle = Vehicle.CreateTaxi();
-                }
-
-                ProductVersion productVersion = ProductVersion.BaseGame;
-                string instanceName;
-
-                instanceName = (RandomUtil.CoinFlip() ? "MotorcyleRacing" : "MotorcyleRacing");
-                productVersion = ProductVersion.SP2;
-
-                CarOwnable carOwnable = GlobalFunctions.CreateObjectOutOfWorld(instanceName, productVersion) as CarOwnable;
-                vehicle = carOwnable;
-
-                CarOwnable carOwnable2 = vehicle as CarOwnable;
-                if (carOwnable2 != null)
-                {
-                    carOwnable2.LotHome = simaa.LotHome;
-                }
-                return vehicle;
-            }
-            catch (Exception exception)
-            {
-                DGSCoreMsg.WriteLog("GetNPCVehicle: " + DGSCoreMsg.NewLine + DGSCoreMsg.LogException(exception), true, true);
-                if (!simaa.IsInActiveHousehold)
-                {
-                    return Vehicle.CreateTaxi();
-                }
-                CarOwnable carOwnable = GlobalFunctions.CreateObjectOutOfWorld("HoverCarSports", ProductVersion.EP11) as CarOwnable;
-                carOwnable.GeneratedOwnableForNpc = false;
-                carOwnable.LotHome = simaa.LotHome;
-                return carOwnable;
-            }
-            
-        }
-        */
-
-        //static HelperNra helperNra  = null;
-
-        public class AlarmTask
-        {
-            Sims3.Gameplay.Function mFunction;
-
-            AlarmHandle mHandle;
-
-            ObjectGuid mRunningTask = ObjectGuid.InvalidObjectGuid;
-
-            bool mDisposeOnTimer;
-
-            
-
-            static List<AlarmTask> sTasks = new List<AlarmTask>();
-
-            protected AlarmTask(float time, TimeUnit timeUnit)
-                : this(time, timeUnit, null)
-            { }
-            public AlarmTask(float time, TimeUnit timeUnit, Sims3.Gameplay.Function func)
-                : this(func)
-            {
-                mHandle = AlarmManager.Global.AddAlarm(time, timeUnit, OnTimer, "NRaasDelayedFunction", AlarmType.NeverPersisted, null);
-
-                mDisposeOnTimer = true;
-            }
-            public AlarmTask(float time, TimeUnit timeUnit, float repeatTime, TimeUnit repeatTimeUnit)
-                : this(time, timeUnit, null, repeatTime, repeatTimeUnit)
-            { }
-            public AlarmTask(float time, TimeUnit timeUnit, Sims3.Gameplay.Function func, float repeatTime, TimeUnit repeatTimeUnit)
-                : this(func)
-            {
-                mHandle = AlarmManager.Global.AddAlarmRepeating(time, timeUnit, OnTimer, repeatTime, repeatTimeUnit, "NRaasRepeatFunction", AlarmType.NeverPersisted, null);
-            }
-            public AlarmTask(float hourOfDay, DaysOfTheWeek days)
-                : this(hourOfDay, days, null)
-            { }
-            public AlarmTask(float hourOfDay, DaysOfTheWeek days, Sims3.Gameplay.Function func)
-                : this(func)
-            {
-                mHandle = AlarmManager.Global.AddAlarmDay(hourOfDay, days, OnTimer, "NRaasDailyFunction", AlarmType.NeverPersisted, null);
-            }
-            protected AlarmTask(Sims3.Gameplay.Function func)
-            {
-                sTasks.Add(this);
-
-                if (func == null)
-                {
-                    func = OnPerform;
-                }
-
-                mFunction = func;
-            }
-
-            protected virtual void OnPerform()
-            { }
-
-            public bool Valid
-            {
-                get { return (mHandle != AlarmHandle.kInvalidHandle); }
-            }
-
-            public void Dispose() 
-            {
-                Simulator.DestroyObject(mRunningTask);
-                mRunningTask = ObjectGuid.InvalidObjectGuid;
-
-                AlarmManager.Global.RemoveAlarm(mHandle);
-                mHandle = AlarmHandle.kInvalidHandle;
-
-                sTasks.Remove(this);
-            }
-
-            public static float TimeTo(float hourOfDay)
-            {
-                float time = hourOfDay - SimClock.HoursPassedOfDay;
-                if (time < 0f)
-                {
-                    time += 24f;
-                }
-
-                return time;
-            }
-
-            public static void DisposeAll()
-            {
-                List<AlarmTask> tasks = new List<AlarmTask>(sTasks);
-                foreach (AlarmTask task in tasks)
-                {
-                    task.Dispose();
-                }
-
-                sTasks.Clear();
-            }
-
-            private void OnTimer()
-            {
-                try
-                {
-                    if (mDisposeOnTimer)
-                    {
-                        Dispose();
-                    }
-
-                    mRunningTask = FunctionTask.Perform(mFunction);
-                }
-                catch (Exception exception)
-                {
-                    NiecException.WriteLog(NiecException.LogException(exception), true, false, false);
-                }
-            }
-
-            public override string ToString()
-            {
-                string result = null;
-                if (mFunction != null)
-                {
-                    result += mFunction.Method.ToString();
-                    if (mFunction.Target != null)
-                    {
-                        result = mFunction.Target.GetType() + " : " + result;
-                    }
-                }
-
-                return result;
-            }
-        }
-
         public class FunctionTask : Task
         {
             Sims3.Gameplay.Function mFunction;
@@ -2757,7 +2581,7 @@ namespace NiecMod.KillNiec
                                                                                                 }
                                                                                             }
 
-                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null))
+                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null)
                                                                                             {
                                                                                                 if (flagsa)
                                                                                                 {
@@ -4597,7 +4421,7 @@ namespace NiecMod.KillNiec
                                                                                                                                                 }
                                                                                                                                             }
 
-                                                                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null))
+                                                                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null)
                                                                                                                                             {
                                                                                                                                                 if (flagsa)
                                                                                                                                                 {
@@ -5385,7 +5209,7 @@ namespace NiecMod.KillNiec
                                                                                                                                                                                         }
                                                                                                                                                                                     }
 
-                                                                                                                                                                                    if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null))
+                                                                                                                                                                                    if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null)
                                                                                                                                                                                     {
                                                                                                                                                                                         if (flagsa)
                                                                                                                                                                                         {
@@ -7761,7 +7585,7 @@ namespace NiecMod.KillNiec
                                                                                                 }
                                                                                             }
                                                                                             
-                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null))
+                                                                                            if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null)
                                                                                             {
                                                                                                 if (flagsa)
                                                                                                 {
@@ -8581,30 +8405,30 @@ namespace NiecMod.KillNiec
 
                     bool CheckAntiCancel = false;
 
-                    if (AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
-                    {
-                        try
-                        {
-                            if (target.InteractionQueue.HasInteractionOfType(PauseNiecIns.Singleton))
-                            {
-                                CheckAntiCancel = true;
-                            }
-                            if (!CheckAntiCancel)
-                            {
-                                foreach (InteractionInstance interactionInstance in target.InteractionQueue.InteractionList)
-                                {
-                                    if (interactionInstance is PauseNiecIns)
-                                    {
-                                        CheckAntiCancel = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {/* CheckAntiCancel = false; */}
-
-                    }
+                    //if (AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
+                    //{
+                    //    try
+                    //    {
+                    //        if (target.InteractionQueue.HasInteractionOfType(PauseNiecIns.Singleton))
+                    //        {
+                    //            CheckAntiCancel = true;
+                    //        }
+                    //        if (!CheckAntiCancel)
+                    //        {
+                    //            foreach (InteractionInstance interactionInstance in target.InteractionQueue.InteractionList)
+                    //            {
+                    //                if (interactionInstance is PauseNiecIns)
+                    //                {
+                    //                    CheckAntiCancel = true;
+                    //                    break;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //    catch (Exception)
+                    //    {/* CheckAntiCancel = false; */}
+                    //
+                    //}
 
                     if (!CheckAntiCancel)
                     {

@@ -34,7 +34,7 @@ namespace NiecMod.Nra
             return (uint)((niecmod_script_get_str_data_address(str) + (uint)(str.Length * 2)) - System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData);
         }
 
-        public unsafe static int niecmod_script_size_str_utf16_to_ansi(string str) // not tested
+        public unsafe static int niecmod_script_size_str_utf16_to_ansi(string str) // untested
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 throw new InvalidOperationException("Sims 3 (64 bit)!");
@@ -367,6 +367,363 @@ namespace NiecMod.Nra
             return r;
         }
 
+        public static Dictionary<IntPtr, uint> sCheckMethodChecksum = new Dictionary<IntPtr, uint>();
+
+        public unsafe static bool niecmod_script_copy_ptr_func_to_func(MethodBase a, MethodBase t, bool prelink, bool check, bool shouldThrowOnFailure, bool copy_methed_info)
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentException("Sims 3 64 Bit Found.");
+                return false;
+            }
+
+            niec_native_func.OutputDebugString("niecmod_script_copy_ptr_func_to_func(...) called");
+
+
+            if (a == null)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentNullException("a");
+                return false;
+            }
+
+            if (t == null)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentNullException("t");
+                return false;
+            }
+
+            niec_native_func.OutputDebugString("Name A: " + a.Name + " | IsGeneric: " + a.IsGenericMethod + " | Type: " + a.GetType().ToString());
+            niec_native_func.OutputDebugString("Name T: " + t.Name + " | IsGeneric: " + t.IsGenericMethod + " | Type: " + t.GetType().ToString());
+
+            if (a is ConstructorInfo && t is ConstructorInfo)
+            {
+                niec_native_func.OutputDebugString("a && t is System.Reflection.ConstructorInfo");
+
+                var cah = ((MonoCMethod)a).mhandle;
+                var cth = ((MonoCMethod)t).mhandle;
+
+                uint camethod_ptr = *(uint*)((uint)cah + 0x14);
+                uint ctmethod_ptr = *(uint*)((uint)cth + 0x14);
+
+                return niecmod_script_copy_ptr_methed_to_methed_internal<ConstructorInfo>(
+                    new IntPtr() { value = (void*)camethod_ptr },
+                    new IntPtr() { value = (void*)ctmethod_ptr },
+                    copy_methed_info
+                );
+            }
+
+            uint tuint;
+            if (sCheckMethodChecksum != null && sCheckMethodChecksum.TryGetValue(((MonoMethod)t).mhandle, out tuint))
+                return true;
+
+            uint au = 0;
+            uint tu = 0;
+
+            try
+            {
+                niec_native_func.OutputDebugString("calling GetMethodImplementationFlags");
+                a.GetMethodImplementationFlags();
+                niec_native_func.OutputDebugString("calling GetParameters");
+                a.GetParameters();
+                niec_native_func.OutputDebugString("calling GetMethodImplementationFlags T");
+                t.GetMethodImplementationFlags();
+                niec_native_func.OutputDebugString("calling GetParameters T");
+                t.GetParameters();
+
+                niec_native_func.OutputDebugString("calling NFinalizeDeath.M(a.Attributes)");
+                NFinalizeDeath.M(a.Attributes);
+                niec_native_func.OutputDebugString("calling NFinalizeDeath.M(t.Attributes)");
+                NFinalizeDeath.M(t.Attributes);
+                
+
+                niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(t.MethodHandle, out tu);");
+                ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)t).mhandle, out tu);
+                niec_native_func.OutputDebugString("tu: 0x" + tu.ToString("X"));
+
+                niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(a.MethodHandle, out au);");
+                ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)a).mhandle, out au);
+                niec_native_func.OutputDebugString("au: 0x" + au.ToString("X"));
+            }
+            catch (Exception)
+            {}
+            try
+            {
+                if (check)
+                {
+                    if (a is MethodInfo && t is MethodInfo)
+                    {
+                        if (!niecmod_script_check_func_e_func((MethodInfo)a, (MethodInfo)t, shouldThrowOnFailure))
+                        {
+                            niec_native_func.OutputDebugString("niecmod_script_check_func_e_func(a, t, shouldThrowOnFailure) failed");
+                            return false;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (shouldThrowOnFailure)
+                    niec_native_func.OutputDebugString(ex.Message);
+                throw;
+            }
+            
+
+            var ah = ((MonoMethod)a).mhandle;
+            var th = ((MonoMethod)t).mhandle;
+
+            niec_native_func.OutputDebugString("ahandle: " + ((uint)ah).ToString("X"));
+            niec_native_func.OutputDebugString("thandle: " + ((uint)th).ToString("X"));
+
+            if (ah == null || th == null)
+            {
+                niec_native_func.OutputDebugString("if (ah == null || th == null)");
+                return false;
+            }
+
+            if (prelink)
+            {
+                try
+                {
+                    niec_native_func.OutputDebugString("calling MethodInfo.GetMethodBody(ah)");
+                    MethodInfo.GetMethodBody(ah);
+                    niec_native_func.OutputDebugString("calling MethodInfo.GetMethodBody(th)");
+                    MethodInfo.GetMethodBody(th);
+                }
+                catch (Exception)
+                { }
+
+                try
+                {
+
+                    if (a is MethodInfo)
+                    {
+                        niec_native_func.OutputDebugString("calling MethodInfo:Prelink A");//: Methed Name: " + a.Name + " | IsGenericMethod: " + a.IsGenericMethod);
+                        System.Runtime.InteropServices.Marshal.Prelink((MethodInfo)a);
+                    } 
+                    if (t is MethodInfo)
+                    {
+                        niec_native_func.OutputDebugString("calling MethodInfo:Prelink T");//: Methed Name: " + t.Name + " | IsGenericMethod: " + t.IsGenericMethod);
+                        System.Runtime.InteropServices.Marshal.Prelink((MethodInfo)t);
+                    }
+                }
+                catch (Exception)
+                {
+                    niec_native_func.OutputDebugString("Prelink failed");
+
+                    if (shouldThrowOnFailure)
+                        throw;
+
+                    return false;
+                }
+            }
+
+            uint amethod_ptr = *(uint*)((uint)ah + 0x14);
+            uint tmethod_ptr = *(uint*)((uint)th + 0x14);
+
+            niec_native_func.OutputDebugString("amethod_ptr: " + amethod_ptr.ToString("X"));
+            niec_native_func.OutputDebugString("tmethod_ptr: " + tmethod_ptr.ToString("X"));
+
+            if (amethod_ptr == 0 || amethod_ptr == 0xAA || tmethod_ptr == 0 || tmethod_ptr == 0xAA)
+            {
+                niec_native_func.OutputDebugString("if (amethod_ptr == 0 || amethod_ptr == 0xAA || tmethod_ptr == 0 || tmethod_ptr == 0xAA)");
+                return false;
+            }
+
+            var tx = niecmod_script_copy_ptr_methed_to_methed_internal<niec_script_func> (
+                new IntPtr() { value = (void*)amethod_ptr },
+                new IntPtr() { value = (void*)tmethod_ptr },
+                copy_methed_info
+            );
+
+            if (tx && sCheckMethodChecksum != null)
+            {
+                sCheckMethodChecksum.Add(((MonoMethod)t).mhandle, (au * (50 & 10 / au + 5) + 20));
+            }
+
+            niec_native_func.OutputDebugString("copy_ptr_methed_to_methed_internal: " + tx);
+            niec_native_func.OutputDebugString("niecmod_script_copy_ptr_func_to_func(...) Done!");
+
+            return tx;
+        }
+
+        public static bool niecmod_script_check_func_e_func(MethodInfo a, MethodInfo t, bool shouldThrowOnFailure) 
+        {
+            if (a == null)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentNullException("a");
+                return false;
+            }
+
+            if (t == null)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentNullException("t");
+                return false;
+            }
+
+            Type returnType_t = a.ReturnType;
+            Type returnType_a = t.ReturnType;
+
+            bool rCompatible = returnType_a == returnType_t;
+
+            if (!rCompatible && !returnType_t.IsValueType && returnType_t != typeof(ValueType) && returnType_t.IsAssignableFrom(returnType_a))
+            {
+                rCompatible = true;
+            }
+
+            if (a.IsStatic != t.IsStatic)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentException("if (a.IsStatic != t.IsStatic)");
+                return false;
+            }
+
+            if (!rCompatible)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentException("Method return type is incompatible.");
+                return false;
+            }
+
+            var parametersTList = t.GetParameters();
+            var parametersAList = a.GetParameters();
+
+            if (parametersAList.Length != parametersTList.Length)
+            {
+                if (shouldThrowOnFailure)
+                    throw new ArgumentException("Method argument length mismatch.\nTLength: " + parametersTList.Length + "ALength: " + parametersAList.Length);
+                return false;
+            }
+
+            int numLength = parametersTList.Length;
+            for (int i = 0; i < numLength; i++)
+            {
+                bool argumentsCompatible = parametersTList[i].ParameterType == parametersAList[i].ParameterType;
+                if (!argumentsCompatible)
+                {
+                    Type parameterTypeT = parametersTList[i].ParameterType;
+                    if (!parameterTypeT.IsValueType &&
+                        parameterTypeT != typeof(ValueType) &&
+                        parametersAList[i].ParameterType.IsAssignableFrom(parameterTypeT))
+                    {
+                        argumentsCompatible = true;
+                    }
+                }
+
+                if (!argumentsCompatible)
+                {
+                    if (shouldThrowOnFailure)
+                        throw new ArgumentException("Method arguments are incompatible.");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public unsafe static long DoubleToInt64Bits(double value)
+        {
+            return *(long*)(&value);
+        }
+
+
+        public unsafe static double Int64BitsToDouble(long value)
+        {
+            return *(double*)(&value);
+        }
+
+
+        public unsafe static int FloatToInt32Bits(float value)
+        {
+            return *(int*)(&value);
+        }
+
+
+        public unsafe static float Int32BitsToFloat(int value)
+        {
+            return *(float*)(&value);
+        }
+
+        public unsafe static void niecmod_script_zeromemory64(byte* src, long len)
+        {
+            while (len-- > 0)
+            {
+                src[len] = 0;
+            }
+        }
+
+        public unsafe static void niecmod_script_zeromemory32(byte* src, int len)
+        {
+            while (len-- > 0)
+            {
+                src[len] = 0;
+            }
+        }
+
+        public unsafe static bool niecmod_script_copy_ptr_methed_to_methed_internal<T>(IntPtr method_ptr_a, IntPtr method_ptr_t, bool copy_methed_info)
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+                throw new NotSupportedException("Sims 3 64 bit version not supported.");
+
+#if !GameVersion_0_Release_2_0_209
+            throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+#else
+            if (method_ptr_a.value == null || method_ptr_t.value == null)
+                return false;
+
+            uint ptr_a = (uint)method_ptr_a.value;
+            uint ptr_t = (uint)method_ptr_t.value;
+
+            if (*(uint*)(ptr_a) == 0x00000000)
+            {
+                NFinalizeDeath.AssertX
+                    (false, "*(uint*)(ptr_a) == 0x00000000\nST:\n" + NFinalizeDeath.GetSTLite01());
+                return false;
+            }
+
+            if (*(uint*)(ptr_t) == *(uint*)(ptr_a))
+                return true;
+
+            *(uint*)(ptr_t)       = *(uint*)(ptr_a);       // IL list runtime IP
+            *(uint*)(ptr_t + 0x4) = *(uint*)(ptr_a + 0x4); // info method virtaul?
+
+            if (copy_methed_info)
+            {
+                *(uint*)(ptr_t + 0x8) = *(uint*)(ptr_a + 0x8); // info method if not pre link?
+                *(uint*)(ptr_t + 0xC) = *(uint*)(ptr_a + 0xC); // info method virtaul? if created?
+            } 
+            else if (*(uint*)(ptr_t + 0xC) == 0x00000000)
+            {
+                *(uint*)(ptr_t + 0xC) = *(uint*)(ptr_t + 0x8); // info method virtaul? if created? or info method if not pre link?
+            }
+
+            *(uint*)(ptr_t + 0x10) = *(uint*)(ptr_a + 0x10); // Unknown
+
+            *(uint*)(ptr_t + 0x14) = *(uint*)(ptr_a + 0x14); // set filend? by sfsfld or newobj
+            *(uint*)(ptr_t + 0x18) = *(uint*)(ptr_a + 0x18); // set filend? by sfsfld or newobj
+
+            *(uint*)(ptr_t + 0x1C) = *(uint*)(ptr_a + 0x1C); // IL call method?
+            *(uint*)(ptr_t + 0x20) = *(uint*)(ptr_a + 0x20); // IL call method?
+
+            *(uint*)(ptr_t + 0x24) = *(uint*)(ptr_a + 0x24); // Unknown
+            *(uint*)(ptr_t + 0x28) = *(uint*)(ptr_a + 0x28); // Unknown
+            *(uint*)(ptr_t + 0x2C) = *(uint*)(ptr_a + 0x2C); // Unknown
+
+            *(uint*)(ptr_t + 0x30) = *(uint*)(ptr_a + 0x30); // Unknown
+            *(uint*)(ptr_t + 0x34) = *(uint*)(ptr_a + 0x34); // count?
+
+            *(uint*)(ptr_t + 0x38) = *(uint*)(ptr_a + 0x38); // Unknown
+            *(uint*)(ptr_t + 0x3C) = *(uint*)(ptr_a + 0x3C); // Unknown
+            *(uint*)(ptr_t + 0x40) = *(uint*)(ptr_a + 0x40); // Unknown count?
+            *(uint*)(ptr_t + 0x44) = *(uint*)(ptr_a + 0x44); // created or not created flag
+
+            return true;
+#endif // GameVersion_0_Release_2_0_209
+        }
        
         public unsafe static uint niecmod_safecall_script_get_func_ptr_dll(IntPtr internaldll_function)
         {

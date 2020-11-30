@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Created by SharpDevelop.
  * User: Niec 2018
  * Date: 20/10/2018
@@ -560,14 +560,15 @@ namespace NiecMod.Nra
                 //mSim.SimRoutingComponent.DisableDynamicFootprint();
                 
                 //mSim.SimRoutingComponent.EnableDynamicFootprint();
-                
-                if (!mSim.LotCurrent.IsWorldLot)
+
+                if (mSim.LotCurrent != null && !mSim.LotCurrent.IsWorldLot)
                 {
                     GrimReaper.Instance.MakeServiceRequest(mSim.LotCurrent, true, ObjectGuid.InvalidObjectGuid);
                 }
-                if (!PlumbBob.Singleton.mSelectedActor.LotCurrent.IsWorldLot)
+                var p = NFinalizeDeath.GetSafeSelectActor();
+                if (p != null && p.mLotCurrent != null && !p.mLotCurrent.IsWorldLot)
                 {
-                    GrimReaper.Instance.MakeServiceRequest(PlumbBob.Singleton.mSelectedActor.LotCurrent, true, ObjectGuid.InvalidObjectGuid);
+                    GrimReaper.Instance.MakeServiceRequest(p.LotCurrent, true, ObjectGuid.InvalidObjectGuid);
                 }
             }
             catch (Exception gers)
@@ -1831,34 +1832,6 @@ namespace NiecMod.Nra
             }
         }
 
-        public ThumbnailKey GetThumbnailForGameObjectATSARS(ObjectGuid objGuid, ThumbnailSize size, int index, bool bForceUseSimDescription)
-        {
-            GameObject @object = GameObject.GetObject<GameObject>(objGuid);
-            if (@object == null)
-            {
-                return new ThumbnailKey(ResourceKey.kInvalidResourceKey, ThumbnailSize.Medium);
-            }
-            Sim sim = mSim;
-            if (sim == null || sim.SimDescription == null)
-            {
-                ThumbnailKey thumbnailKey = @object.GetThumbnailKey();
-                thumbnailKey.mSize = size;
-                thumbnailKey.mCamera = ThumbnailCamera.Body;
-                return thumbnailKey;
-            }
-            if (bForceUseSimDescription)
-            {
-                SimOutfit currentOutfit = sim.CurrentOutfit;
-                ThumbnailKey result = new ThumbnailKey(currentOutfit, 0, ThumbnailSize.Large, ThumbnailCamera.Default);
-                if (sim.SimDescription.IsGhost)
-                {
-                    result.mIndex = (int)(5u + sim.SimDescription.DeathStyle);
-                }
-                return result;
-            }
-            return sim.SimDescription.GetThumbnailKey(ThumbnailSize.Large, index);
-        }
-
         public void PersistPostLoad()
         {
             AlarmHandle ah = this_alarm;
@@ -1879,6 +1852,21 @@ namespace NiecMod.Nra
                     AlarmManager.Global.RemoveAlarm(ah);
             }
         }
+    }
+
+    internal class nobjecoD
+    {
+        public static nobjecoD Home = new nobjecoD();
+
+        public bool boolTrue()
+        {
+            return true;
+        }
+        public bool boolFalse()
+        {
+            return false;
+        }
+        
     }
 
     public class nonYieldRunFunc
@@ -1934,6 +1922,7 @@ namespace NiecMod.Nra
     
     public static class NFinalizeDeath
     {
+        
         internal static bool cache_MsCorlibIsModifed = false;
         internal static bool sMsCorlibIsModifed = false;
         internal static bool MsCorlibIsMod()
@@ -1943,10 +1932,18 @@ namespace NiecMod.Nra
                 cache_MsCorlibIsModifed = true;
                 sMsCorlibIsModifed = MsCorlibModifed_GetExLists() != null;
             }
-            return sMsCorlibIsModifed;
+            return Instantiator.SYNInject || sMsCorlibIsModifed;
         }
+
         public static List<Exception> MsCorlibModifed_GetExLists()
         {
+            if (Instantiator.SYNInject)
+            {
+                if (NSystemException.__IListEx != null)
+                {
+                    return NSystemException.__IListEx;
+                }
+            }
             try
             {
                 Type type = typeof(SystemException); 
@@ -1960,11 +1957,29 @@ namespace NiecMod.Nra
                 }
             }
             catch (Exception ex)
-            { Assert("getexlists\n"+ex.ToString()); }
+            { AssertX(false,"getexlists\n"+ex.ToString()); }
 
             return null;
         }
+        public static bool MsCorlibModifed_IsExLists()
+        {
+            try
+            {
+                Type type = typeof(SystemException);
+                if (type != null)
+                {
+                    FieldInfo mField = type.GetField("__IListEx", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (mField != null)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            { AssertX(false,"MsCorlibModifed_IsExLists\n" + ex.ToString()); }
 
+            return false;
+        }
         public static Exception MsCorlibModifed_GetLastException () // unprotected mono mscorlib 
         {
             var CacheListEx = MsCorlibModifed_GetExLists ();
@@ -1984,6 +1999,88 @@ namespace NiecMod.Nra
         }
 
         public static bool is_d_scobjectscmd = false;
+
+        public static TValue[] GetValuesDictionary<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> _this)
+        {
+            var index = 0;
+            var newr = new TValue[_this.used_slots];
+            var p = _this.table;
+            var c = p.Length;
+
+            for (int i = 0; i < c; i++)
+            {
+                for (var slot = p[i]; slot != null; slot = slot.Next)
+                {
+                    newr[index++] = slot.Value;
+                }
+            }
+            return newr;
+        }
+        public static List<TValue> GetValuesDictionary2<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> _this)
+        {
+            if (_this.table.Length == 0)
+                return new List<TValue>();
+            if (_this.used_slots < 0)
+                throw new ArgumentOutOfRangeException();
+
+            var newtemp = new List<TValue>(_this.used_slots + 1);
+            var p = _this.table;
+            var c = p.Length;
+
+            for (int i = 0; i < c; i++)
+            {
+                for (var slot = p[i]; slot != null; slot = slot.Next)
+                {
+                    AddItemToList(newtemp, slot.Value);
+                }
+            }
+
+            return newtemp;
+        }
+
+        public static List<TValue> GetValuesDictionary3<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> _this)
+        {
+            if (_this.table.Length == 0)
+                return new List<TValue>();
+
+            var newtemp = new List<TValue>(200);
+            var p = _this.table;
+            var c = p.Length;
+
+            for (int i = 0; i < c; i++)
+            {
+                for (var slot = p[i]; slot != null; slot = slot.Next)
+                {
+                    newtemp.Add(slot.Value);
+                }
+            }
+
+            return newtemp;
+        }
+
+        public static Delegate GetBaseDelegate(Delegate d)
+        {
+            if (d == null)
+                throw new ArgumentNullException("d");
+
+            var p = typeof(Delegate);
+
+            Delegate r = d;
+
+            while (r.Method.DeclaringType.IsDefined(p, false))
+            {
+                var a = r.Target as Delegate;
+
+                if (a == null)
+                    break;
+                if (r.Equals(a))
+                    break;
+
+                r = a;
+            }
+
+            return r;
+        }
 
         public static string MsCorlibModifed_Exlists()
         {
@@ -2812,7 +2909,7 @@ namespace NiecMod.Nra
                             break;
                         }
                         string promptText2 = Localization.LocalizeString("Ui/Caption/Options:SaveConfirm");
-                        if (AcceptCancelDialog.Show(promptText2, forceShowDialog))
+                        if (NFinalizeDeath.CheckAccept(promptText2, forceShowDialog))
                         {
                             GameUtils.DeleteSaveFile(text);
                             break;
@@ -3146,14 +3243,15 @@ namespace NiecMod.Nra
             }
             else
             {
-                if (Target == PlumbBob.SelectedActor)
+                var aa = (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor);
+                if (Target == aa)
                     return true;
 
                 Household household = Target.Household;
-                if (household != null)
-                    return household == Household.ActiveHousehold;
+                if (household != null && aa != null)
+                    return household == aa.Household;
 
-                return Target.IsInActiveHousehold;
+                return false;//Target.IsInActiveHousehold;
             }
         }
 
@@ -3205,6 +3303,13 @@ namespace NiecMod.Nra
                 return CheckAccpetWithoutYield(text);
             }
             return AcceptCancelDialog.Show("NiecMod\n" + text);
+        }
+
+        public static bool CheckAccept(string text, bool a)
+        {
+            if (a)
+                ModalDialog.EnableModalDialogs = true;
+            return CheckAccept(text);
         }
 
         public static readonly OutfitCategories[] OutfitCategories_OnlyEveryday = new OutfitCategories[] {
@@ -4053,6 +4158,8 @@ namespace NiecMod.Nra
             if (ths == null) 
                 throw new ArgumentNullException("ths");
             Route route = ths.CreateRoute();
+            if (route == null)
+                return false;
             uint checkloop = 500000;
             while (routeOptionAddFlags != 0)
             {
@@ -5118,10 +5225,13 @@ System.NullReferenceException: A null value was found where an object instance w
 
                     try
                     {
+                        Instantiator.AddInteractionsGO(targetGameObject);
                         Instantiator.AddInteractions(targetGameObject as Sim);
+
                         var func = OnFunc_TestAddInteractionError as Predicate<GameObject>;
                         if (func != null && func.method_info != null)
                             func(targetGameObject);
+
                     }
                     catch (StackOverflowException)
                     {
@@ -5175,7 +5285,8 @@ System.NullReferenceException: A null value was found where an object instance w
                                 TestAddInteractionError_data01 = Sims3.SimIFace.StringTable.gStringTable;
                                 Sims3.SimIFace.StringTable.gStringTable = null;
 
-                                methed_AddInteractions.Invoke(testInteraction, tempPar); // info: tempPar = new object[] {activeActor, listTemp};
+                                if (!Instantiator.NIOPInject)
+                                    methed_AddInteractions.Invoke(testInteraction, tempPar); // info: tempPar = new object[] {activeActor, listTemp};
                                 if (cachemethed_METestAddInteractionErrorTestPMPPIsNotNull)
                                 {
                                     // info: tempPar2 = new object[] {  testInteraction.InteractionDefinition, testInteraction, activeActor };
@@ -5336,7 +5447,8 @@ System.NullReferenceException: A null value was found where an object instance w
         public static void CheckNHSP() {
             if (Simulator.CheckYieldingContext(false)) {
                 Sim currentSim = GetCurrentGameObjectFast<Sim>();
-                if (currentSim != null && currentSim.Posture is NiecHelperSituationPosture) {
+                if (currentSim != null && (NiecHelperSituation.isdgmods || !SimIsGRReaper(currentSim.mSimDescription)) && currentSim.Posture is NiecHelperSituationPosture)
+                {
                     NiecHelperSituationPosture.r_internal(currentSim);
                 }
             }
@@ -5858,6 +5970,10 @@ System.NullReferenceException: A null value was found where an object instance w
                 List<Situation> listSituations = sSituationComponent.Situations;
                 if (listSituations == null)
                     return null;
+
+                var a = listSituations._items;
+                var c = listSituations._size;
+
                 //if (!IsOpenDGSInstalled && !_IsActiveHousehold(Actor.Household)) // unprotected mono mscorlib 
                 //{
                 //    if (listSituations._items == null)
@@ -5868,9 +5984,11 @@ System.NullReferenceException: A null value was found where an object instance w
                 //        //listSituations._version++;
                 //    }
                 //}
-                foreach (Situation situation in listSituations)
+
+                //foreach (Situation situation in listSituations)
+                for (int i = 0, imaxLength = a.Length; i < imaxLength && i < c; i++)
                 {
-                    S val = situation as S;
+                    S val = a[i] as S;
                     if (val != null)
                     {
                         return val;
@@ -6071,18 +6189,27 @@ System.NullReferenceException: A null value was found where an object instance w
             void FixUpSimIsBad(Sim[] simList) 
         {
             var simAC = ActiveActor;
-            foreach (var item in simList ?? SC_GetObjects<Sim>())
-            {
 
+            Sim[] sim_objects = simList ?? SC_GetObjects<Sim>();
+            var c = sim_objects.Length;
+
+            for (int i = 0; i < c; i++)
+            {
+                var item = sim_objects[i];
                 if (item == null) 
                     continue;
+
                 if (NiecHelperSituation.SimHasBeenDestroyed(item))
                 {
                     if (item == simAC) 
                         continue;
+
                     if (IsOpenDGSInstalled && item.mSimDescription == null)
                         item.mSimDescription = ListCollon.NullSimSimDescription;
+
                     ForceDestroyObject(item, false);
+
+                    sim_objects[i] = null;
                 }
             }
         }
@@ -6093,10 +6220,13 @@ System.NullReferenceException: A null value was found where an object instance w
             NiecHelperSituation nhs = SafeGetSituationOfType<NiecHelperSituation>(item);
             if (nhs == null)
                 return;
+
             nhs.Worker = item;
+
             NiecHelperSituation.Spawn nhsSp = nhs.Child as NiecHelperSituation.Spawn;
             if (nhsSp == null)
                 return;
+
             nhsSp.ReCreateTick(item);
         }
 
@@ -6215,7 +6345,7 @@ System.NullReferenceException: A null value was found where an object instance w
             foreach (var item in t)
             {
                 lsleep++;
-                if (lsleep > 65)
+                if (lsleep > 50)
                 {
                     lsleep = 0;
                     SleepTask((uint)t.Length);
@@ -6698,6 +6828,7 @@ System.NullReferenceException: A null value was found where an object instance w
             {
                 if (item == null)
                     continue; 
+
                 bool niecHelperSituationCreated = false;
                 NiecHelperSituation nhs = needFixSituations ? NewSafeGetSituationOfType<NiecHelperSituation>(item) : SafeGetSituationOfType<NiecHelperSituation>(item);
                 if (nhs == null)
@@ -6814,18 +6945,29 @@ System.NullReferenceException: A null value was found where an object instance w
         }
 
         public static bool field_NeedNewSituations = false;
+        public static NiecTask[] itisdoe = null;
 
         public static 
             void LoopReAllNHSOnTick()
         {
-            for (byte sleepc = 0; sleepc < 15; sleepc++)
+            for (int sleepc = 0; sleepc < 25; sleepc++)
             {
                 Simulator.Sleep(0);
             } 
+
             while (true) {
-                Simulator.Sleep(0);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    Simulator.Sleep(0);
+                }
+              
                 var simList = SC_GetObjects<Sim>();
-                if (simList == null) continue;
+                if (simList == null)
+                    continue;
+
+                itisdoe = SC_GetObjects<NiecTask>();
+
                 try
                 {
                     FixUpSimIsBad(simList);
@@ -6833,15 +6975,17 @@ System.NullReferenceException: A null value was found where an object instance w
                     ReAllNHSOnTick(simList);
                 }
                 catch (ResetException)
-                { throw; }
+                { itisdoe = null; throw; }
                 catch
                 {
-                    for (byte i = 0; i < 150; i++)
+                    itisdoe = null;
+                    for (int i = 0; i < 250; i++)
                     {
                         Simulator.Sleep(0);
                     }
                 }
-                
+
+                itisdoe = null;
             }
         }
 
@@ -6999,6 +7143,11 @@ System.NullReferenceException: A null value was found where an object instance w
             }
         }
 
+        public static T GetNull<T>()
+        {
+            return default(T);
+        }
+
         public static void UnsafeAllThatBugSimCantUse(Sim objSim)
         {
             if (objSim == null)
@@ -7014,6 +7163,28 @@ System.NullReferenceException: A null value was found where an object instance w
                 throw;
             }
             catch { }
+        }
+
+        public static string GetSTLite01()
+        {
+            var st = new NStackTrace(1);
+            var sb = new StringBuilder();
+            for (int stack = st.FrameCount - 1; stack >= 0; stack--)
+            {
+                var sf = st.GetFrame(stack);
+                if (st == null)
+                    continue;
+
+                var m = sf.methodBase;
+                if (m == null)
+                    continue;
+
+                sb.Append(m.DeclaringType.Name);
+                sb.Append("::");
+                sb.Append(m.Name);
+                sb.Append('\n');
+            }
+            return sb.ToString();
         }
 
         public static string GetObjectSTLite01(ulong ObjectID)
@@ -7193,15 +7364,184 @@ System.NullReferenceException: A null value was found where an object instance w
             }
         }
 
-       //public static IntPtr GetFunctionPtr() { 
-       //    new NFinalizeDeath.FunctionX(NFinalizeDeath.DTESTMOK).method_ptr;
-       //}
+        public static IntPtr GetFunctionPointer(Function func)
+        {
+            return func.method_ptr;
+        }
+        public static object[] FindGetFunctionPointer(string typeName, string funcName, BindingFlags flags, object obj)
+        {
+            if (funcName == null)
+                throw new ArgumentNullException("funcName");
+            if (typeName == null)
+                throw new ArgumentNullException("typeName");
 
-        public unsafe static void Assert(string message) { Assert(false, message); }
-        private unsafe static void assertbool_internal(bool condition, string message)
+            //if (typeArgs == null)
+            //    throw new ArgumentNullException("typeArgs");
+            //
+            //for (int i = 0; i < typeArgs.Length; i++)
+            //{
+            //    if (typeArgs[i] == null)
+            //        throw new ArgumentNullException("typeArgs", "typeArgs[" + i + "] is null");
+            //}
+
+            var type = Type.GetType(typeName, false);
+            if (type == null)
+            {
+                foreach (var item in GetAssemblies())
+                {
+                    if (item == null) 
+                        continue;
+
+                    type = item.GetType(typeName);
+                    if (type != null)
+                        break;
+                }
+            }
+
+
+            if (type != null)
+            {
+                Type voidType = typeof(void);
+                var m = (MonoMethod)type.GetMethod(funcName, flags, null, new Type[0], null);
+                if (m != null)
+                {
+                    
+                    if (m.ContainsGenericParameters)
+                        throw new ArgumentException("funcName is invalid.");
+
+                    if (!m.IsStatic && obj == null)
+                        throw new ArgumentException("funcName is not Static. Need object");
+
+                    if (m.IsAbstract)
+                        throw new ArgumentException("funcName is Abstract.");
+
+                    if (m.ReturnType != voidType)
+                        throw new ArgumentException("funcName is ReturnType invalid.");
+
+                    var parInfo = m.GetParameters();
+                    if (parInfo == null)
+                        throw new ArgumentException("funcName don't have parameters.");
+
+                    if (parInfo.Length == 0)
+                    {
+                        var newA = new object[2];
+                        newA[0] = m;
+
+                        if (obj != null && !m.IsStatic)
+                        {
+                            newA[1] = ((Function)System.Delegate.CreateDelegate(typeof(Function), obj, m));
+                        }
+                        newA[1] = ((Function)System.Delegate.CreateDelegate(typeof(Function), m));
+
+                        return newA;
+                    }
+                    else throw new ArgumentException("funcName parameters > 0.");
+                }
+            }
+            return null;
+        }
+
+
+        public static IntPtr GetFunctionXPointer(FunctionX func)
+        {
+            return func.method_ptr;
+        }
+        public static object[] FindGetFunctionXPointer(string typeName, string funcName, BindingFlags flags, object obj)
+        {
+            if (funcName == null)
+                throw new ArgumentNullException("funcName");
+            if (typeName == null)
+                throw new ArgumentNullException("typeName");
+
+            //if (typeArgs == null)
+            //    throw new ArgumentNullException("typeArgs");
+            //
+            //for (int i = 0; i < typeArgs.Length; i++)
+            //{
+            //    if (typeArgs[i] == null)
+            //        throw new ArgumentNullException("typeArgs", "typeArgs[" + i + "] is null");
+            //}
+
+            var type = Type.GetType(typeName, false);
+            if (type == null)
+            {
+                foreach (var item in GetAssemblies())
+                {
+                    if (item == null)
+                        continue;
+
+                    type = item.GetType(typeName);
+                    if (type != null)
+                        break;
+                }
+            }
+
+
+            if (type != null)
+            {
+                Type boolType = typeof(bool);
+                var m = (MonoMethod)type.GetMethod(funcName, flags, null, new Type[0], null);
+                if (m != null)
+                {
+                    if (m.ContainsGenericParameters)
+                        throw new ArgumentException("funcName is invalid.");
+
+                    if (!m.IsStatic && obj == null)
+                        throw new ArgumentException("funcName is not Static. Need objects");
+
+                    if (m.IsAbstract)
+                        throw new ArgumentException("funcName is Abstract.");
+
+                    if (m.ReturnType != boolType)
+                        throw new ArgumentException("funcName is ReturnType invalid.");
+
+                    var parInfo = m.GetParameters();
+                    if (parInfo == null)
+                        throw new ArgumentException("funcName don't have parameters.");
+
+                    if (parInfo.Length == 0)
+                    {
+                        var newA = new object[2];
+                        newA[0] = m;
+
+                        if (obj != null && !m.IsStatic)
+                        {
+                            newA[1] = ((FunctionX)System.Delegate.CreateDelegate(typeof(FunctionX), obj, m));
+                        }
+                        newA[1] = ((FunctionX)System.Delegate.CreateDelegate(typeof(FunctionX), m));
+
+                        return newA;
+                    }
+                    else throw new ArgumentException("funcName parameters > 0.");
+                }
+            }
+            return null;
+        }
+
+
+        
+
+        
+
+        public unsafe static void Assert(string message) {
+            niec_native_func.OutputDebugString(message);
+            Assert(false, message);
+        }
+
+        public unsafe static void AssertX(bool condition, string message)
+        {
+            if (condition)
+                return;
+
+            niec_native_func.OutputDebugString(message);
+
+            assertbool_internal(message, Assembly.GetCallingAssembly().GetName().Name);
+        }
+
+        private unsafe static void assertbool_internal(string message, string modName)
         {
             //if (Assembly.GetExecutingAssembly() != Assembly.GetCallingAssembly()) return;
-            if (Simulator.CheckYieldingContext(false))
+            if (Simulator.CheckYieldingContext(false) && modName == null)
             {
                 var ctask = ScriptCore.Simulator.Simulator_GetCurrentTaskImpl();
                 NiecTask.CreateWaitPerformWithExecuteType(GetCurrentExecuteType(), () =>
@@ -7348,7 +7688,10 @@ System.NullReferenceException: A null value was found where an object instance w
             {
                 if (niec_native_func.cache_done_niecmod_native_message_box)
                 {
-                    switch (niec_native_func.MessageBox(0, "Assertion failed!\n\nMessage:\n\n" + message + "\n\n(Press Retry to debug the game)\nPlease run the x32dbg app. You can debug to Sims 3", "NiecMod", (niec_native_func.MB_Type)0x00012012u))
+                    if (MsCorlibModifed_ExlistsX(false, false) != 0)
+                        MsCorlibModifed_Exlists(false);
+                    
+                    switch (niec_native_func.MessageBox(0, "Assertion failed!\n\nMessage:\n\n" + message + "\n\n(Press Retry to debug the game)\nPlease run the x32dbg app. You can debug to Sims 3", modName ?? "NiecMod", (niec_native_func.MB_Type)0x00012012u))
                     {
                         case niec_native_func.ResultMB.IDABORT:  
                         {
@@ -7364,9 +7707,10 @@ System.NullReferenceException: A null value was found where an object instance w
 #if NIECMOD_NATIVE_DEBUG_ASSERT
                             niec_native_func.OutputDebugString("Please x32dbg attech to Sims 3"); // Debugging to Sims 3
 #endif
-                            niec_native_func.MessageBox(0, "Please x32dbg attech to Sims 3", "NiecMod", 0);
+                            niec_native_func.MessageBox(0, "Please x32dbg attech to Sims 3", modName ?? "NiecMod", 0);
 
-                            if (CheckAccpetWithoutYield("Do you want call Debugger_Break()?"))
+                            if (niec_native_func.MessageBox(0, "Do you want call Debugger_Break()?", modName ?? "NiecMod", niec_native_func.MB_Type.MB_ICONEXCLAMATION | niec_native_func.MB_Type.MB_OKCANCEL) == niec_native_func.ResultMB.IDOK)
+                            //if (CheckAccpetWithoutYield("Do you want call Debugger_Break()?"))
                                 Debugger_Break();
                             return;
                         }
@@ -7388,6 +7732,46 @@ System.NullReferenceException: A null value was found where an object instance w
                 ThrowResetException(null);
             }
         }
+
+        public static Sim GetSafeSelectActor()
+        {
+            if (NPlumbBob.sCurrentSimTwo != null)
+                return NPlumbBob.sCurrentSimTwo;
+            if (NPlumbBob.sCurrentSim != null)
+                return NPlumbBob.sCurrentSim;
+
+            PlumbBob splumbBob = PlumbBob.sSingleton;
+            if (splumbBob != null)
+                return splumbBob.mSelectedActor;
+
+            return null;
+        }
+
+        public static Type GetGoodType(string typeName, bool throwOnError)
+        {
+            if (typeName == null)
+                throw new ArgumentNullException("typeName");
+
+            var type = Type.GetType(typeName, false);
+            if (type == null)
+            {
+                foreach (var item in GetAssemblies())
+                {
+                    if (item == null)
+                        continue;
+
+                    type = item.GetType(typeName);
+                    if (type != null)
+                        break;
+                }
+            }
+
+            if (type == null && throwOnError)
+                throw new ArgumentException("Type not found. Type Name: \"" + typeName + "\"");
+
+            return type;
+        }
+
         public unsafe static void Assert(bool condition, string message)
         {
             if (!condition)
@@ -7428,7 +7812,7 @@ System.NullReferenceException: A null value was found where an object instance w
                     }
                 }
 
-                assertbool_internal(condition, message);
+                assertbool_internal(message, null);
             }
         }
 
@@ -8393,7 +8777,7 @@ System.NullReferenceException: A null value was found where an object instance w
             int ifound = 0;
             if (ifound == 0)
             {
-                foreach (var item in SC_GetObjects<NiecTask>())
+                foreach (var item in itisdoe ?? SC_GetObjects<NiecTask>())
                 {
                     if (item == null) continue;
                     if (item.GetTargetObject() == targetObj)
@@ -8692,23 +9076,6 @@ System.NullReferenceException: A null value was found where an object instance w
                     if (!itemInteraction.Autonomous && itemInteraction.InstanceActor == activeActor && itemInteraction.Target == NiecRunCommand.HitTargetGameObject())
                         return true;
                 }
-
-                //var inDefin = itemInteraction.InteractionDefinition;
-                //if (inDefin != null)
-                //{
-                //    InteractionDefinition goHereDe = (inDefin as Terrain.GoHere.SameLotDefinition ?? inDefin as Terrain.GoHereWith.SameLotDefinition);
-                //    if (goHereDe != null)
-                //    {
-                //        if (goHere.Actor == PlumbBob.SelectedActor)
-                //            return true;
-                //    }
-                //    goHereDe = (inDefin as Terrain.GoHere.OtherLotDefinition ?? inDefin as Terrain.GoHereWith.OtherLotDefinition);
-                //    if (goHereDe != null)
-                //    {
-                //        if (goHere.Actor == PlumbBob.SelectedActor)
-                //            return true;
-                //    }
-                //}
             }
             return false;   
         }
@@ -10022,15 +10389,22 @@ System.NullReferenceException: A null value was found where an object instance w
                 if (list._size < 0 || list._size > list._items.Length)
                     list._size = 0;
 
-                var index = list._size - 1;
-                if (index < 0)
-                    index = 0;
+                if (list._size == list._items.Length)
+                    list._size = 0;
 
-                list._items[index] = item;
+                if ((list._size - 1) < 0)
+                    list._size = 0;
+
+                list._items[list._size++] = item;
                 list._version++;
-                list._size++;
 
-                return index;
+                var idx = list._size - 1;
+                if (idx < 0)
+                {
+                    AssertX(false, "AddItemToList: (list._size - 1) < 0");
+                }
+
+                return list._size - 1;
             }
             return -1;
         }
@@ -10184,10 +10558,12 @@ System.NullReferenceException: A null value was found where an object instance w
             //}
 
             if (actorName == null)
-                return smc.IsValid;
+                return !IsOpenDGSInstalled ? ScriptCore.SACS.SACS_IsEventQueueValidImpl(smc.mDriver.mHandle) : smc.IsValid;
 
             StateMachineClient smcOrigin = smc;
             StateMachineClient smcBackup = smc;
+            //bool isSim = false;
+            Sim vSim = null;
             BridgeOrigin origin;
 
             for (int i = 0; i < (unsafesmc ? 300 : 15); i++)
@@ -10202,10 +10578,30 @@ System.NullReferenceException: A null value was found where an object instance w
                         if (IsOpenDGSInstalled ? smcOrigin.mActors.ContainsKey(actorName) : niec_std.dictionary_contains_key(smcOrigin.mActors, actorName))
                         {
                             hasBridgeOrigin = IsOpenDGSInstalled ? smcOrigin.mActors[actorName] : niec_std.dictionary_get_value(smcOrigin.mActors, actorName);
+                            //isSim = hasBridgeOrigin is Sim;
+                            vSim = hasBridgeOrigin as Sim;
                             if (hasBridgeOrigin != null && (origin = hasBridgeOrigin.BridgeOrigin) != null)
                             {
                                 smcBackup = smcOrigin;
                                 smcOrigin = origin.mStateMachineClient;
+
+                                if (origin != null && vSim != null && vSim.IdleManager == null)
+                                {
+                                    if (unsafesmc)
+                                    {
+                                        if (IsOpenDGSInstalled)
+                                        {
+                                            smc.mActors[actorName] = null;
+                                            smcBackup.mActors[actorName] = null;
+                                        }
+                                        else
+                                        {
+                                            niec_std.dictionary_set_value(smc.mActors, actorName, null);
+                                            niec_std.dictionary_set_value(smcBackup.mActors, actorName, null);
+                                        }
+                                    }
+                                    else return false;
+                                }
 
                                 if ((smcOrigin != null && !smcOrigin.IsValid))
                                 {
@@ -10245,7 +10641,7 @@ System.NullReferenceException: A null value was found where an object instance w
                 if (origin == null || smcOrigin == smc || smcOrigin == smcBackup)
                     break;
             }
-            return smc.IsValid;
+            return !IsOpenDGSInstalled ? ScriptCore.SACS.SACS_IsEventQueueValidImpl(smc.mDriver.mHandle) : smc.IsValid;
         }
 
 
@@ -12497,92 +12893,95 @@ System.NullReferenceException: A null value was found where an object instance w
             return null;
         }
 
-        public static Sim NonOpenDGS_SimDesc_Instantiate(SimDescription ths, Vector3 position, SimOutfit outfit, bool forceAlwaysAnimate)
+        public static Sim NonOpenDGS_SimDesc_Instantiate(SimDescription _this, Vector3 position, SimOutfit outfit, bool forceAlwaysAnimate)
         {
 
-            if (ths == null)
-                return null; 
-            if (ths.CreatedSim != null && ths != ths.CreatedSim.SimDescription)  // Custom
+            if (_this == null)
+                return null;
+            if (_this.CreatedSim != null && _this != _this.CreatedSim.SimDescription)  // Custom
             {
                 try
                 {
-                    ForceCancelAllInteractionsWithoutCleanup(ths.CreatedSim);
-                    ths.CreatedSim.Destroy();
+                    ForceCancelAllInteractionsWithoutCleanup(_this.CreatedSim);
+                    _this.CreatedSim.Destroy();
                 }
                 catch (Exception)
                 { }
-                ths.mSim = null;
+                _this.mSim = null;
             }
-            if (!SafeNRaas.isnraasloaded) { return ths.Instantiate(position, ths.mDefaultOutfitKey, false, forceAlwaysAnimate); }
+
+            return _this.Instantiate(position, _this.mDefaultOutfitKey, false, forceAlwaysAnimate);
+
+            //if (!SafeNRaas.isnraasloaded) { return ths.Instantiate(position, ths.mDefaultOutfitKey, false, forceAlwaysAnimate); }
             
-            if (ths.CreatedSim != null) 
-                return ths.CreatedSim;
-            if (ths.mOutfits == null)
-            {
-                ths.mOutfits = new OutfitCategoryMap();
-                try
-                {
-                    ths.mOutfits[OutfitCategories.Everyday] = new ArrayList().Add(new Sims3.SimIFace.CAS.SimOutfit() { mIsLoaded = true, mHandle = 1 });
-                    ths.mOutfits[OutfitCategories.Naked] = new ArrayList().Add(new Sims3.SimIFace.CAS.SimOutfit() { mIsLoaded = true, mHandle = 1 });
-                    ths.Fixup();
-                }
-                catch (StackOverflowException) { throw; }
-                catch (ResetException) { throw; }
-                catch (Exception)
-                {}
-               
-            }
-            if (outfit == null)
-            {
-                try
-                {
-                    if (ths.IsHorse)
-                    {
-                        outfit = ths.GetOutfit(OutfitCategories.Naked, 0);
-                    }
-                    else outfit = ths.GetOutfit(OutfitCategories.Everyday, 0);
-                }
-                catch (StackOverflowException) { throw; }
-                catch (ResetException) { throw; }
-                catch
-                { }
-                try
-                {
-                    if (outfit == null && Sim.ActiveActor != null && Sim.ActiveActor.mSimDescription != null)
-                    {
-                        outfit = Sim.ActiveActor.mSimDescription.GetOutfit(OutfitCategories.Everyday, 0);
-                    }
-                }
-                catch (StackOverflowException) { throw; }
-                catch (ResetException) { throw; }
-                catch
-                {}
-                
-            }
-            Sim sim = null;
-            NiecNraTask.NraFunction temp = delegate
-            {
-                sim = NRaas.CommonSpace.Helpers.Instantiation.Perform(ths, position, outfit, null);
-            };
-            temp();
-            return sim;
+            //if (ths.CreatedSim != null) 
+            //    return ths.CreatedSim;
+            //if (ths.mOutfits == null)
+            //{
+            //    ths.mOutfits = new OutfitCategoryMap();
+            //    try
+            //    {
+            //        ths.mOutfits[OutfitCategories.Everyday] = new ArrayList().Add(new Sims3.SimIFace.CAS.SimOutfit() { mIsLoaded = true, mHandle = 1 });
+            //        ths.mOutfits[OutfitCategories.Naked] = new ArrayList().Add(new Sims3.SimIFace.CAS.SimOutfit() { mIsLoaded = true, mHandle = 1 });
+            //        ths.Fixup();
+            //    }
+            //    catch (StackOverflowException) { throw; }
+            //    catch (ResetException) { throw; }
+            //    catch (Exception)
+            //    {}
+            //   
+            //}
+            //if (outfit == null)
+            //{
+            //    try
+            //    {
+            //        if (ths.IsHorse)
+            //        {
+            //            outfit = ths.GetOutfit(OutfitCategories.Naked, 0);
+            //        }
+            //        else outfit = ths.GetOutfit(OutfitCategories.Everyday, 0);
+            //    }
+            //    catch (StackOverflowException) { throw; }
+            //    catch (ResetException) { throw; }
+            //    catch
+            //    { }
+            //    try
+            //    {
+            //        if (outfit == null && Sim.ActiveActor != null && Sim.ActiveActor.mSimDescription != null)
+            //        {
+            //            outfit = Sim.ActiveActor.mSimDescription.GetOutfit(OutfitCategories.Everyday, 0);
+            //        }
+            //    }
+            //    catch (StackOverflowException) { throw; }
+            //    catch (ResetException) { throw; }
+            //    catch
+            //    {}
+            //    
+            //}
+            //Sim sim = null;
+            //NiecNraTask.NraFunction temp = delegate
+            //{
+            //    sim = NRaas.CommonSpace.Helpers.Instantiation.Perform(ths, position, outfit, null);
+            //};
+            //temp();
+            //return sim;
         }
 
-        public static void CreateNRaasFunctionTask(Sims3.Gameplay.Function function)
-        {
-            if (!SafeNRaas.isnraasloaded) { return; }
-
-            if (function == null) 
-                throw new ArgumentNullException("function");
-            
-            //ref Sim asda = null;
-
-            NiecNraTask.NraFunction temp = delegate
-            {
-                NRaas.Common.FunctionTask.Perform(function);
-            };
-            temp();
-        }
+        //public static void CreateNRaasFunctionTask(Sims3.Gameplay.Function function)
+        //{
+        //    if (!SafeNRaas.isnraasloaded) { return; }
+        //
+        //    if (function == null) 
+        //        throw new ArgumentNullException("function");
+        //    
+        //    //ref Sim asda = null;
+        //
+        //    NiecNraTask.NraFunction temp = delegate
+        //    {
+        //        NRaas.Common.FunctionTask.Perform(function);
+        //    };
+        //    temp();
+        //}
 
 
         public static bool SimDescCleanse(IMiniSimDescription me, bool clear)
@@ -14203,8 +14602,11 @@ System.NullReferenceException: A null value was found where an object instance w
                         Urnstone urnstone = HelperNra.TFindGhostsGrave(sim);
                         if (urnstone != null)
                         {
-                            urnstone.SetPosition(Vector3.OutOfWorld);
+                            Sims3.SimIFace.Objects.SetPosition(urnstone.ObjectId, Vector3.OutOfWorld);
+                            //urnstone.SetPosition(Vector3.OutOfWorld);
                             urnstone.DeadSimsDescription = null;
+
+
                             //try
                             //{
                             //    urnstone.Dispose();
@@ -15194,7 +15596,7 @@ System.NullReferenceException: A null value was found where an object instance w
                 try
                 {
                     if (description.CelebrityManager != null)
-                    description.CelebrityManager.OnDispose();
+                        description.CelebrityManager.OnDispose();
                 }
                 catch (StackOverflowException) { throw; }
                 catch (ResetException) { throw; }
@@ -15281,7 +15683,7 @@ System.NullReferenceException: A null value was found where an object instance w
                 {
                     try
                     {
-                        if (description.OccultManager != null)
+                        if (description.OccultManager != null && description.OccultManager.mOccultList != null)
                         {
                             description.OccultManager.RemoveAllOccultTypes();
                         }
@@ -16764,6 +17166,8 @@ System.NullReferenceException: A null value was found where an object instance w
                 nullSimDesc.LastMakeoverReceivedUserDirected = SimClock.CurrentTime() - new DateAndTime(4, DaysOfTheWeek.Sunday, 0, 0, 0);
                 nullSimDesc.mStoredSlot = PASSPORTSLOT.PASSPORTSLOT_NUM;
                 nullSimDesc.mReturnSimAlarm = AlarmHandle.kInvalidHandle;
+
+                nullSimDesc.mLifetimeHappiness = 0;
             }
         }
 
@@ -16914,6 +17318,8 @@ System.NullReferenceException: A null value was found where an object instance w
         }
 
         public static bool WaitCheckAccept(string Message) {
+            if (!ModalDialog.EnableModalDialogs)
+                return false;
             if (Message == null && Simulator.CheckYieldingContext(false)) { 
                 Message = "Message is null ST:\n" + Get_Stack_Trace();
             }
@@ -16939,7 +17345,7 @@ System.NullReferenceException: A null value was found where an object instance w
                             niecTask.WaitPerform_DoneResult = false; 
                             return; 
                         }
-                        niecTask.WaitPerform_DoneResult = AcceptCancelDialog.Show(Message ?? "Message is null", true);
+                        niecTask.WaitPerform_DoneResult = CheckAccept(Message ?? "Message is null", true); //AcceptCancelDialog.Show(Message ?? "Message is null", true);
                     }
                 }
             ).Waiting();
@@ -18175,15 +18581,17 @@ public unsafe static
 {
     if (GameIs64Bit(false))
         return ScriptCore.World.World_IsEditInGameFromWBModeImpl();
-
+#if GameVersion_0_Release_2_0_209
     uint world = World_NativeInstance;
     if (world != 0)
     {
-        //IntPtr ptr_flags = new IntPtr(world + 0x1B4); // Check 64 bit?
-        //return *(uint*)ptr_flags.value == 2;
         return (*(uint*)(world + 0x1B4u)) == 2;
     }
     return false;
+#else 
+    return ScriptCore.World.World_IsEditInGameFromWBModeImpl();
+#endif
+    
 }
 ////////////////////////////////////////////////////////////////////////
 public unsafe static 
@@ -18193,7 +18601,7 @@ public unsafe static
     {
         if (GameIs64Bit(false))
             return 0;
-
+#if GameVersion_0_Release_2_0_209
         uint world = World_NativeInstance;
         if (world != 0)
         {
@@ -18201,18 +18609,24 @@ public unsafe static
             return *(uint*)(world + 0x1B4u);
         }
         return 0;
+#else 
+        return 0;
+#endif
     }
     set
     {
         if (GameIs64Bit(false))
             return;
-
+#if GameVersion_0_Release_2_0_209
         uint world = World_NativeInstance;
         if (world != 0)
         {
             //IntPtr ptr_flags = new IntPtr(world + 0x1B4);
             *(uint*)(world + 0x1B4u) = value;
         }
+#else 
+        return;
+#endif
     }
 }
 ////////////////////////////////////////////////////////////////////////
@@ -18267,7 +18681,7 @@ public unsafe static bool DownloadCoutext_CacheBoolIsDevBuild
         if (GameIs64Bit(false))
             return false;
 
-        #if GameVersion_0_Release_2_0_209
+#if GameVersion_0_Release_2_0_209
         return *(byte*)(0x11EA6C0u) == 1; 
 #else
         return ScriptCore.DownloadContent.DownloadContent_IsDevBuild();
@@ -19550,6 +19964,7 @@ public static
 
         private static Assembly[] cacheGetAssembliesEmtpy = null;
         private static Assembly[] cacheGetAssembliesEmtpyX = null;
+        private static Assembly[] cacheGetAssembliesEmtpyXX = null;
 
         public static Assembly[] GetAssemblies()
         {
@@ -19563,7 +19978,6 @@ public static
         public unsafe static
             void RemovePreventGetAssemblies()
         {
-            GetAssemblies();
             if (func_address_GetAssemblies != 0)
             {
                 var m01 = (MonoMethod)typeof(AppDomain).GetMethod
@@ -19579,6 +19993,8 @@ public static
                 {
                     Assert("GetAssemblies().Length != AppDomain.CurrentDomain.GetAssemblies().Length");
                 }
+
+                cacheGetAssembliesEmtpyXX = null;
             }
         }
 
@@ -19614,10 +20030,6 @@ public static
 
             native_address.obj_address(); // check (SIGSEGV)
 
-            // Code for x86:
-            // B3 ........    mov eax, assemblyList.obj_address()
-            // C3             ret
-
             if (cacheGetAssembliesEmtpy == null)
             {
                 cacheGetAssembliesEmtpy = new Assembly[] { 
@@ -19638,6 +20050,10 @@ public static
             var t2 = (uint)cacheGetAssembliesEmtpy.obj_address();
             var func_addresstemp = func_address + 1;
 
+            // Code for x86:
+            // B3 ........    mov eax, assemblyList.obj_address()
+            // C3             ret
+
             *(byte*)(func_address) = (byte)0xB8;
             *(uint*)(func_addresstemp) = t2;
             *(byte*)(func_addresstemp + 0x4) = (byte)0xC3;
@@ -19648,6 +20064,348 @@ public static
             Assert(
                AppDomain.CurrentDomain.GetAssemblies().Length == 0,
                "AppDomain.CurrentDomain.GetAssemblies().Length == 0 failed."
+            );
+
+            Assert(
+              AppDomain.CurrentDomain.GetAssemblies() == cacheGetAssembliesEmtpy,
+              "AppDomain.CurrentDomain.GetAssemblies() == cacheGetAssembliesEmtpy failed."
+            );
+
+            return b0;
+        }
+
+        public static bool asoeoertery = false;
+
+        public static bool asoeXoertery = false;
+
+        
+
+        public static void CallingAssemblyDebuggerDEBUG()
+        {
+            niec_native_func.OutputDebugString("Calling Assembly: " + Assembly.GetCallingAssembly().GetName().Name);
+
+            try
+            {
+                throw new NullReferenceException();
+            }
+            catch (Exception ex)
+            {
+                niec_native_func.OutputDebugString("NiecMod: --- :D Anti-AwesomeMod :D --- Exception:\n" + ex.ToString());
+            }
+        }
+        public static bool btada = false;
+
+        public static ObjectGuid StartCreateTaskFNHSWOW()
+        {
+            return NiecTask.Perform(() =>
+            {
+                Simulator.Sleep(1);
+                while (true)
+                {
+                    Simulator.Sleep(0);
+
+                    for (int i = 0; i < 2000; i++)
+                    {
+                        Simulator.Sleep(0);
+                    }
+
+                    try
+                    {
+                        FixUpNHSWorkingCountWrong();
+                    }
+                    catch (ResetException)
+                    {
+                        throw;
+                    }
+                    catch
+                    {
+                        for (int i = 0; i < 200; i++)
+                        {
+                            Simulator.Sleep(0);
+                        }
+                    }
+                }
+            });
+        }
+
+        public static void FixUpNHSWorkingCountWrong()
+        {
+            var p = SC_GetObjects<Sim>();
+            if (p != null && p.Length != NiecHelperSituation.Spawn.RunningWorkingNiecHelperSituation)
+            {
+                foreach (var item in SC_GetObjects<NiecTask>())
+                {
+                    if (item == null)
+                        continue;
+
+                    //var fuc = item.mFunction;
+                    //if (fuc == null)
+                    //    continue;
+                    var obj = item.GetTargetObject() as NiecHelperSituation.Spawn;
+
+                    if (obj != null)
+                    {
+                        obj._Dispose(true);
+                        Simulator.DestroyObject(item.ObjectId);
+                    }
+                }
+
+                if (NiecHelperSituation.Spawn.RunningWorkingNiecHelperSituation < 0)
+                    NiecHelperSituation.Spawn.RunningWorkingNiecHelperSituation = 0;
+
+                //Simulator.Sleep(0);
+
+                foreach (var item in p)
+                {
+                    ReAllNHSOnTick_internal(item);
+                }
+            }
+        }
+
+        public static void UnusedGetFuncPtr()
+        {
+            if (btada)
+            {
+                Sim nullv = null;
+                if (nullv == null)
+                    return;
+
+                nullv.Simulate();
+                nullv.Destroy();
+                nullv.CanSwitchToOuterwear();
+                nullv.IsDying();
+                nullv.RouteFailure();
+                nullv.CanBeKilled();
+                M(nullv.IsSelectable);
+                nullv.Kill(SimDescription.DeathType.BluntForceTrauma);
+                nullv.Kill(SimDescription.DeathType.BluntForceTrauma, null, false);
+                nullv.LoopIdle();
+                nullv.PlayReaction(Sims3.Gameplay.ActorSystems.ReactionTypes.None, new Sims3.Gameplay.Interactions.InteractionPriority(), null, null, default(ResourceKey), Sims3.Gameplay.ThoughtBalloons.ThoughtBalloonAxis.kAutoSelect, Sims3.Gameplay.ActorSystems.ReactionSpeed.None, null, null, false, 0, false, false);
+                Bim nullvX = null;
+                nullvX.Simulate();
+
+               
+
+                nullv.HasExitReason();
+
+
+                M(PlumbBob.SelectedActor);
+
+                PlumbBob.ForceSelectActor(nullv);
+                PlumbBob.CheckForChangeInActiveHousehold(null, false);
+                PlumbBob.DoSelectActor(nullv, false);
+                PlumbBob.OnObjectPendingDestruction(null, null);
+
+
+                SimDescription simd = null;
+                simd.Dispose(false, false, false, false, false);
+                simd.Instantiate(default(Vector3), default(ResourceKey), false, false);
+                simd.MakeUniqueId();
+                simd.Fixup();
+                SimDescription.OnWorldLoadFinished();
+                SimDescription.PostLoadFixUp();
+
+
+                ScriptCore.UTFConnectorSimulator.Simulator_SetYieldingDisabledImpl(false);
+
+                Sims3.Gameplay.CAS.Genetics.MakeSim(null, CASAgeGenderFlags.None, CASAgeGenderFlags.None, default(ResourceKey), 0, null, WorldName.Undefined, 0, false);
+                Sims3.Gameplay.CAS.GeneticsPet.CreateAndModifyBabyPetSimDescription(null, null, null, null, false, GeneticsPet.SetName.DoNotSetName, null, -1, OccultTypes.None, WorldName.Undefined);
+                Sims3.Gameplay.CAS.GeneticsPet.MakePetDescendant(null, null, CASAgeGenderFlags.None, CASAgeGenderFlags.None, CASAgeGenderFlags.None, null, false, GeneticsPet.SetName.DoNotSetName, -1, OccultTypes.None);
+                Sims3.Gameplay.CAS.GeneticsPet.MakePet(null, CASAgeGenderFlags.None, CASAgeGenderFlags.None, CASAgeGenderFlags.None, null, WorldName.Undefined);
+                OccultRobot.MakeRobot(default(ResourceKey));
+
+                Sims3.Gameplay.Services.FirefighterSituation.IsSimOnFire(null);
+
+                Household.Cleanup();
+
+                Sims3.Gameplay.Core.LotManager.CleanUpLotsAndInventories();
+
+                World.OnStartupApp();
+
+                AppDomain a = null;
+                a.GetAssemblies();
+                a.GetAssemblies(false);
+
+                IGameUtils aa = null;
+                aa.TransitionToQuit();
+
+                ScriptCore.GameUtils aa2 = null;
+                aa2.TransitionToQuit();
+
+                EventTracker aaa = null;
+                aaa.ProcessEvent(null);
+
+                ImmediateInteractionTask imm = null;
+                imm.Simulate();
+                M(new Function(imm.Simulate));
+
+                Sims3.Gameplay.Autonomy.Autonomy ttttt = null;
+                M(ttttt.ShouldRunLocalAutonomy);
+                M(ttttt.IsSufficientlyOnScreenForHighLODSimulation);
+                M(ttttt.IsRunningHighLODSimulation);
+
+                Sims3.Gameplay.Autonomy.InteractionObjectPair iop = null;
+                iop.AddInteractions(null, null);
+
+                Route.Create(null, 0);
+
+                IdleManager att = null;
+                att.ShouldScheduleIdles(IdleAnimationPriority.Undefined, null);
+
+                ScriptCore.GameUtils.GameUtils_TransitionToQuitImpl();
+
+                Motive yys = null;
+                yys.UpdateMotiveBuffs(nullv, CommodityKind.None, 0);
+                yys.MotiveDistress(nullv, CommodityKind.None);
+
+                Sims3.Gameplay.ActorSystems.InteractionQueue iq = null;
+                iq.PutDownCarriedObjects(null);
+
+                uint usada;
+
+                ScriptCore.TaskControl.GetMethodChecksum(new RuntimeMethodHandle(new IntPtr(0)), out usada);
+
+            }
+        }
+
+        public static void TestRunSEDInitProductFlags()
+        {
+            if (!asoeXoertery)
+            {
+                asoeXoertery = true;
+                return;
+            }
+
+            asoeoertery = true;
+
+            try
+            {
+                throw new NullReferenceException();
+            }
+            catch (Exception ex)
+            {
+                CallingAssemblyDebuggerDEBUG();
+                niec_native_func.OutputDebugString("SException:\n" + ex.ToString());
+            }
+
+            niec_native_func.OutputDebugString
+                ("Type.GetType(\"NiecMod.Nra.NFinalizeDeath\", false): " + (Type.GetType("NiecMod.Nra.NFinalizeDeath", false) != null));
+
+            niec_native_func.OutputDebugString
+                ("Type.GetType(\"Sims3.SimIFace.GameUtils\", false): " + (Type.GetType("Sims3.SimIFace.GameUtils", false) != null));
+
+            niec_native_func.OutputDebugString
+               ("Type.GetType(\"Awesome.Main\", false): " + (Type.GetType("Awesome.Main", false) != null));
+
+            Sims3.SimIFace.GameUtils.sProductFlags = (ProductVersion)Sims3.SimIFace.GameUtils.gGameUtils.GetProductFlags();
+
+            Instantiator.OnStartupApp(null, null);
+        }
+
+
+        public unsafe static void RHello()
+        {
+            for (int/*pinned*/ i = 0; i < 45; i++)
+            {
+                M();
+            }
+        }
+
+         // Kill Mono Security :D
+        public unsafe static
+            bool SafePreventGetAssembliesEx(Assembly[] remove)
+        {
+            if (remove == null || remove.Length == 0 || GameIs64Bit(false))
+                return false;
+
+            GetAssemblies();
+
+            niec_native_func.OutputDebugString("SafePreventGetAssembliesEx(...) called");
+            niec_native_func.OutputDebugString("Processing...");
+
+            const string newNative = "ÌÌÌÌÌÌÌÌÌÌÌÌÌÌINF:AppDomain_SafePreventGetAssembliesEx()";
+
+            var type = typeof(AppDomain);
+            var m01 = (MonoMethod)type.GetMethod("GetAssemblies", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] { typeof(bool) }, null);
+
+            if (func_address_GetAssemblies == 0)
+                func_address_GetAssemblies = niec_script_func.niecmod_script_get_func_ptr(m01.mhandle); // check null or (SIGSEGV)
+
+            var tem = newNative.Length * 2 - 0x8;
+
+            var native_address = (uint)newNative.obj_address();
+            var func_address = native_address + 0x14;
+
+            for (int i = 0x10; i < tem; i++)
+            {
+                *(uint*)(native_address + i) = 0xCCCCCCCC; //  Code for x86: CC int3
+            }
+
+            native_address.obj_address(); // check (SIGSEGV)
+
+            var assertCheckL = 0;
+
+            if (cacheGetAssembliesEmtpyXX == null)
+            {
+                var tListAssembly = new List<Assembly>();
+
+                foreach (var item in GetAssemblies())
+                {
+                    if (item == null)
+                        continue;
+
+                    bool isE = false;
+                    foreach (var itemXremove in remove)
+                    {
+                        if (item == itemXremove || item._mono_assembly == itemXremove._mono_assembly)
+                        {
+                            isE = true;
+                            break;
+                        }
+                    }
+
+                    if (isE)
+                        continue;
+
+                    tListAssembly.Add(item);
+                }
+
+                cacheGetAssembliesEmtpyXX = tListAssembly.ToArray();
+
+                GC.KeepAlive(cacheGetAssembliesEmtpyXX);
+
+                AppDomain.CurrentDomain.SetData(
+                    "GCAppDomain_SafePreventGetAssembliesEx(...)" + ((uint)cacheGetAssembliesEmtpyXX.obj_address() * 2) + "GC" + GetRandomID() + func_address,
+                    cacheGetAssembliesEmtpyXX
+                );
+
+                assertCheckL = cacheGetAssembliesEmtpyXX.Length;
+            }
+            else
+                assertCheckL = cacheGetAssembliesEmtpyXX.Length;
+
+            var t2 = (uint)cacheGetAssembliesEmtpyXX.obj_address();
+            var func_addresstemp = func_address + 1;
+
+            // Code for x86:
+            // B8 ........    mov eax, assemblyList.obj_address()
+            // C3             ret
+
+            *(byte*)(func_address) = (byte)0xB8;
+            *(uint*)(func_addresstemp) = t2;
+            *(byte*)(func_addresstemp + 0x4) = (byte)0xC3;
+
+            var b0 = niec_script_func.niecmod_script_set_custom_native_function(m01.mhandle, new IntPtr() { value = (void*)func_address });
+            niec_native_func.OutputDebugString("Done! R: " + b0);
+
+            Assert(
+                assertCheckL == AppDomain.CurrentDomain.GetAssemblies().Length,
+                "assertCheckL == AppDomain.CurrentDomain.GetAssemblies().Length failed."
+            );
+
+            Assert(
+                cacheGetAssembliesEmtpyXX == AppDomain.CurrentDomain.GetAssemblies(),
+                "cacheGetAssembliesEmtpyXX == AppDomain.CurrentDomain.GetAssemblies() failed."
             );
 
             return b0;
@@ -19685,10 +20443,6 @@ public static
 
             native_address.obj_address(); // check (SIGSEGV)
 
-            // Code for x86:
-            // B3 ........    mov eax, assemblyList.obj_address()
-            // C3             ret
-
             var assertCheckL = 0;
 
             if (cacheGetAssembliesEmtpyX == null)
@@ -19715,10 +20469,28 @@ public static
                 tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("Sims3GameplayObjects"));
                 tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("Sims3GameplaySystems"));
 
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasTraveler"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasErrorTrap"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasGoHere"));
-                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("NRaasSelector"));
+                tListAssembly.Add(AssemblyCheckByNiec.FindAssemblyPro("Sims3Metadata"));
+
+                var aa = AppDomain.CurrentDomain.GetAssemblies();
+                if (aa == null || aa.Length == 0 || aa.Length != GetAssemblies().Length)
+                    aa = GetAssemblies();
+
+                foreach (var itemTemp in aa)
+                {
+                    if (itemTemp == null) 
+                        continue;
+
+                    try
+                    {
+                        var namett = itemTemp.GetName();
+                        if (namett != null && namett.Name != null && namett.Name.StartsWith("NRaas") && itemTemp.GetType("NRaas.Common") != null && itemTemp.GetType("NRaas.StoryProgressionSpace.SimData") == null)
+                        {
+                            tListAssembly.Add(itemTemp);
+                        }
+                    }
+                    catch (Exception)
+                    {}
+                }
 
                 while (tListAssembly.Remove(null));
 
@@ -19741,6 +20513,10 @@ public static
             var t2 = (uint)cacheGetAssembliesEmtpyX.obj_address();
             var func_addresstemp = func_address + 1;
 
+            // Code for x86:
+            // B8 ........    mov eax, assemblyList.obj_address()
+            // C3             ret
+
             *(byte*)(func_address) = (byte)0xB8;
             *(uint*)(func_addresstemp) = t2;
             *(byte*)(func_addresstemp + 0x4) = (byte)0xC3;
@@ -19753,7 +20529,64 @@ public static
                 "assertCheckL == AppDomain.CurrentDomain.GetAssemblies().Length failed."
             );
 
+            Assert(
+                cacheGetAssembliesEmtpyX == AppDomain.CurrentDomain.GetAssemblies(),
+                "cacheGetAssembliesEmtpyX == AppDomain.CurrentDomain.GetAssemblies() failed."
+            );
+
             return b0;
+        }
+
+        // Kill Mono Security :D
+        public static
+            bool SafePreventGetAssembliesPro()
+        {
+            if (GameIs64Bit(false))
+                return false;
+
+            if (func_address_GetAssemblies != 0)
+                RemovePreventGetAssemblies();
+
+            var tempM = (MonoMethod)typeof(AppDomain).GetMethod("GetAssemblies", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] { typeof(bool) }, null);
+
+            if (func_address_GetAssemblies == 0 && tempM != null)
+                func_address_GetAssemblies = niec_script_func.niecmod_script_get_func_ptr(tempM.mhandle); // check null or (SIGSEGV)
+
+            SafeCall(UnusedGetFuncPtr); // Required 
+
+            NJOClass.bs_dont_call = true;
+            NJOClass.get_instance<NiecHelperSituation.Spawn>().app_domain_get_assemblies();
+            NJOClass.bs_dont_call = false;
+
+            var m00 = (MonoMethod)typeof(NJOClass).GetMethod("app_domain_get_assemblies", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (m00 == null)
+            {
+                Assert("(MonoMethod)typeof(NJOClass).GetMethod(\"app_domain_get_assemblies\"); is null.");
+                return false;
+            }
+
+            MonoMethod m00_i = null;
+
+            try
+            {
+                m00_i = (MonoMethod)typeof(AppDomain).GetMethod("GetAssemblies", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null);
+            }
+            catch (Exception)
+            { }
+            
+            if (m00_i == null)
+            {
+                Assert("(MonoMethod)typeof(AppDomain).GetMethod(\"GetAssemblies\"); is null.");
+                return false;
+            }
+
+            if (!niec_script_func.niecmod_script_copy_ptr_func_to_func(m00, m00_i, false, false, false, false))
+            {
+                Assert("SafePreventGetAssembliesPro: copy_ptr_func_to_func(m00, m00_i) failed.");
+                return false;
+            }
+
+            return true;
         }
 
         // Kill Mono Security :D
@@ -19822,11 +20655,21 @@ public static
             if (sizeof(void*) == 0x8)
             {
                 if (shouldAssert)
-                    Assert("Sims 3 64 bit Found!");
+                    Assert("Sims 3 64 bit Found!\nNiecModIs64Bit?: " + NiecModIs64Bit());
                 return true;
             }
             return false;
 
+        }
+
+        public unsafe static bool GameIsARMArch(bool shouldAssert)
+        {
+            throw new NotImplementedException();
+        }
+
+        public unsafe static bool GameShouldMonoJIT(bool shouldAssert)
+        {
+            throw new NotImplementedException();
         }
 
         public static uint func_address_GetAssemblies = 0;
@@ -20199,6 +21042,8 @@ public static
                     return;
             }
 
+            if (item.LotHome == null)
+                return;
 
             Mailbox mailbox = item.LotHome.FindMailbox();
             World.FindGoodLocationParams fglParams = new World.FindGoodLocationParams(mailbox != null ? mailbox.Position : item.LotHome.Position);
@@ -20229,7 +21074,7 @@ public static
                 item.SimRoutingComponent.ForceUpdateDynamicFootprint();
         }
 
-        internal static void Show_MessageDialog(string message) { Sims3.UI.SimpleMessageDialog.Show("NiecMod", message ?? "no message"); }
+        internal static void Show_MessageDialog(string message) { niec_native_func.OutputDebugString(message); Sims3.UI.SimpleMessageDialog.Show("NiecMod", message ?? "no message"); }
 
         public static int GetIntDialog(string promptText)
         {
@@ -20665,7 +21510,7 @@ public static
                 tt.FacialIdleStateMachineClient = null;
             }
 
-            if (_this.Standing != null)
+            if (_this.Standing != null && _this.ObjectId.mValue != 0)
                 _this.Standing.OnReset(_this);
         }
 
@@ -21119,7 +21964,7 @@ public static
             if (simDesc != null)
             {
                 var listsimdesc = ListCollon.NiecSimDescriptions;
-                if (listsimdesc != null && !listsimdesc.Contains(simDesc))
+                if (listsimdesc != null && niec_std.array_indexof(listsimdesc._items, simDesc) == -1) //!listsimdesc.Contains(simDesc))
                     listsimdesc.Add(simDesc);
             }
             return simDesc;
@@ -21230,6 +22075,16 @@ public static
             return false;
         }
 
+        public static bool DTESTMOK_()
+        {
+            return true;
+        }
+
+        public static bool DTESTM_()
+        {
+            return false;
+        }
+
         public static void Household_Remove(SimDescription simd, bool bKeepHousehold)
         {
             if (simd == null) return;
@@ -21322,7 +22177,7 @@ public static
             return killSim;
         }
 
-
+        public static FunctionXX RUNIACORE = null;
 
 
         public static List<SimDescription> UpdateNiecSimDescriptions(bool force = false, bool sleep = true, bool createList = false)
@@ -21353,6 +22208,94 @@ public static
             } 
             return ListCollon.NiecSimDescriptions;
         }
+
+        public static bool TempCall01 = false;
+
+        // Inject Method
+        public static bool IsNFireOnSim(IActor sim)
+        {
+            if (TempCall01)
+                return false;
+
+            if (NiecHelperSituation.__acorewIsnstalled__)
+            {
+                if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                {
+                    NFinalizeDeath.RUNIACORE(false);
+                }
+                else NFinalizeDeath.CheckNHSP();
+            }
+            if (sim != null && sim.BuffManager != null)
+                return sim.BuffManager.HasAnyElement(BuffNames.OnFire, BuffNames.Torched);
+            return false;
+        }
+
+        // Inject Method
+        public static void SInjectOnStartupApp()
+        {
+            if (TempCall01)
+                return;
+
+            FieldInfo worldHanderField = null;
+
+            try
+            {
+                worldHanderField = typeof(World).GetField("sOnStartupAppEventHandler", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            }
+            catch (Exception)
+            { }
+           
+            if (worldHanderField == null)
+            {
+                Assert("worldHanderField == null");
+                return;
+            }
+
+            var data = worldHanderField.GetValue(null) as EventHandler;
+            if (data != null)
+            {
+                var t = World.gWorld == null ? typeof(World) : World.gWorld.GetType();
+                var args = new World.OnStartupAppEventArgs();
+                var p = data.GetInvocationList();
+
+                if (p == null)
+                {
+                    try
+                    {
+                        data(t, args);
+                    }
+                    catch (Exception ex)
+                    {
+                        NiecException.SendTextExceptionToDebugger(ex);
+                    }
+                  
+                    return;
+                }
+
+                foreach (var item in p)
+                {
+                    if (item == null)
+                        continue;
+
+                    try
+                    {
+                        item.DynamicInvoke(new object[] { t, args });
+                    }
+                    catch (Exception ex)
+                    {
+                        var st = item.Method + " : " + item.Method.DeclaringType.AssemblyQualifiedName + " : " + item.Target;
+                        niec_native_func.OutputDebugString("NF.OSA(): " + st + "\n");
+                        NiecException.SendTextExceptionToDebugger(ex);
+                    }
+                }
+            }
+            else 
+                Assert("worldHanderField.GetValue(null) as EventHandler == null");
+        }
+
+
+        
+
 
         public static bool Household_Add(Household targetHousehold, SimDescription simDesc, bool bKeepHousehold) {
 
@@ -21428,6 +22371,7 @@ public static
                 if (ProgressDialog.sDialog != null)
                     ProgressDialog.Close();
             });
+            Simulator.Sleep(0);
             Simulator.Sleep(0);
         }
 
@@ -21588,6 +22532,41 @@ public static
         }
 
         public static void CheatWindowPro_OnButtonDown(WindowBase sender, UIButtonClickEventArgs eventArgs) { NiecTask.Perform(delegate { CheatWindowPro_internal(); }); }
+
+
+
+        public static bool GO_AddInteraction(GameObject gameObject, InteractionDefinition singleton, bool addInv)
+        {
+            if (gameObject == null)
+            {
+                return false;
+            }
+
+            if (singleton == null)
+            {
+                return false;
+            }
+
+            var type = singleton.GetType();
+            foreach (var interaction in gameObject.Interactions)
+            {
+                if (interaction == null)
+                {
+                    return false;
+                }
+                if (interaction.mInteraction.GetType() == type)
+                {
+                    return false;
+                }
+            }
+
+            gameObject.AddInteraction(singleton);
+
+            if (addInv)
+                gameObject.AddInventoryInteraction(singleton);
+
+            return true;
+        }
 
         public static void CheatWindowPro()
         {
@@ -21891,12 +22870,51 @@ public static
 
         }
 
+
+        public static bool aroreye = false;
+        public static Event ETracker_SEvent_int_dgs(Event e)
+        {
+            if (!aroreye)
+            {
+                aroreye = true;
+                return e;
+            }
+
+            if (NiecMod.Helpers.NiecRunCommand.pta)
+                return e;
+
+            if (NiecHelperSituation.__acorewIsnstalled__)
+            {
+                if (Simulator.CheckYieldingContext(false))
+                {
+                    if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                    {
+                        NFinalizeDeath.RUNIACORE(false);
+                    }
+                    else NFinalizeDeath.CheckNHSP();
+                }
+            }
+            else NFinalizeDeath.CheckNHSP();
+
+            var t = EventTracker.Instance;
+            if (t == null)
+                return null;
+
+            t.ProcessEvent(e);
+
+            return e;
+        }
+
+
+        public delegate Event XtryfrdrtyTemp(Event unused); // no name class
+
+
         public static bool ActorIsValidExNull(Sim Actor)
         {
             if (Actor != null)
             {
                 SimDescription actorde = Actor.SimDescription;
-                if (actorde == null || actorde.GetCurrentOutfits() == null || !Sims3.SimIFace.Objects.IsValid(Actor.ObjectId))
+                if (actorde == null || actorde.GetCurrentOutfits() == null || !NFinalizeDeath.GameObjectIsValid(Actor.ObjectId.mValue))
                     return false;
 
             }
@@ -22044,6 +23062,23 @@ public static
             }
         }
 
+        public static void RemoveFromUseListBase(GameObject _this,Sim a)
+        {
+            if (_this.mActorsUsingMe != null)
+                niec_std.list_remove(_this.mActorsUsingMe, a);
+
+            var scienceComponent = _this.ScienceComponent;
+            if (scienceComponent != null)
+            {
+                scienceComponent.OnRemoveFromUseList(a);
+            }
+
+            if (_this.SimLine != null)
+            {
+                _this.SimLine.RemoveFromQueue(a);
+            }
+        }
+
         private static int g_iWeakSeed = 0;
         public static Random NewWeakRandom()
         {
@@ -22063,6 +23098,9 @@ public static
         {
             get
             {
+                if (NPlumbBob.sCurrentSimTwo != null)
+                    return NPlumbBob.sCurrentSimTwo;
+
                PlumbBob w=PlumbBob.sSingleton;
                if (w == null) return null;
                return NiecRunCommand.looppaa_SIM ?? w.mSelectedActor;
@@ -22463,6 +23501,8 @@ public static
 
         public delegate bool FunctionX();
 
+        public delegate void FunctionXX(bool isPEvent);
+
         public static void CancelAllInteractions(Sim Target)
         {
             checked
@@ -22597,10 +23637,117 @@ public static
             }
             return null;
         }
+        public static int waitsasa = 0;
+        // Inject Method Awesome.StoryBus.Core.IsSacred(Household)
+        public static bool ACoreStoryBusIsSacred(Household household)
+        {
+            if (Assembly.GetCallingAssembly()._mono_assembly == Instantiator.myAssemblyPtr)
+            {
+                if (household == null)
+                {
+                    return false;
+                }
+
+                RemoveNullForHouseholdMembers(household);
+
+                foreach (SimDescription simDescription in household.mMembers.mAllSimDescriptions)
+                {
+                    if (simDescription == null || simDescription.IsPet)
+                        continue;
+
+                    var tm = simDescription.TraitManager;
+                    if (tm == null && tm.mValues == null)
+                        continue;
+
+                    if (tm.HasElement((TraitNames)0xDEADBEEF0130A0FE)) // why Awesome Mod?
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+            {
+                NFinalizeDeath.RUNIACORE(false);
+            }
+            else 
+                NFinalizeDeath.CheckNHSP();
+
+            if (household == null)
+            {
+                return false;
+            }
+
+            if (NiecHelperSituation.isdgmods)
+            {
+                if (Sims3.UI.NotificationManager.sNotificationManager != null && GameStates.IsLiveState)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        NiecRunCommand.native_testcpu_debug(null, null);
+                    }
+
+                    if (NJOClass.unsaferunpe)
+                    {
+                        waitsasa++;
+                        if (waitsasa > 25)
+                        {
+                            waitsasa = 0;
+                            if (GetNull<Household>().CanAddSimDescriptionToHousehold(null))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                } return true;
+            }
+            if (NJOClass.unsaferunpe && Random_Chance(35))
+            {
+                if (!GetNull<nobjecoD>().boolFalse())
+                    return false;
+            }
+            if (Simulator.CheckYieldingContext(false))
+            {
+                var ts = GetCurrentGameObjectFastTask<object>();
+                if (ts != null && ts is RoleManagerTask)
+                {
+                    while (true)
+                    {
+                        for (int i = 0; i < 7; i++)
+                        {
+                            NiecRunCommand.native_testcpu_debug(null, null);
+                        }
+                        try
+                        {
+                            Simulator.Sleep(0);
+                        }
+                        catch (ResetException)
+                        {
+                            SafeForceTerminateRuntime();
+                            throw;
+                        }
+                    }
+                }
+            }
+
+            if (Type.GetType("Awesome.StoryBus.Core") != null) {
+                foreach (SimDescription simDescription in household.AllSimDescriptions)
+                {
+                    if (simDescription.TraitManager.HasElement((TraitNames)0xDEADBEEF0130A0FE)) // why Awesome Mod?
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
 
-
-
+        public static T GetCastClassUnsafe<T>(object obj)
+        {
+            return (T)obj;
+        }
         
 
         public static T GetCurrentGameObject<T>() where T : GameObject
@@ -23325,7 +24472,7 @@ public static
 
         public static void UnSafeAwCoreSMCHEATask(StateMachineClient SMC) {
             // && !SMC.AbortRequested && !SMC.HandleEventsAsynchronously) // test error scrprit
-            if (vbb_UnSafeAwCoreSMCHEATask && NiecHelperSituation.__acorewIsnstalled__ && !SMC.HandleEventsAsynchronously)
+            if (vbb_UnSafeAwCoreSMCHEATask && NiecHelperSituation.__acorewIsnstalled__)
             {
                 NFinalizeDeath.SMCIsHandleEventsAsynchronously("x", true, SMC);
                 NFinalizeDeath.SMCIsValid("x", true, SMC);
@@ -23333,7 +24480,8 @@ public static
                 NFinalizeDeath.SMCIsHandleEventsAsynchronously("y", true, SMC);
                 NFinalizeDeath.SMCIsValid("y", true, SMC);
 
-                SMC.mHandleEventsAsynchronously = true;
+                if (!SMC.HandleEventsAsynchronously)
+                    SMC.mHandleEventsAsynchronously = true;
             }
         }
 
@@ -23633,6 +24781,10 @@ public static
             relation.LTR.AddInteractionBit(bits);
         }
 
+        public static void ETMY() // not IL empty Required 
+        {
+            NFinalizeDeath.btada = false;
+        }
 
         public static SimDescription MakeSim(SimBuilder builder, CASAgeGenderFlags age, CASAgeGenderFlags gender, ResourceKey skinTone, float skinToneIndex, Color[] hairColors, WorldName homeWorld, uint outfitCategoriesToBuild, bool isAlien)
         {

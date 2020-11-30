@@ -234,7 +234,7 @@ namespace Sims3.Gameplay.Objects.Niec
                     mCurrentStateMachine.SetParameter(499670524u, typeof(Sims3.SimIFace.Enums.Age), (ulong)Sims3.SimIFace.Enums.Age.child);
 				base.SetActor("magicjellybeanbush", this.Target);
 				base.EnterState("x", "JellyBeanEnter");
-                if (!(Actor.SimDescription.Service is GrimReaper) && !NiecHelperSituation.___bOpenDGSIsInstalled_ && !NFinalizeDeath.IsActiveHouseholdWithActiveActorPro(Actor.Household, NFinalizeDeath.ActiveActor))
+                if (!NFinalizeDeath.SimIsGRReaper(Actor.SimDescription) && !NiecHelperSituation.___bOpenDGSIsInstalled_ && !NFinalizeDeath.IsActiveHouseholdWithActiveActorPro(Actor.Household, NFinalizeDeath.ActiveActor))
                 {
 					base.AnimateSim("Poisoned");
                     //if (!Actor.CanBeKilled()) // My Mod is CanBeKilled Not Modifed The Sims 3 is File Dll Gameplay 
@@ -470,7 +470,7 @@ namespace Sims3.Gameplay.Objects.Niec
                 		//greyedOutTooltipCallback = InteractionInstance.CreateTooltipCallback("Death Good System: Not Allow Active Household and Allow NPC to Sim");
                 	    return true;
                 	}
-                    if (a.Service is GrimReaper) return false;
+                    if (NFinalizeDeath.SimIsGRReaper(a.SimDescription)) return false;
                 	return true;
                 }
                 public SpecialCaseAgeTests GetSpecialCaseAgeTests()

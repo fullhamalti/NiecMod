@@ -168,7 +168,7 @@ namespace NiecMod.Interactions
             }
             public override string[] GetPath(bool bPath)
             {
-                return new string[] { "NiecMod..." };
+                return new string[] { "NiecMod" };
             }
             public SpecialCaseAgeTests GetSpecialCaseAgeTests()
             {

@@ -27,8 +27,8 @@ namespace NiecMod.Interactions
         public override bool Run()
         {
             IntroTutorial.StartGameplayTutorial(Actor);
-            Actor.Motives.MaxEverything();
-            //SpeedTrap.Sleep(0u);
+            if (Actor.Motives != null)
+                Actor.Motives.MaxEverything();
             IntroTutorial.ForceExitTutorial();
             return true;
         }
@@ -54,7 +54,7 @@ namespace NiecMod.Interactions
             }
             public override string[] GetPath(bool bPath)
             {
-                return new string[] { "NiecMod..." };
+                return new string[] { "NiecMod" };
             }
         }
     }

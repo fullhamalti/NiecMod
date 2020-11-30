@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <PropertyGroup>
     <ProjectGuid>{8B827402-503D-44C0-8D84-CD51597F0CE6}</ProjectGuid>
@@ -108,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactions\Interactions_ClassOther.cs" />
+    <Compile Include="Interactions\Objects\NRCODImmediateInteraction.cs" />
     <Compile Include="Interactions\Overrides\NonOpenDGS\GRSOv.cs" />
     <Compile Include="Interactions\Overrides\NonOpenDGS\Object_ActorsSim.cs" />
     <Compile Include="Interactions\Overrides\NonOpenDGS_InteractionOverrides.cs" />
@@ -116,18 +117,26 @@
     <Compile Include="Interactions\Overrides\OverrideClass.cs" />
     <Compile Include="niecstd.cs" />
     <Compile Include="Nra\ACoreC_Ces.cs" />
-    <Compile Include="Nra\Bim.cs" />
+    <Compile Include="Nra\NClassInject\Bim.cs" />
     <Compile Include="Nra\CInvote.cs" />
+    <Compile Include="Nra\NClassInject\BimDesc.cs" />
+    <Compile Include="Nra\NClassInject\NGameObject.cs" />
+    <Compile Include="Nra\NClassInject\NGenetics.cs" />
     <Compile Include="Nra\NCopyableTextDialog.cs" />
     <Compile Include="Nra\NiecPosture.cs" />
     <Compile Include="Nra\niec_native_func.cs" />
     <Compile Include="Nra\niec_script_func.cs" />
+    <Compile Include="Nra\NClassInject\NInjetMethed.cs" />
+    <Compile Include="Nra\NInteractionHelper.cs" />
     <Compile Include="Nra\NMoveThings.cs" />
     <Compile Include="Nra\NPCSimCanDisgraced.cs" />
+    <Compile Include="Nra\NClassInject\NPlumbBob.cs" />
     <Compile Include="Nra\NResetEx.cs" />
     <Compile Include="Nra\NStackTrace.cs" />
     <Compile Include="Nra\SCOSR.cs" />
     <Compile Include="Situations\ArrestSuspectSituation.cs" />
+    <Content Include="LICENSE.txt" />
+    <Content Include="TextFile1.txt" />
     <None Include="DisAllow\EmptASDy1.cs" />
     <Content Include="CopMod\Class1.cs">
       <SubType>Code</SubType>

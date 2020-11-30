@@ -292,6 +292,9 @@ namespace Sims3.Gameplay.NiecRoot
                             continue;
                     }
 
+                    if (item.LotHome == null)
+                        continue;
+
                     Mailbox mailbox = item.LotHome.FindMailbox();
                     World.FindGoodLocationParams fglParams = new World.FindGoodLocationParams(mailbox != null ? mailbox.Position : item.LotHome.Position);
                     fglParams.InitialSearchDirection = RandomUtil.GetInt(0x0, 0xF);
@@ -480,7 +483,12 @@ namespace Sims3.Gameplay.NiecRoot
                     EnterStateMachine("social_callOver", "Enter", "x");
                     AnimateSim("Exit");
                 }
-                Target.InteractionQueue.CancelAllInteractions();
+
+                if (___bOpenDGSIsInstalled_ || !NiecHelperSituation.__acorewIsnstalled__)
+                    Target.InteractionQueue.CancelAllInteractions();
+                else
+                    NFinalizeDeath.ForceCancelAllInteractionsWithoutCleanup(Target);
+
                 Target.PlayReaction(ReactionTypes.Cry, ReactionSpeed.Immediate);
                 EndCommodityUpdates(true);
                 return true;
@@ -648,6 +656,13 @@ namespace Sims3.Gameplay.NiecRoot
             {
                 Sim worker = parent.Worker;
                 //parent.OnServiceStarting();
+                if (worker == null || worker.SocialComponent == null)
+                    return;
+
+                if (worker.mLotCurrent == null)
+                {
+                    worker.mLotCurrent = LotManager.GetWorldLot();
+                }
 
                 worker.SocialComponent.OnlyAllowedSocial = kYellAtSocialKey;
                 worker.EnableSocialsOnSim();
@@ -731,7 +746,7 @@ namespace Sims3.Gameplay.NiecRoot
                     else if (householdIsActive)
                     {
                         PlumbBob.ForceSelectActor(null);
-                        bool o = NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null);
+                        bool o = NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null;
                         if (!o && PlumbBob.SelectedActor == null)
                         {
                             GameOverScenario(Parent);
@@ -826,15 +841,18 @@ namespace Sims3.Gameplay.NiecRoot
                     {
                         Sims3.Gameplay.Gameflow.SetGameSpeed(Sims3.SimIFace.Gameflow.GameSpeed.Normal, Sims3.Gameplay.Gameflow.SetGameSpeedContext.Gameplay);
                         Audio.StartSound("sting_social_worker_arrive");
+
                         if (teenOrAboveSimsFromHousehold.Count > 0 && !Parent.mIgnoreNegativeFactors)
                         {
                             DisplayScoldTNS(daycareWorkdaySituation);
                         }
                     }
+
                     if (TryScoldingAdultsThenCarryBusiness(parent))
                     {
                         return;
                     }
+
                     Sim kid = parent.mSimsToCollect[0];
                     if (TargetHouseholdIsActive && !parent.mTargetedSimPickup)
                     {
@@ -846,7 +864,7 @@ namespace Sims3.Gameplay.NiecRoot
                         if (teenOrAboveSimsFromHousehold.Count <= 0)
                         {
                             PlumbBob.ForceSelectActor(null);
-                            bool o = NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null);
+                            bool o = NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null;
                             SpeedTrap.Sleep(0);
                             if (!o && PlumbBob.SelectedActor == null)
                             {
@@ -881,9 +899,6 @@ namespace Sims3.Gameplay.NiecRoot
                                     NFinalizeDeath.ForceDestroyObject(WoSim);
 
 
-
-
-
                                 parent.Worker = null;
 
 
@@ -895,7 +910,7 @@ namespace Sims3.Gameplay.NiecRoot
                             var p = RandomUtil.GetRandomObjectFromList(teenOrAboveSimsFromHousehold, ListCollon.SafeRandomPart2);
                             if (p == null)
                             {
-                                NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null);
+                                NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false);
                             }
                             else if (!PlumbBob.SelectActor(p) && PlumbBob.SelectedActor == null)
                             {
@@ -903,10 +918,12 @@ namespace Sims3.Gameplay.NiecRoot
                             }
                         }
                     }
+
                     if (daycareWorkdaySituation != null)
                     {
                         daycareWorkdaySituation.Daycare.TriggerSuspension(TargetHouseholdIsActive);
                     }
+
                     if (Parent.mTakeHousholdKids || Parent.mTakeHouseholdPets)
                     {
                         ShiftKidsToNewHouseholds(parent.mSimsToCollect, true);
@@ -985,12 +1002,9 @@ namespace Sims3.Gameplay.NiecRoot
 
                 NiecTask.Perform(delegate
                 {
-                    //while (sleep) 
-                    //for (int i = 0; i < 100; i++)
                     while (PlumbBob.SelectedActor != null || UIManager.GetModalWindow() != null)
                     {
-                        //SpeedTrap.Sleep(0); code removed (test game loop why run destroyed task or niecmod removetaskp ... evilmod ... why nrras?)
-                        Simulator.Sleep(0); // check currentTask is destroyed ?
+                        Simulator.Sleep(0);
                     }
 
                     if (GameStates.IsLiveState && PlumbBob.SelectedActor == null)
@@ -1030,12 +1044,14 @@ namespace Sims3.Gameplay.NiecRoot
                 {
                     return false;
                 }
+
                 if (parent.mIgnoreNegativeFactors)
                 {
                     ShiftKidsToNewHouseholds(parent.mSimsToCollect, true);
                     OnSocialPassOrFail(parent.Worker, 0f);
                     return true;
                 }
+
                 if (adultToScold.IsSelectable && Sim.ActiveActor != adultToScold)
                 {
                     if (!PlumbBob.SelectActor(adultToScold) && PlumbBob.SelectedActor == null)
@@ -1043,10 +1059,12 @@ namespace Sims3.Gameplay.NiecRoot
                         NFinalizeDeath.TestSetActiveActor(adultToScold, true);
                     }
                 }
+
                 if (Parent.mTakeHousholdKids || Parent.mTakeHouseholdPets)
                 {
                     ShiftKidsToNewHouseholds(parent.mSimsToCollect, true);
                 }
+
                 if (adultToScold.HasBeenDestroyed)
                 {
                     adultToScold = GetAdultToScold();
@@ -1055,6 +1073,7 @@ namespace Sims3.Gameplay.NiecRoot
                         return false;
                     }
                 }
+
                 InteractionDefinition i = new SituationSocial.Definition("Social Worker Yell At", new string[0], null, false);
                 ForceSituationSpecificInteraction(adultToScold, Parent.Worker, i, null, OnSocialPassOrFail, OnSocialPassOrFail, InteractionPriorityLevel.MaxDeath);
                 return true;
@@ -1672,7 +1691,7 @@ namespace Sims3.Gameplay.NiecRoot
                     }
                     foreach (Sim sim in NFinalizeDeath.Household_GetAllActors(household)) //household.Sims)
                     {
-                        if (sim.SimDescription != null && sim.SimDescription.IsHuman && sim.SimDescription.ChildOrAbove)
+                        if (sim.SimDescription != null && (NiecHelperSituation.__acorewIsnstalled__ || sim.SimDescription.IsHuman && sim.SimDescription.ChildOrAbove))
                         {
                             if (mTakeHousholdKids && (daycareWorkdaySituationForLot == null || daycareWorkdaySituationForLot.Daycare.OwnerSim != sim))
                             {
@@ -2054,8 +2073,10 @@ namespace Sims3.Gameplay.NiecRoot
                         if (simDesc != null)
                         {
                             otherhousehold.Name = simDesc.mLastName;
-                            otherhousehold.Add(simDesc);
-                            simDesc.Instantiate(Vector3.OutOfWorld);
+                            //otherhousehold.Add(simDesc);
+                            NFinalizeDeath.Household_Add(otherhousehold, simDesc, true);
+                            //simDesc.Instantiate(Vector3.OutOfWorld);
+                            NFinalizeDeath.SimDesc_SafeInstantiate(simDesc, NFinalizeDeath.Vector3_OutOfWorld);
                             global::NiecMod.Helpers.Create.ForceSendHomeAllActors(otherhousehold);
                         }
                     }
@@ -2094,7 +2115,7 @@ namespace Sims3.Gameplay.NiecRoot
 
                 try
                 {
-                    if (___bOpenDGSIsInstalled_)
+                    if (___bOpenDGSIsInstalled_ || !NiecHelperSituation.__acorewIsnstalled__)
                         createdSim.InteractionQueue.CancelAllInteractions();
                     else 
                         NFinalizeDeath.ForceCancelAllInteractionsWithoutCleanup(createdSim);
@@ -2131,7 +2152,7 @@ namespace Sims3.Gameplay.NiecRoot
                 }
                 else {
                     PlumbBob.ForceSelectActor(null);
-                    NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null);
+                    NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false);
                 }
             }
 
@@ -2144,9 +2165,7 @@ namespace Sims3.Gameplay.NiecRoot
 
         public void GatherPlaceholderKids()
         {
-           // CaregiverRoutingMonitor.ChildPlaceholder[] objects = Lot.GetObjects<CaregiverRoutingMonitor.ChildPlaceholder>();
-            //CaregiverRoutingMonitor.ChildPlaceholder[] array = objects;
-            foreach (CaregiverRoutingMonitor.ChildPlaceholder childPlaceholder in NFinalizeDeath.SC_GetObjectsOnLot<CaregiverRoutingMonitor.ChildPlaceholder>(Lot))
+            foreach (var childPlaceholder in NFinalizeDeath.SC_GetObjectsOnLot<CaregiverRoutingMonitor.ChildPlaceholder>(Lot))
             {
                 if (childPlaceholder.SimDescription != null && childPlaceholder.SimDescription.LotHome == Lot)
                 {
@@ -2158,17 +2177,17 @@ namespace Sims3.Gameplay.NiecRoot
 
         public bool VerifyChildren()
         {
-            int num = 0;
-            while (num < mChildAndBelowSims.Count)
+            int i = 0;
+            while (i < mChildAndBelowSims.Count)
             {
-                Sim sim = mChildAndBelowSims[num];
+                Sim sim = mChildAndBelowSims[i];
                 if (sim.SimDescription != null && sim.SimDescription.ChildOrBelow)
                 {
-                    num++;
+                    i++;
                 }
                 else
                 {
-                    mChildAndBelowSims.RemoveAt(num);
+                    mChildAndBelowSims.RemoveAt(i);
                 }
             }
             DaycareWorkdaySituation daycareWorkdaySituationForLot = DaycareWorkdaySituation.GetDaycareWorkdaySituationForLot(Lot);

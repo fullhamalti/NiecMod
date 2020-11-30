@@ -54,7 +54,7 @@ namespace NiecMod.Interactions
                 targetsim.EnableInteractions();
                 SpeedTrap.Sleep(0u);
                 InteractionPriority priority = new InteractionPriority(InteractionPriorityLevel.ESRB);
-                if (AcceptCancelDialog.Show("Do you want Run Divorce? (Yes Run or No Next)", true))
+                if (NFinalizeDeath.CheckAccept("Do you want Run Divorce?\n(Yes Run or No Next)", true))
                 {
                     InteractionInstance helloChatESRBi;
                     helloChatESRBi = new SocialInteractionA.Definition("Divorce", null, null, false).CreateInstance(Target, targetsim, priority, false, false);

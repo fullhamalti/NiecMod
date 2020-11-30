@@ -396,13 +396,21 @@ namespace Sims3.Gameplay.NiecNonOpenDGS.Interactions
 
                 else if (!GlobalFunctions.ObjectsWithinRadiusOfEachOther(Actor, Target, 2f))
                 {
+                    if (Actor == null || Target == null ||Target.LotCurrent == null)
+                        return false;
+
                     Route route = Actor.CreateRoute();
+                    if (route == null)
+                        return false;
+
                     RequestWalkStyle(Sim.WalkStyle.Run);
+                    
                     route.PlanToPointRadialRange(Target.Position, 2f, 6f, RouteDistancePreference.PreferNearestToRouteDestination, RouteOrientationPreference.TowardsObject, Target.LotCurrent.LotId, new int[1]
 					{
 						Target.RoomId
 					});
-                    if (!Actor.DoRoute(route))
+
+                    if (Actor == null || !Actor.DoRoute(route))
                     {
                         return false;
                     }
@@ -489,6 +497,9 @@ namespace Sims3.Gameplay.NiecNonOpenDGS.Interactions
                 EndCommodityUpdates(true);
                 if (Actor.IsInActiveHousehold)
                 {
+                    if (Actor.BuffManager == null)
+                        return false;
+
                     if (flag2 && Target.SimDescription.DeathStyle != 0)
                     {
                         Actor.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);
@@ -510,6 +521,8 @@ namespace Sims3.Gameplay.NiecNonOpenDGS.Interactions
                 }
                 else
                 {
+                    if (Actor.BuffManager == null)
+                        return false;
                     if (flag2)
                     {
                         Actor.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);

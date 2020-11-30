@@ -1349,7 +1349,7 @@ namespace NiecMod.Interactions
                                         }
                                     }
                                      */
-                                    if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null))
+                                    if (NiecMod.Helpers.Create.CreateActiveHouseholdAndActiveActor(null, false) != null)
                                     {
                                         if (flagsa)
                                         {

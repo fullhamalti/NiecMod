@@ -309,6 +309,7 @@ namespace NiecMod.Nra
 
         public string Show(string title)
         {
+            niec_native_func.OutputDebugString(Text);
             Simulator.CheckYieldingContext(true);
             return UICopyableTextDialog.Show(title, "", Text, kUseDefaultMax, Vector2.Origin, ModalDialog.PauseMode.PauseSimulator);
         }
