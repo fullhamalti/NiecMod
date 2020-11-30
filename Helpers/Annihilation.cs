@@ -1,4 +1,4 @@
-using Sims3.Gameplay;
+﻿using Sims3.Gameplay;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.ActorSystems.Children;
@@ -196,13 +196,6 @@ namespace Niec.iCommonSpace
                     textReason = " Sim Is Occult Imaginary Friend";
                     return false;
                 }
-
-                if (targetSim.SimDescription == null)
-                {
-                    textReason = " Non-EA targetSim.SimDescription == null";
-                    return false;
-                }
-
                 if (targetSim.SimDescription.AssignedRole is NPCAnimal)
                 {
                     textReason = " Assigned Role NPC Animal";
@@ -248,7 +241,7 @@ namespace Niec.iCommonSpace
                 {
                     if (!targetSim.LotCurrent.IsWorldLot)
                     {
-                        foreach (Sim sim in NFinalizeDeath.SC_GetObjectsOnLot<Sim>(targetSim.LotCurrent)) //targetSim.LotCurrent.GetSims())
+                        foreach (Sim sim in targetSim.LotCurrent.GetSims())
                         {
                             if (sim.IsSelectable)
                             {
@@ -639,8 +632,7 @@ namespace Niec.iCommonSpace
             catch
             { }
 
-            if (target.mSimDescription == null)
-                target.mSimDescription = NiecMod.Helpers.Create.NiecNullSimDescription();
+
             
             // Start
             try
@@ -935,17 +927,17 @@ namespace Niec.iCommonSpace
 
                             bool CheckAntiCancel = false;
 
-                            if (target.mInteractionQueue != null && AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
+                            if (AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
                             {
                                 try
                                 {
-                                    if (target.mInteractionQueue.HasInteractionOfType(NiecS3Mod_PauseNiecIns_Definition_Singleton))
+                                    if (target.InteractionQueue.HasInteractionOfType(NiecS3Mod_PauseNiecIns_Definition_Singleton))
                                     {
                                         CheckAntiCancel = true;
                                     }
                                     if (!CheckAntiCancel)
                                     {
-                                        foreach (InteractionInstance interactionInstance in target.mInteractionQueue.mInteractionList)
+                                        foreach (InteractionInstance interactionInstance in target.InteractionQueue.InteractionList)
                                         {
                                             if (interactionInstance == null) 
                                                 continue;
@@ -962,11 +954,11 @@ namespace Niec.iCommonSpace
 
                             }
 
-                             if (target.mInteractionQueue != null && !CheckAntiCancel)
+                            if (!CheckAntiCancel)
                             {
                                 try
                                 {
-                                    if (target.mInteractionQueue.HasInteractionOfType(AllPauseNiecDone.Singleton))
+                                    if (target.InteractionQueue.HasInteractionOfType(AllPauseNiecDone.Singleton))
                                     {
                                         CheckAntiCancel = true;
                                     }
@@ -1981,28 +1973,19 @@ namespace Niec.iCommonSpace
             catch (Exception)
             { }
 
-            if (target.mInteractionQueue != null)
+            try
             {
-                //try
-                //{
-                //    foreach (var checknull in target.mInteractionQueue.mInteractionList)
-                //    {
-                //        if (checknull == null)
-                //        {
-                //            target.mInteractionQueue.mInteractionList.Remove(checknull);
-                //        }
-                //    }
-                //}
-                //catch (ResetException) { throw; }
-                //catch (Exception)
-                //{ }
-                var p = target.mInteractionQueue.mInteractionList;
-                if (p != null && p._items != null) for (int i = 0; i < 200; i++)
+                foreach (var checknull in target.mInteractionQueue.mInteractionList)
                 {
-                    niec_std.list_remove(p, null);
+                    if (checknull == null)
+                    {
+                        target.mInteractionQueue.mInteractionList.Remove(checknull);
+                    }
                 }
-               
             }
+            catch (ResetException) { throw; }
+            catch (Exception)
+            { }
 
             bool checkcrib;
             if (wasisCrib) {
@@ -2033,9 +2016,6 @@ namespace Niec.iCommonSpace
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private unsafe static extern ulong GetUnSace(int* index, void* check, object obj);
-
-        
-
         public static extern int YGeneration { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 
         private static bool IsSimDisposed(Sim simd)
@@ -2053,7 +2033,6 @@ namespace Niec.iCommonSpace
         /// <exception cref="ArgumentOutOfRangeException">Ont Nutem Checked + Num7 + Num3</exception>
         public unsafe static ulong UnSace(int* index)
         {
-            niec_native_func.niecmod_native_debug_text_to_debugger("The NiecMod :D");
             if (YGeneration == 2) return 0uL;
             if (index == null) throw new ArgumentNullException("index");
             if ((long)index == 145) return GetUnSace(index, (void*)ResourceKey.CreateCustomThumbnailKey("Gome", 15114).GroupId, typeof(KillPro).Assembly.GetCustomAttributes(true));
