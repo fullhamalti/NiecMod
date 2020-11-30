@@ -1,4 +1,4 @@
-namespace Sims3.Gameplay.NiecRoot
+﻿namespace Sims3.Gameplay.NiecRoot
 {
     #region Using Directives
     using System;
@@ -149,6 +149,45 @@ namespace Sims3.Gameplay.NiecRoot
 
         public static bool ExAA = false;
 
+        public int AddToTaskDataRoute()
+        {
+            var tr = mRunIRouteTaskID;
+            var tc = mRunIRouteTaskID.Length;
+            //int i = 0;
+            //while (tc > 0)
+            //{
+            //    if (!(tr[i] is ObjectGuid))
+            //    {
+            //        return i;
+            //    }
+            //    if (i < tc)
+            //    {
+            //        Simulator.DestroyObject((ObjectGuid)tr[0]);
+            //        tr[0] = null;
+            //        return 0;
+            //    }
+            //    i++;
+            //}
+
+            int i;
+            for (i = 0; i < tc; i++)
+            {
+                if (!(tr[i] is ObjectGuid))
+                {
+                    return i;
+                }
+            }
+
+            for (i = 0; i < tc; i++)
+            {
+                var item = (ObjectGuid)tr[i];
+                tr[i] = null;
+                Simulator.DestroyObject(item);
+            }
+
+            return 0;
+        }
+
         public void PersistPostLoad()
         {
             try
@@ -184,6 +223,14 @@ namespace Sims3.Gameplay.NiecRoot
                 //    mChild = null;
                 //   //goto e;
                 //}
+
+                if (mRunIRouteTaskID != null)
+                {
+                    for (int i = 0; i < mRunIRouteTaskID.Length; i++)
+                    {
+                        mRunIRouteTaskID[i] = null;
+                    }
+                }
                 if (!___bOpenDGSIsInstalled_)
                 {
                     var sim = Worker;
@@ -197,7 +244,7 @@ namespace Sims3.Gameplay.NiecRoot
                         if (_Spawn != null)
                         {
                             _Spawn.CleanUp();
-                            _Spawn._Dispose();
+                            _Spawn._Dispose(false);
                             _Spawn.mParent = null;
                         }
 
@@ -223,6 +270,7 @@ namespace Sims3.Gameplay.NiecRoot
                 }
                 else
                 {
+                    mRunIRouteTaskID = null;
                     klooppet = false;
                     NFinalizeDeath.List_FastClearEx(ref mInteractions); 
                     var _Spawn = Child as Spawn;
@@ -548,8 +596,8 @@ namespace Sims3.Gameplay.NiecRoot
             if (SafePos2020())
             {
                 Sim ActiveActor 
-                = 
-                    PlumbBob.SelectedActor ??
+                =
+                    (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) ??
                     NFinalizeDeath.ActiveActor ??
                     Target ??
                     Actor
@@ -797,7 +845,7 @@ namespace Sims3.Gameplay.NiecRoot
                             }
                         }
 
-                        var aa = PlumbBob.SelectedActor;
+                        var aa = (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor);
                         Sim[] list_sim = new Sim[size_items + 1];
                         int found = 0;
 
@@ -986,7 +1034,7 @@ namespace Sims3.Gameplay.NiecRoot
             {
                 miniSimDescription.UpdateForLocalization(deadSim);
             }
-            if (___bOpenDGSIsInstalled_)
+            if (___bOpenDGSIsInstalled_ || !__acorewIsnstalled__)
                 EventTracker.SendEvent(new SimDescriptionEvent(EventTypeId.kSimDied, deadSim));
             else {
 
@@ -1005,16 +1053,20 @@ namespace Sims3.Gameplay.NiecRoot
                 catch { }
                 NiecTask.Perform(ScriptExecuteType.Threaded, delegate {
                     while (true) {
-                        Simulator.Sleep(0);
+                        Simulator.Sleep(1);
                         var r = EventTracker.sInstance;
 
                         if (r != null && r.mActiveList != null && r.mActiveList.Count > 29)
                         {
-                            Simulator.Sleep(35);
+                            Simulator.Sleep(135);
                         }
 
                         if (NFinalizeDeath._IsActiveHousehold(deadSim.Household)) 
                             break;
+
+                        if (NiecMod.Helpers.NiecRunCommand.tusev != null)
+                            break;
+
                         EventTracker.SendEvent(new SimDescriptionEvent(EventTypeId.kSimDied, deadSim));
                     }
                     NFinalizeDeath.CheckYieldingContext();
@@ -1037,6 +1089,8 @@ namespace Sims3.Gameplay.NiecRoot
 
         public bool OkRealSocl = false;
 
+        public object[] mRunIRouteTaskID = null;
+
         public Sim Worker;
 
         public bool OkSuusse = false;
@@ -1057,7 +1111,7 @@ namespace Sims3.Gameplay.NiecRoot
                     {
                         target.mSimDescription = NiecMod.Helpers.Create.NiecNullSimDescription();
                         target.mSimDescription.mSim = target;
-                        NFinalizeDeath._MoveInventoryItemsToAFamilyMember(target, PlumbBob.SelectedActor);
+                        NFinalizeDeath._MoveInventoryItemsToAFamilyMember(target, (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor));
                     }
                     catch (ResetException)
                     { throw; }
@@ -1438,7 +1492,27 @@ namespace Sims3.Gameplay.NiecRoot
 
             if (SMCDeath != null)
                 SMCDeath.Dispose();
+
             SMCDeath = null;
+
+            var tt = mRunIRouteTaskID;
+            if (tt != null)
+            {
+                mRunIRouteTaskID = null;
+
+                var tc = tt.Length;
+                for (int i = 0; i < tc; i++)
+                {
+                    var tempI = tt[i];
+                    if (!(tempI is ObjectGuid))
+                        continue;
+                    var item = (ObjectGuid)tempI;
+
+                    tt[i] = null;
+
+                    Simulator.DestroyObject(item);
+                }
+            }
         }
 
         public override void CleanUp()
@@ -1494,7 +1568,8 @@ namespace Sims3.Gameplay.NiecRoot
                 Spawn.FastGoodFindPOS =// __acorewIsnstalled__ && 
                     !isdgmods;
 
-                NFinalizeDeath.testnomessbox_b = NiecHelperSituation.__acorewIsnstalled__ && !isdgmods;
+                if (!NFinalizeDeath.testnomessbox_b)
+                     NFinalizeDeath.testnomessbox_b = NiecHelperSituation.__acorewIsnstalled__ && !isdgmods;
             }
             else
             {
@@ -1576,7 +1651,10 @@ namespace Sims3.Gameplay.NiecRoot
                 {
                     for (int i = 0; i < 20; i++)
                     {
-                        RIPObject.RemoveFromUseList(Actor);
+                        if (___bOpenDGSIsInstalled_)
+                            RIPObject.RemoveFromUseList(Actor);
+                        else 
+                            NFinalizeDeath.RemoveFromUseListBase(RIPObject, Actor);
                     }
                     //RIPObject.SetOpacity(0f, 0f);
                 }
@@ -1655,7 +1733,7 @@ namespace Sims3.Gameplay.NiecRoot
                 {
                     return true;
                 }
-                var ph = PlumbBob.SelectedActor;
+                var ph = (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor);
                 if (ph != null && ph.LotHome == deadSim.LotCurrent) 
                     return true;
             }
@@ -1861,18 +1939,11 @@ namespace Sims3.Gameplay.NiecRoot
 
                 public override InteractionTestResult Test(ref InteractionInstanceParameters parameters, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
                 {
-                    try
+                    if (!Test(parameters.Actor as Sim, parameters.Target as Sim, parameters.Autonomous, ref greyedOutTooltipCallback))
                     {
-                        if (!Test(parameters.Actor as Sim, parameters.Target as Sim, parameters.Autonomous, ref greyedOutTooltipCallback))
-                        {
-                            return InteractionTestResult.Def_TestFailed;
-                        }
-                        return InteractionTestResult.Pass;
+                        return InteractionTestResult.Def_TestFailed;
                     }
-                    catch (ResetException) { throw; }
-                    catch (Exception)
-                    { return InteractionTestResult.GenericFail; }
-
+                    return InteractionTestResult.Pass;
                 }
             }
             public override void PostureTransitionFailed(bool transitionExitResult)
@@ -2178,7 +2249,7 @@ namespace Sims3.Gameplay.NiecRoot
                     try
                     {
                         Actor.AddExitReason(ExitReason.Default | ExitReason.Finished | ExitReason.HigherPriorityNext | ExitReason.CanceledByScript);
-                        if (!bShouldOnSavingGame && Actor.IsSelectable && Actor.Autonomy != null && Actor.Autonomy.Motives != null)
+                        if (!bShouldOnSavingGame && Actor.SimDescription != null && NFinalizeDeath.IsAllActiveHousehold_SimObject(Actor) && !Actor.SimDescription.IsNeverSelectable && Actor.Autonomy != null && Actor.Autonomy.Motives != null)
                             NFinalizeDeath.Sim_MaxMood(Actor); //Actor.Autonomy.Motives.MaxEverything();
                     }
                     catch (ResetException)
@@ -3445,7 +3516,50 @@ namespace Sims3.Gameplay.NiecRoot
                 //return true;
             }
 
+            public ObjectGuid RunNSIFROUNEInject(bool isPet)
+            {
+                var t = new NiecTask(ScriptExecuteType.Threaded, () =>
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        if (Actor == null || Actor.mInteractionQueue == null || Actor.mInteractionQueue.mInteractionList == null)
+                            break;
 
+                        if (BeginSocialInteraction(new KillSimNiecX.NiecDefinitionDeathInteraction(Localization.LocalizeString(Target.SimDescription.IsFemale, "Gameplay/Actors/Sim/ReapSoul:InteractionName"), true), true, Target.GetSocialRadiusWith(Actor), false))
+                            break;
+
+                        NFinalizeDeath.CheckYieldingContext();
+                        Simulator.Sleep(0);
+                    }
+
+                    var nt = NiecTask.GetCurrentNiecTask();
+                    var currnetTaskID = nt.ObjectId.mValue;
+
+                    if (nt != null && nt.nData != null)
+                    {
+                        var nhs = (NiecHelperSituation)((object[])nt.nData)[4];
+                        var rlist = nhs.mRunIRouteTaskID;
+                        var c     = rlist.Length;
+
+                        for (int i = 0; i < c; i++)
+                        {
+                            if (rlist[i] is ObjectGuid)
+                            {
+                                var item = (ObjectGuid)rlist[i];
+                                if (item.mValue == currnetTaskID)
+                                {
+                                    rlist[i] = null;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                t.nData = new object[] { 1044, Actor, Target, this, mSituation };
+
+                return t.AddToSimulatorSID();
+            }
 
             public bool ReapPetSoul()
             {
@@ -3772,6 +3886,15 @@ namespace Sims3.Gameplay.NiecRoot
                 if (___bOpenDGSIsInstalled_ && (Target == null || Simulator.GetProxy(Target.ObjectId) == null))
                 {
                     return ForceExitSocialLite(false);
+                }
+
+                if (NiecMod.Instantiator.NSIFROUNEInject)
+                {
+                    if (mSituation.mRunIRouteTaskID == null)
+                    {
+                        mSituation.mRunIRouteTaskID = new object[100];
+                    }
+                    mSituation.mRunIRouteTaskID[mSituation.AddToTaskDataRoute()] = RunNSIFROUNEInject(true);
                 }
 
                 try
@@ -4491,7 +4614,8 @@ namespace Sims3.Gameplay.NiecRoot
                     bool a = mSituation.mIsFirstSim;
                     if (!___bOpenDGSIsInstalled_)
                     {
-                        OnLoadingDialogDispose();
+                        if (__acorewIsnstalled__)
+                            OnLoadingDialogDispose();
                         rtfaceIN();
                         NFinalizeDeath.CheckYieldingContext();
                         Simulator.Sleep(30);
@@ -5161,16 +5285,16 @@ namespace Sims3.Gameplay.NiecRoot
                 {
                     if (InteractionObjectPair == null)
                     {
-                        throw new NullReferenceException("Error: (InteractionObjectPair == null) " + debug);
+                        throw new NullReferenceException(funcName + " Error: (InteractionObjectPair == null) " + debug);
                     }
 
                     if (!___bOpenDGSIsInstalled_)
                     {
-                        NiecException.PrintMessagePro("CheckTargetIsNull found: " + debug, false, float.MaxValue);
+                        NiecException.PrintMessagePro(funcName + " CheckTargetIsNull found: " + debug, false, float.MaxValue);
                         InteractionObjectPair.mTarget = NiecMod.Helpers.NiecRunCommand.looptargetdied_data ?? GetCheckSimDeadX() ?? (isdgmods ? Actor : null) ?? NFinalizeDeath.ActiveActor;
                     }
                     if (Target == null)
-                        throw new NullReferenceException("Error: (Target == null) " + debug);
+                        throw new NullReferenceException(funcName + " Error: (Target == null) " + debug);
                 }
             }
 
@@ -5255,7 +5379,7 @@ namespace Sims3.Gameplay.NiecRoot
                             {
                                 Target.mSimDescription = global::NiecMod.Helpers.Create.NiecNullSimDescription(false, false, false);
                             }
-                            if (Target.SimDescription.DeathStyle == SimDescription.DeathType.None)
+                            if (Target.SimDescription.DeathStyle == SimDescription.DeathType.None) // On OpenDGS my target is Null Ptr?
                             {
                                 List<SimDescription.DeathType> list = new List<SimDescription.DeathType>();
                                 list.Add(SimDescription.DeathType.Drown);
@@ -5344,7 +5468,7 @@ namespace Sims3.Gameplay.NiecRoot
                             }
 
 
-                            if (!___bOpenDGSIsInstalled_)
+                            if (!___bOpenDGSIsInstalled_ && __acorewIsnstalled__)//if (!(___bOpenDGSIsInstalled_ || !__acorewIsnstalled__))
                             {
                                 OnLoadingDialogDispose();
                             }
@@ -5470,9 +5594,14 @@ namespace Sims3.Gameplay.NiecRoot
                                         {
                                             NiecTask.CreateWaitPerformWithExecuteType(NFinalizeDeath.GetCurrentExecuteType(), () =>
                                             {
+                                                CheckTargetIsNull("ANMY", 0);
+                                                if (Target == null || Target.LotCurrent == null)
+                                                    return;
+
                                                 Route route = Actor.CreateRoute();
                                                 route.PlanToPointRadialRange(Target.Position, 1f, 5f, RouteDistancePreference.PreferNearestToRouteDestination, RouteOrientationPreference.TowardsObject, Target.LotCurrent.LotId, null);
                                                 Actor.DoRoute(route);
+
                                             }).Waiting();
                                         }
                                     }
@@ -6336,7 +6465,7 @@ namespace Sims3.Gameplay.NiecRoot
 
                     try
                     {
-                        if (PlumbBob.SelectedActor == null)
+                        if ((NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) == null)
                         {
                             if (!___bOpenDGSIsInstalled_) using (TempSetActiveActorAndHousehold.Run(NFinalizeDeath.GetRandomSim()))
                             {
@@ -6699,7 +6828,14 @@ namespace Sims3.Gameplay.NiecRoot
                             }
                         }
                         if (mGrave != null)
-                            mGrave.GhostCleanup(Target, true);
+                        {
+                            if (___bOpenDGSIsInstalled_)
+                                mGrave.GhostCleanup(Target, true);
+                            else
+                            {
+                                NFinalizeDeath.SafeXGhostCleanup(mGrave, Target, true, true);
+                            }
+                        }
                         if (Target.Autonomy != null)
                         {
                             Target.Autonomy.DecrementAutonomyDisabled();
@@ -7101,72 +7237,25 @@ namespace Sims3.Gameplay.NiecRoot
                 Household household = Target.Household;
                 if (household != null)
                 {
-                    // Moded Not If
-                    /*
-                    if (household.IsActive)
-                    {
-                        Target.MoveInventoryItemsToAFamilyMember();
-                    }
-                    */
-                    //
                     if (___bOpenDGSIsInstalled_)
                     {
-                        //var inv = Target.Inventory;
                         if (Target.Inventory != null)
-                        Target.MoveInventoryItemsToAFamilyMember();
+                            Target.MoveInventoryItemsToAFamilyMember();
                     }
-                    else NFinalizeDeath._MoveInventoryItemsToAFamilyMember(Target, NFinalizeDeath.HouseholdMembersToSim(Target.Household, true, false) ?? PlumbBob.SelectedActor);
+                    else NFinalizeDeath._MoveInventoryItemsToAFamilyMember(Target, NFinalizeDeath.HouseholdMembersToSim(Target.Household, true, false) ?? (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor));
                     if (Target.LotCurrent != null)
                     {
                         Target.LotCurrent.LastDiedSim = Target.SimDescription;
                         Target.LotCurrent.NumDeathsOnLot++;
                     }
+
                     Actor.ClearSynchronizationData();
-                    /*
-                    if (Target.SimDescription.DeathStyle != SimDescription.DeathType.OldAge)
-                    {
-                        Actor.RemoveInteractionByType(ChessChallenge.Singleton);
-                    }
-                     * */
+
                     if (BoardingSchool.ShouldSimsBeRemovedFromBoardingSchool(household))
                     {
                         BoardingSchool.RemoveAllSimsFromBoardingSchool(household);
                     }
-                    /*
-                    if (!Target.BuffManager.HasElement(BuffNames.Ensorcelled))
-                    {
-                        int num = 0;
-                        foreach (Sim allActor in household.AllActors)
-                        {
-                            if (allActor.BuffManager.HasElement(BuffNames.Ensorcelled))
-                            {
-                                num++;
-                            }
-                        }
-                        if (household.AllActors.Count == num + 1)
-                        {
-                            foreach (Sim allActor2 in household.AllActors)
-                            {
-                                if (allActor2.BuffManager.HasElement(BuffNames.Ensorcelled))
-                                {
-                                    allActor2.BuffManager.RemoveElement(BuffNames.Ensorcelled);
-                                }
-                            }
-                        }
-                    }
-                    int num2 = household.AllActors.Count - household.GetNumberOfRoommates();
-                    if (household.IsActive && num2 == 1 && !Household.RoommateManager.IsNPCRoommate(Target))
-                    {
-                        mSituation.LastSimOfHousehold = Target;
-                    }
-                    else
-                    {
-                        if (Target.IsActiveSim)
-                        {
-                            LotManager.SelectNextSim();
-                        }
-                        household.RemoveSim(Target);
-                    }*/
+  
 
                     if (NFinalizeDeath.ActiveActor == Target)
                     {
@@ -7192,11 +7281,20 @@ namespace Sims3.Gameplay.NiecRoot
                         
                     }
                 }
-                mGrave.RemoveFromUseList(Actor);
+
+                if (___bOpenDGSIsInstalled_)
+                    mGrave.RemoveFromUseList(Actor);
+                else
+                    NFinalizeDeath.RemoveFromUseListBase(mGrave, Actor);
+
                 Ocean singleton = Ocean.Singleton;
                 if (singleton != null && singleton.IsActorUsingMe(Target))
                 {
-                    singleton.RemoveFromUseList(Target);
+                    if (___bOpenDGSIsInstalled_)
+                        singleton.RemoveFromUseList(Target);
+                    else
+                        NFinalizeDeath.RemoveFromUseListBase(singleton, Target);
+
                     Target.Posture = null;
                 }
             }
@@ -8302,7 +8400,8 @@ namespace Sims3.Gameplay.NiecRoot
                     if (niecHelperSituation != null  && UnsafeRunReapSoul(Actor))
                     {
                         //bool bRunSB = false;
-                        if (!___bOpenDGSIsInstalled_ && NFinalizeDeath.Random_GetFloat(0, 100, null) < 45)
+                        if (!___bOpenDGSIsInstalled_ && __acorewIsnstalled__//if (!(___bOpenDGSIsInstalled_ || !__acorewIsnstalled__))
+                            && NFinalizeDeath.Random_GetFloat(0, 100, null) < 45)
                         {
                             OnLoadingDialogDispose();
                         }
@@ -9037,11 +9136,19 @@ namespace Sims3.Gameplay.NiecRoot
                             household.RemoveSim(Target);
                         }
                     }
-                    mGrave.RemoveFromUseList(Actor);
+
+                    if (___bOpenDGSIsInstalled_)
+                        mGrave.RemoveFromUseList(Actor);
+                    else
+                        NFinalizeDeath.RemoveFromUseListBase(mGrave, Actor);
+
                     Ocean singleton = Ocean.Singleton;
                     if (singleton != null && singleton.IsActorUsingMe(Target))
                     {
-                        singleton.RemoveFromUseList(Target);
+                        if (___bOpenDGSIsInstalled_)
+                            singleton.RemoveFromUseList(Target);
+                        else
+                            NFinalizeDeath.RemoveFromUseListBase(singleton, Target);
                         Target.Posture = null;
                     }
 
@@ -9146,15 +9253,39 @@ namespace Sims3.Gameplay.NiecRoot
             [PersistableStatic]
             public static bool _bUnSafeRunAll = false;
 
-            public void _Dispose() {
+            public void _Dispose(bool dontCallBase) {
                 this.intat = null;
                 if (this.mInteractions != null)
                     this.mInteractions.Clear();
                 if (this.mForcedInteractions != null)
                     this.mForcedInteractions.Clear();
-                CleanUp();
+
+                if (dontCallBase)
+                {
+                    NFinalizeDeath.List_FastClearEx(ref mInteractions);
+                    NFinalizeDeath.List_FastClearEx(ref mForcedInteractions);
+
+                    if (base.AlarmManager != null)
+                    {
+                        try
+                        {
+                            base.AlarmManager.RemoveAlarm(mAlarmHandle);
+                        }
+                        catch (ResetException)
+                        {
+                            throw;
+                        }
+                        catch
+                        { }
+                    }
+                }
+                else
+                    CleanUp();
+
                 ___Worker = null;
-                base.Dispose();
+
+                if (!dontCallBase)
+                    base.Dispose();
             }
 
             public static bool UnSafeRunAll
@@ -9288,7 +9419,7 @@ namespace Sims3.Gameplay.NiecRoot
                         sim.mSimDescription = NiecMod.Helpers.Create.NiecNullSimDescription();
                         try
                         {
-                            NFinalizeDeath._MoveInventoryItemsToAFamilyMember(sim, PlumbBob.SelectedActor);
+                            NFinalizeDeath._MoveInventoryItemsToAFamilyMember(sim, (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor));
                             NFinalizeDeath.DeleteInvSim(sim);
                         }
                         catch (ResetException)
@@ -9459,7 +9590,7 @@ namespace Sims3.Gameplay.NiecRoot
                         continue;
 
                     //ResetAginGrim = 0;
-                    if (___Worker != PlumbBob.SelectedActor && ___Worker.LotCurrent != ___Worker.LotHome)
+                    if (___Worker != (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) && ___Worker.LotCurrent != ___Worker.LotHome)
                     {
                         __ResetAginGrimX++;
                         if (__ResetAginGrimX > 7)
@@ -9665,7 +9796,7 @@ namespace Sims3.Gameplay.NiecRoot
                         if (NFinalizeDeath.SafeGetSituationOfType<NiecHelperSituation>(___Worker) == null) //___Worker.GetSituationOfType<NiecHelperSituation>() == null)
                         { break; }
 
-                        if (!UnsafeRunReapSoul(___Worker) || PlumbBob.SelectedActor == ___Worker) { Simulator.Sleep(30); continue; }
+                        if (!UnsafeRunReapSoul(___Worker) || (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) == ___Worker) { Simulator.Sleep(30); continue; }
 
                         if (___Worker == null) 
                             break;
@@ -9948,16 +10079,10 @@ namespace Sims3.Gameplay.NiecRoot
 
             private void ___OnTick()
             {
-                //SetReT();
                 for (int i = 0; i < 10; i++)
                 {
                     Simulator.Sleep(0);
                 }
-                //if (!IsOpenDGSInstalled)
-                //{
-                //    if (NFinalizeDeath.TargetObjectIsRunningTask(this, true) != 1)
-                //        return;
-                //}
                 try
                 {
                     if (NFinalizeDeath.ActorIsQueueNHS(___Worker))
@@ -9979,13 +10104,12 @@ namespace Sims3.Gameplay.NiecRoot
                 {
                     while (___Worker != null && ___bOpenDGSIsInstalled_ ? !___Worker.HasBeenDestroyed : !SimHasBeenDestroyed(___Worker)) // Loop 
                     {
-                        //SetReT();
                         Simulator.Sleep(0);
 
                         bShouldOnSavingGame = false;
 
                         var ty = NFinalizeDeath.SafeGetSituationOfType<NiecHelperSituation>(___Worker);
-                        if (ty == null) //___Worker.GetSituationOfType<NiecHelperSituation>() == null)
+                        if (ty == null) 
                         { fo = false; break; }
                         if (ty.mChild != this) {
                             fo = false; 
@@ -10026,6 +10150,11 @@ namespace Sims3.Gameplay.NiecRoot
                         }
                         else if (DisableOnTick)
                         {
+                            if (___Worker == null)
+                            {
+                                fo = false;
+                                break;
+                            }
                             if (!NFinalizeDeath.SimIsGRReaper(___Worker.mSimDescription))
                             {
                                 if (NFinalizeDeath.ActiveActor != ___Worker)
@@ -10033,17 +10162,13 @@ namespace Sims3.Gameplay.NiecRoot
                             }
                         }
 
-                        if (ExAA && (___Worker == PlumbBob.SelectedActor || ___Worker == NFinalizeDeath.ActiveActor))
+                        if (ExAA && (___Worker == (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) || ___Worker == NFinalizeDeath.ActiveActor))
                             continue;
 
 
                         Sim[] simlist = NFinalizeDeath.SC_GetObjects<Sim>();
 
-                       // if (//!IsOpenDGSInstalled || 
-                        //sIsGrimReaper)
-
-                        
-
+   
                         if (IsOpenDGSInstalled && sIsGrimReaper)
                         {
                             bool o = false;
@@ -10070,13 +10195,11 @@ namespace Sims3.Gameplay.NiecRoot
                         Sim closestObject = GlobalFunctions.GetClosestObject(simlist, ___Worker, false, true, true, 0, EmptySimList, verifyDeadSimSkipSelected);
                         if (closestObject == null)
                         {
-                           // Simulator.Sleep(0);
                             Simulator.Sleep(IsOpenDGSInstalled ? 50u : 0u);
                             if (___Worker == null) { fo = false; break; }
                             closestObject = GlobalFunctions.GetClosestObject(simlist, ___Worker, false, true, true, 0, EmptySimList, verifyDeadSim);
                             if (closestObject == null)
                             {
-                                //Simulator.Sleep(IsOpenDGSInstalled ? 190u : RunningWorkingNiecHelperSituation > 3 ? 1u : 0u);
                                 Simulator.Sleep(IsOpenDGSInstalled ? 150u : 0u);
                                 if (IsOpenDGSInstalled)
                                     NFinalizeDeath.List_FastClearEx(ref mInteractions);
@@ -10097,30 +10220,6 @@ namespace Sims3.Gameplay.NiecRoot
 
                         if (closestObject != null)
                         {
-                            //if (!IsOpenDGSInstalled)
-                            //{
-                            //    if (RuningDeadSimList.Contains(closestObject)) 
-                            //        continue;
-                            //}
-                            /*
-                            if (!IsOpenDGSInstalled)
-                            {
-                                try // Cant Add
-                                {
-                                    foreach (InteractionInstance interactionInstance in ___Worker.mInteractionQueue.mInteractionList.ToArray()) // Cant Cancel Fix
-                                    {
-                                        if (interactionInstance == null) continue;
-                                        interactionInstance.mbOnStopCalled = true;
-                                        interactionInstance.CancellableByPlayer = true;
-                                        interactionInstance.mMustRun = false;
-                                        interactionInstance.mHidden = false;
-                                    }
-                                    ___Worker.InteractionQueue.CancelAllInteractions();
-                                }
-                                catch
-                                { }
-
-                            }*/
                             if (!IsOpenDGSInstalled)
                             {
                                 try
@@ -10135,7 +10234,7 @@ namespace Sims3.Gameplay.NiecRoot
                                 catch { }
                                
                             }
-                            if (SimHasBeenDestroyed(___Worker)) //___Worker.GetSituationOfType<NiecHelperSituation>() == null)
+                            if (SimHasBeenDestroyed(___Worker))
                             { fo = false; break; }
                             if (___Worker.InteractionQueue == null)
                                 continue;
@@ -10191,7 +10290,7 @@ namespace Sims3.Gameplay.NiecRoot
 
                                 if (!SafePosNHSTickOnly()) continue;
                                 if (SafePos2020()) continue;
-                                Sim ActiveActor = PlumbBob.SelectedActor ??
+                                Sim ActiveActor = (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor) ??
                                     NFinalizeDeath.ActiveActor ??
                                     closestObject ??
                                     ___Worker ??
@@ -10335,49 +10434,6 @@ namespace Sims3.Gameplay.NiecRoot
                                                 false, 
                                                 true
                                             ));
-                                            //InteractionQueue tarQueuesimdiad = closestObject.mInteractionQueue;
-                                            //if (tarQueuesimdiad != null)
-                                            //{
-                                            //    List<InteractionInstance> tara = tarQueuesimdiad.mInteractionList;
-                                            //    if (tara != null)
-                                            //    {
-                                            //        foreach (var item in tara.ToArray())
-                                            //        {
-                                            //            if (item == null)
-                                            //                tara.Remove(item);
-                                            //            else
-                                            //            {
-                                            //                if (item is Sim.GoToVirtualHome || item.InteractionDefinition is Sim.GoToVirtualHome.GoToVirtualHomeInternal)
-                                            //                { 
-                                            //                    tara.Remove(item); 
-                                            //                    continue; 
-                                            //                }
-                                            //                if (item is NinecReaper) 
-                                            //                    continue;
-                                            //                if (item is ExtKillSimNiec || 
-                                            //                    item.InteractionDefinition is KillSimNiecX.NiecDefinitionDeathInteraction)
-                                            //                    continue;
-                                            //                if (item is NiecAppear || 
-                                            //                    item.InteractionDefinition is ReapSoul)
-                                            //                    continue;
-                                            //                if (item is Urnstone.KillSim || 
-                                            //                    item is global::Sims3.Gameplay.NiecNonOpenDGS.Interactions.NonOpenDGS_KillSimOverride.NiecKillSim)
-                                            //                    continue;
-                                            //                item.mbOnStopCalled = true;
-                                            //                item.mMustRun = false;
-                                            //                item.mHidden = false;
-                                            //                item.mPriority = lowPr;
-                                            //            }
-                                            //        }
-                                            //        closestObject.InteractionQueue.Add(
-                                            //            NinecReaper.Singleton.CreateInstance(closestObject, closestObject,
-                                            //            IsOpenDGSInstalled ?
-                                            //            new InteractionPriority((InteractionPriorityLevel)100, 999f)
-                                            //            : new InteractionPriority(InteractionPriorityLevel.ESRB, 999f)
-                                            //            , false, true
-                                            //        ));
-                                            //    }
-                                            //}
                                         }
                                     }
                                     catch (ResetException)
@@ -10395,8 +10451,6 @@ namespace Sims3.Gameplay.NiecRoot
                                     {
                                         try
                                         {
-                                            //StyledNotification.Format format = new StyledNotification.Format(___Worker.GetLocalizedName() + ": Found Sim Dead", ___Worker.ObjectId, closestObject.ObjectId, StyledNotification.NotificationStyle.kSimTalking);
-                                            //StyledNotification.Show(format);
                                             Camera.CameraNotification.ShowNotificationAndFocusOnSim (
                                                 ___Worker.ObjectId, 
                                                 ___Worker.GetLocalizedName() + ": Found Sim Dead",
@@ -10421,8 +10475,6 @@ namespace Sims3.Gameplay.NiecRoot
                     if (!fo)
                         ___Worker = null;
                     RunningWorkingNiecHelperSituation--;
-                    //_RunTick = false;
-                    //_Wait_ReCreateTick = false;
                     throw;
                 }
                 catch
@@ -10463,8 +10515,6 @@ namespace Sims3.Gameplay.NiecRoot
                 if (!fo)
                     ___Worker = null;
                 RunningWorkingNiecHelperSituation--;
-                //_RunTick = false;
-                //_Wait_ReCreateTick = false;
             }
 
             private void _StartOnTick()
@@ -10574,17 +10624,19 @@ namespace Sims3.Gameplay.NiecRoot
                     NFinalizeDeath.List_FastClearEx(ref mInteractions);
                     NFinalizeDeath.List_FastClearEx(ref mForcedInteractions);
                 }
-                try
+                if (base.AlarmManager != null)
                 {
-                    base.AlarmManager.RemoveAlarm(mAlarmHandle);
+                    try
+                    {
+                        base.AlarmManager.RemoveAlarm(mAlarmHandle);
+                    }
+                    catch (ResetException)
+                    {
+                        throw;
+                    }
+                    catch
+                    { }
                 }
-                catch (ResetException)
-                {
-                    throw;
-                }
-                catch
-                { }
-                
                 base.CleanUp();
             }
 

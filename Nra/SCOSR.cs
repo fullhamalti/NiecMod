@@ -14,6 +14,7 @@ using Sims3.Gameplay.Actors;
 using NiecMod.Helpers;
 using Sims3.NiecModList.Persistable;
 using Sims3.Gameplay.Utilities;
+using Sims3.Gameplay.Core;
 
 namespace NiecMod.Nra
 {
@@ -44,19 +45,69 @@ namespace NiecMod.Nra
         public static _SafeScriptError _SafeOnScriptError = null;
         [global::Sims3.SimIFace.Persistable(false)]
         public delegate void _SafeScriptError(ScriptCore.ScriptProxy proxy, Exception e);
-
+        public static bool ShouldInjectedMethodOnScriptError = false;
         private static Sims3.SimIFace.VisualEffect mGrimReaperSmoke = null;
 
 
-
+        public static bool ShouldACoreScipt2020()
+        {
+            return NiecHelperSituation.__acorewIsnstalled__ && IsScriptCore2020();
+        }
 
         public static
             void StartUpSafeErrorTrapAdded()
         {
-            if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap"))
+            if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || ShouldACoreScipt2020())
             {
                 NiecTask.Perform(delegate
                 {
+                    if (!NFinalizeDeath.GameIs64Bit(true) && ShouldACoreScipt2020() && !NiecHelperSituation.isdgmods)
+                    {
+                        if (NFinalizeDeath.func_address_GetAssemblies != 0)
+                        {
+                            NFinalizeDeath.RemovePreventGetAssemblies();
+                        }
+
+                        Type.GetType("NRaas.Common, NRaasErrorTrap").GetMethod("OnPreLoad", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, new object[0]);
+                        
+                        var p = Type.GetType("NRaas.ErrorTrap, NRaasErrorTrap");
+                        if (p == null)
+                        {
+                            NFinalizeDeath.Assert("Type.GetType(\"NRaas.ErrorTrap, NRaasErrorTrap\"); == null");
+                            goto faled;
+                        }
+                        else
+                        {
+                            var m = p.GetMethod("OnScriptError", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                            if (m != null)
+                            {
+                                var myM = typeof(SCOSR).GetMethod("OnScriptError", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+                                dontcall = true;
+                                OnScriptError(null, null);
+                                dontcall = false;
+
+                                Delegate.CreateDelegate(typeof(SCOSR._SafeScriptError), m);
+
+                                if (!niec_script_func.niecmod_script_copy_ptr_func_to_func(myM, m, false, false, true, false))
+                                    goto faled;
+                            }
+                            else goto faled;
+                        }
+                        _SafeOnScriptError = null;
+                        DoneSafeErrorTrap = true;
+                        ShouldInjectedMethodOnScriptError = true;
+                        if (NiecHelperSituation.___bOpenDGSIsInstalled_)
+                        {
+                            SetBoolScriptCore2020(false, false, false);
+                        }
+                        else
+                        {
+                            SetBoolScriptCore2020(AssemblyCheckByNiec.IsInstalled("AweCore"), true, true);
+                        }
+                        return;
+                    }
+                    faled:
                     for (int i = 0; i < 100; i++)
                     {
                         Simulator.Sleep(0);
@@ -158,15 +209,18 @@ namespace NiecMod.Nra
             return false;
         }
 
-
+        public static bool dontcall = false;
         public static bool safeerrorbool = false;
 
         public static void OnScriptError(ScriptCore.ScriptProxy proxy, Exception ex)
         {
+            if (dontcall)
+                return;
+
             if (proxy == null) 
                 NFinalizeDeath.ThrowResetException("");
 
-            if (safeerrorbool)
+            if (safeerrorbool && !ShouldInjectedMethodOnScriptError)
             {
                 if (_SafeOnScriptError != null && ex != null)
                 {
@@ -273,7 +327,16 @@ namespace NiecMod.Nra
                     try
                     {
                         //proxySim.DoInteraction();
-                        Bim.FoundInteraction(proxySim);
+                        if (!Bim.AOrGROnlyRunningSim || NFinalizeDeath.SimIsGRReaper(proxySim.SimDescription) || proxySim == (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor))
+                        {
+                            Bim.FoundInteraction(proxySim);
+                            Simulator.Sleep(0);
+                        }
+                        else
+                        {
+                            proxySim.LoopIdle();
+                            Simulator.Sleep(0);
+                        }
                     }
                     catch (ResetException)
                     {
@@ -368,9 +431,9 @@ namespace NiecMod.Nra
 
                                 if (GameUtils.IsInstalled(ProductVersion.EP7))
                                 {
-                                    for (int i = 0; i < 3; i++)
+                                    for (int i = 0; i < 5; i++)
                                     {
-                                        proxyLot.UpdateNumZombiesOnLot(timePassed);
+                                        proxyLot.UpdateNumZombiesOnLot(timePassed + i);
                                     }
                                 }
                             }
@@ -543,11 +606,20 @@ namespace NiecMod.Nra
            
 
             var roleMangerTask = proxyTarget as Sims3.Gameplay.Roles.RoleManagerTask;
-            if (roleMangerTask != null)
+            if (!Instantiator.NACSDCInject && roleMangerTask != null && Simulator.CheckYieldingContext(false) && (ShouldInjectedMethodOnScriptError ? Type.GetType("NRaas.RegisterSpace.Tasks.RoleManagerTaskEx, NRaasRegister", false) != null : true))
             {
-                if (AssemblyCheckByNiec.IsInstalled("NRaasRegister") && Simulator.CheckYieldingContext(false))
+                //if (AssemblyCheckByNiec.IsInstalled("NRaasRegister") &&
+                //    Simulator.CheckYieldingContext(false))
                 {
-                    Simulator.Sleep(uint.MaxValue);
+                   //Simulator.Sleep(uint.MaxValue);
+                    while (true)
+                    {
+                        Simulator.Sleep(0);
+                        for (int i = 0; i < 3; i++)
+                        {
+                            NiecRunCommand.native_testcpu_debug(null, null);
+                        }
+                    }
                 }
             }
 
@@ -591,6 +663,8 @@ namespace NiecMod.Nra
         public static void OnLoading()
         {
             IsScriptCore2020();
+            if (ShouldInjectedMethodOnScriptError)
+                return;
             if (_SafeOnScriptError != null)
             {
                 DoneSafeErrorTrap = _SafeOnScriptError.method_info.DeclaringType == typeof(SCOSR);

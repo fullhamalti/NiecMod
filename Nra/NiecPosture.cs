@@ -166,8 +166,10 @@ namespace NiecMod.Nra
 
         public override IGameObject Container
         {
-            get { 
-                if (IsOpenDGSInstalled) 
+            get {
+                if (IsOpenDGSInstalled || !NiecHelperSituation.__acorewIsnstalled__ || this is NiecHelperSituationPosture) 
+                    return null;
+                if (NFinalizeDeath.GetCurrentGameObjectFast<Lot>() != null)
                     return null;
                 return NFinalizeDeath.GetRandomGameObject<IGameObject>(delegate(IGameObject obj) { return obj != NFinalizeDeath.ActiveActor; }); 
             }
@@ -356,7 +358,7 @@ namespace NiecMod.Nra
                 nhsp.PBack = null;
             }
 
-            if (Disallowr_internal || (NiecHelperSituation.ExAA && sim == PlumbBob.SelectedActor))
+            if (Disallowr_internal || (NiecHelperSituation.ExAA && sim == (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor)))
                 return;
 
             if (!TestDEBUGMyMod && !SCOSR.IsScriptCore2020() && !IsOpenDGSInstalled &&
@@ -445,7 +447,7 @@ namespace NiecMod.Nra
                     continue;
                 if (Simulator.GetProxy(sim.ObjectId) == null)
                     break;
-                if (Disallowr_internal || (NiecHelperSituation.ExAA && sim == PlumbBob.SelectedActor))
+                if (Disallowr_internal || (NiecHelperSituation.ExAA && sim == (NPlumbBob.DoneInitClass ? NFinalizeDeath.GetSafeSelectActor() : PlumbBob.SelectedActor)))
                     break;
 
                 var simIQ = sim.InteractionQueue;
@@ -629,7 +631,7 @@ namespace NiecMod.Nra
                             break;
                         }
 
-                        if ( !inCurrentInteraction.Test() || (IsOpenDGSInstalled && !inCurrentInteraction.IsTargetValid()) )
+                        if (!Bim.TestInteractionEx(inCurrentInteraction) || (IsOpenDGSInstalled && !inCurrentInteraction.IsTargetValid()))
                         {
                             // simIQList.Remove(inCurrentInteraction);
                             niec_std.list_remove(simIQList, inCurrentInteraction);

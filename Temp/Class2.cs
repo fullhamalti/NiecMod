@@ -26,6 +26,113 @@ using System.Text;
 
 namespace NiecMod.Commom.Proxies
 {
+    public static class NLibraryUtls
+    {
+        public static Household _ImportHousehold(string packageFile, Lot moveinLot, bool full, bool askToCreateSim, out HouseholdContents contents)
+        {
+            contents = null;
+            if (packageFile == null || packageFile.Length == 0)
+                return null;
+
+            try
+            {
+                HouseholdContentsProxy hoc = HouseholdContentsProxy.Import(packageFile);
+                if (hoc != null)
+                {
+                    Household mhouse = hoc.Household;
+                    if (mhouse != null && mhouse.mMembers != null && mhouse.AllSimDescriptions != null && mhouse.AllSimDescriptions.Count != 0)
+                    {
+                        foreach (SimDescription item in mhouse.AllSimDescriptions.ToArray())
+                        {
+                            item.mHousehold = mhouse;
+                        }
+
+                        try
+                        {
+                            mhouse.FixupGenealogy();
+                        }
+                        catch (Exception)
+                        { }
+
+                        foreach (SimDescription item in mhouse.AllSimDescriptions.ToArray())
+                        {
+                            try
+                            {
+                                item.Fixup();
+                            }
+                            catch (Exception)
+                            { }
+                        }
+
+
+
+                        bool donelotofmovein = false;
+                        if (moveinLot != null && moveinLot.mHousehold == null)
+                        {
+                            donelotofmovein = true;
+                            try
+                            {
+                                moveinLot.MoveIn(mhouse);
+
+                            }
+                            catch (Exception)
+                            {
+                                moveinLot.mHousehold = mhouse;
+                                mhouse.mLotId = moveinLot.mLotId;
+                                mhouse.mLotHome = moveinLot;
+                            }
+                        }
+                        if (!full)
+                            full = askToCreateSim && Simulator.CheckYieldingContext(false) && NiecMod.Nra.NFinalizeDeath.CheckAccept("Create Sim?");
+                        if (full)
+                        {
+                            //Sim sim = null;
+                            if (donelotofmovein)
+                            {
+                                try
+                                {
+                                    foreach (SimDescription item in mhouse.AllSimDescriptions.ToArray())
+                                    {
+                                        try
+                                        {
+                                            if (NiecMod.Nra.NFinalizeDeath.SimDesc_OutfitsIsValid(item))
+                                                item.Instantiate(Service.GetPositionInRandomLot(moveinLot), false);
+                                        }
+                                        catch (Exception)
+                                        { }
+                                    }
+                                }
+                                catch (Exception)
+                                { }
+                            }
+                            try
+                            {
+                                BinCommon.CreateInventories(mhouse, hoc.Contents, NiecMod.Nra.NFinalizeDeath.CreateIndexMap_(mhouse));
+                            }
+                            catch (Exception)
+                            { }
+                        }
+                        contents = hoc.Contents;
+                        return mhouse;
+                    }
+                    else
+                    {
+                        if (mhouse != null)
+                            mhouse.Destroy();
+
+                        NiecMod.Nra.NiecException.PrintMessagePro("Check mhouse is invalid.\nSorry :(", false, 100);
+                    }
+                }
+                else
+                {
+                    NiecMod.Nra.NiecException.PrintMessagePro("Could not find Package File" + "\n" + packageFile, false, 1000);
+                }
+            }
+            catch (Exception)
+            { }
+            return null;
+        }
+    }
     public class HouseholdContentsProxy : IExportableContent, IMetaTagExporter
     {
         public static bool IsOpenDGSInstalled = NiecMod.KillNiec.AssemblyCheckByNiec.IsInstalled("OpenDGS");
@@ -102,6 +209,17 @@ namespace NiecMod.Commom.Proxies
                     continue;
                 if (!Nra.NFinalizeDeath.SD_OutfitsIsValid2(allSimDescription, true))
                     continue;
+
+                var allCreatedSim = allSimDescription.CreatedSim;
+                if (allCreatedSim != null)
+                {
+                    if (allCreatedSim.ObjectId.mValue == 0 ||
+                        !Nra.NFinalizeDeath.GameObjectIsValid(allCreatedSim.ObjectId.mValue) ||
+                        allCreatedSim.mSimDescription != allSimDescription)
+                        allSimDescription.mSim = null;
+                }
+
+
                 try // fix
                 {
                     bool needFix = false;

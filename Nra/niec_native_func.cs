@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
@@ -106,7 +106,11 @@ namespace NiecMod.Nra
         public unsafe static void init_class()
         {
             if (NFinalizeDeath.GameIs64Bit(false))
-                return;
+                throw new NotSupportedException("Sims 3 64 bit version not supported.");
+
+#if !GameVersion_0_Release_2_0_209
+            throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+#else
 
             if (done_init_class)
                 return;
@@ -359,15 +363,6 @@ namespace NiecMod.Nra
 
 
 
-
-
-
-
-
-
-
-
-
             if (m01 != null)
                 OutputDebugString("niecmod_native_load_library: func_address: 0x" + niec_script_func.niecmod_script_get_func_ptr(m01.mhandle).ToString("X"));
             if (m02 != null)
@@ -382,6 +377,7 @@ namespace NiecMod.Nra
                 OutputDebugString("niecmod_native_message_box: func_address: 0x" + niec_script_func.niecmod_script_get_func_ptr(m06.mhandle).ToString("X"));
             if (m07 != null)
                 OutputDebugString("niecmod_native_cpuid: func_address: 0x" + niec_script_func.niecmod_script_get_func_ptr(m07.mhandle).ToString("X"));
+#endif // GameVersion_0_Release_2_0_209
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -624,6 +620,29 @@ namespace NiecMod.Nra
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern object niecmod_native_get_object_for_nonptr_64bit(ulong obj_address);
 
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern T niecmod_native_get_classobject_for_ptr<T>(IntPtr obj_address);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern T niecmod_native_get_classobject_for_nonptr<T>(object obj);
+
+        public unsafe static void* AsPointer(object obj) //void* ptr = (void*)obj; don't compile
+        {
+            if (obj == null)
+                return (void*)0;
+            return (void*)niec_native_func.niecmod_native_get_classobject_for_nonptr<IntPtr>(obj);
+        }
+
+        public unsafe static void* MonoAsPointer(object obj) //void* ptr = (void*)obj; don't compile
+        {
+            if (obj == null)
+                return (void*)0;
+            return (void*)obj.obj_address();
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern int niecmod_native_check_yielding_context();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr niecmod_native_create_thread(IntPtr _StartAddress, IntPtr _ArgList, uint _StackSize);

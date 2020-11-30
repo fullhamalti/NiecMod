@@ -63,15 +63,25 @@ namespace NiecMod.Interactions
         public bool stemprun = false;
         public bool stemprun_ = false;
 
+
+        public override void ConfigureInteraction()
+        {
+            onRuntimeThisRun = false;
+        }
+
         public AlarmHandle loadalarm = AlarmHandle.kInvalidHandle; 
 
 
-        // Token: 0x0600A7E2 RID: 42978 RVA: 0x002FB164 File Offset: 0x002FA164
-        public  override bool Run()
+       
+        public override bool Run()
         {
+            onRuntimeThisRun = true;
+            NFinalizeDeath.CheckYieldingContext();
+            Simulator.Sleep(0);
+
             try
             {
-                if (Simulator.CheckYieldingContext(false)) { NiecMod.Nra.SpeedTrap.Sleep(); }
+               
 
 
                 SimDescription simDescription = Actor.SimDescription;
@@ -163,7 +173,7 @@ namespace NiecMod.Interactions
                     }
                     if ( /*Sim.ActiveActor == null || */ PlumbBob.sSingleton.mSelectedActor == null)
                     {
-                        if (NTunable.kCreatesSim && !Create.RandomActiveHouseholdAndActiveActor() || !Create.CreateActiveHouseholdAndActiveActor(null)) 
+                        if (NTunable.kCreatesSim && !Create.RandomActiveHouseholdAndActiveActor() || Create.CreateActiveHouseholdAndActiveActor(null, false) == null) 
                             return false;
                     }
 
@@ -468,6 +478,7 @@ namespace NiecMod.Interactions
                     this.DeathTypeFix = false;
                     this.FixNotExit = false;
                     this.ActiveFix = false;
+
                     try
                     {
                         this.Actor.MoveInventoryItemsToAFamilyMember();
@@ -586,7 +597,7 @@ namespace NiecMod.Interactions
                             {
                                 Simulator.Sleep(0);
                             }
-                            if (Actor.Household == Household.ActiveHousehold && NFinalizeDeath.ActiveHouseCount2() != 1 && NFinalizeDeath.CheckAccept("Do you want Force Kill? (Yes Run or No Next)") /* && Simulator.CheckYieldingContext(false) */)
+                            if (Actor.Household == Household.ActiveHousehold && NFinalizeDeath.ActiveHouseCount2() != 1 && NFinalizeDeath.CheckAccept("Do you want Force Kill?\n(Yes Run or No Next)\nName: " + Actor.SimDescription.FullName) /* && Simulator.CheckYieldingContext(false) */)
                             {
                                 try
                                 {
@@ -925,7 +936,7 @@ namespace NiecMod.Interactions
                                 stemprun_ = true;
                                 Simulator.Wake(sma);
                             }
-                            if (NFinalizeDeath.CheckAccept("Do you want Kill? (Yes Run or No Cancel)") /* && Simulator.CheckYieldingContext(false) */)
+                            if (NFinalizeDeath.CheckAccept("Do you want Kill?\n(Yes Run or No Cancel)\nName: " + Actor.SimDescription.FullName) /* && Simulator.CheckYieldingContext(false) */)
                             {
                                 //stemprun = true;
                                 Simulator.Wake(sma);
@@ -1817,7 +1828,7 @@ namespace NiecMod.Interactions
                 if (!NFinalizeDeath.IsSimFastActiveHousehold(Actor) && !doneNiecHelperS && Actor.InteractionQueue != null && Actor.InteractionQueue.mInteractionList != null)
                 {
                     while (Actor.InteractionQueue.mInteractionList.Remove(null)) { Simulator.Sleep(0); }
-                    if (Actor.InteractionQueue.HasInteractionOfType(GrimReaperSituation.BeUnReaped.Singleton) || Actor.InteractionQueue.HasInteractionOfType(NinecReaper.Singleton) || Actor.InteractionQueue.HasInteractionOfType(KillSimNiecX.NiecDefinitionDeathInteraction.SocialSingleton) || Actor.InteractionQueue.HasInteractionOfType(NiecDefinitionDeathInteractionSocialSingleton) || Actor.InteractionQueue.HasInteractionOfType(GrimReaperSituation.BeReapedDiving.Singleton) || NFinalizeDeath.IsHasInteractionNHSTargetSim(Actor) || NFinalizeDeath.IsHasInteractionGRSTargetSim(Actor) || NFinalizeDeath.WaitCheckAccept("Do you want FixNotExit? (Yes Exit or No Run Force Kill)"))
+                    if (Actor.InteractionQueue.HasInteractionOfType(GrimReaperSituation.BeUnReaped.Singleton) || Actor.InteractionQueue.HasInteractionOfType(NinecReaper.Singleton) || Actor.InteractionQueue.HasInteractionOfType(KillSimNiecX.NiecDefinitionDeathInteraction.SocialSingleton) || Actor.InteractionQueue.HasInteractionOfType(NiecDefinitionDeathInteractionSocialSingleton) || Actor.InteractionQueue.HasInteractionOfType(GrimReaperSituation.BeReapedDiving.Singleton) || NFinalizeDeath.IsHasInteractionNHSTargetSim(Actor) || NFinalizeDeath.IsHasInteractionGRSTargetSim(Actor) || NFinalizeDeath.WaitCheckAccept("Do you want FixNotExit?\n(Yes Exit or No Run Force Kill)\nName: " + Actor.SimDescription.FullName))
                     {
                         FixNotExit = false;
                     }
@@ -2272,10 +2283,18 @@ namespace NiecMod.Interactions
 
         public static InteractionDefinition DGSMods_Interactions_Objects_TimePortalObject_Trias_Time = null;
         public bool doneCleanUp = false;
+        public bool onRuntimeThisRun = false;
 
-        // Token: 0x0600A7E3 RID: 42979 RVA: 0x002FB788 File Offset: 0x002FA788
+
         public override void Cleanup()
         {
+            if (!onRuntimeThisRun && Simulator.CheckYieldingContext(false) && Actor != null && InteractionObjectPair != null && Target != null)
+            {
+                onRuntimeThisRun = true;
+                if (NFinalizeDeath.OnCancelTryRunInteraction(Actor, this))
+                    return;
+            }
+
             if (doneCleanUp && NiecRunCommand.IsOpenDGSInstalled) 
                 return;
 
@@ -2756,7 +2775,11 @@ namespace NiecMod.Interactions
                                         {
                                             //if (iteem.DeadSimsDescription == Actor.SimDescription)
                                             NiecMod.Nra.SpeedTrap.Sleep();
-                                            if (iteem != null && object.ReferenceEquals(iteem.DeadSimsDescription, Actor.SimDescription))
+
+                                            if (PlumbBob.Singleton.mSelectedActor == null)
+                                                break;
+
+                                            if (iteem != null && (object)iteem.DeadSimsDescription == (object)Actor.SimDescription)
                                             {
                                                 iteem.SetPosition(PlumbBob.Singleton.mSelectedActor.Position);
                                             }
@@ -2771,11 +2794,24 @@ namespace NiecMod.Interactions
                                 catch
                                 { }
                                 //Sims3.NiecHelp.Tasks.NiecTask.Perform(CheckKillAllSimGraveToPos);
-                                loadalarm = AlarmManager.Global.AddAlarm(5f, TimeUnit.Minutes, new AlarmTimerCallback(CheckKillAllSimGraveToPos), "CheckKillAllSimGraveToPos Name " + Actor.SimDescription.LastName, AlarmType.NeverPersisted, null);
-                                AlarmManager.Global.AlarmWillYield(loadalarm);
+                                if (AlarmManager.Global != null)
+                                {
+                                    loadalarm = AlarmManager.Global.AddAlarm(5f, TimeUnit.Minutes, new AlarmTimerCallback(CheckKillAllSimGraveToPos), "CheckKillAllSimGraveToPos Name " + Actor.SimDescription.LastName, AlarmType.NeverPersisted, null);
+                                    AlarmManager.Global.AlarmWillYield(loadalarm);
+                                }
+                                else NiecTask.Perform( ScriptExecuteType.Threaded,() =>
+                                {
+                                    for (int i = 0; i < 500; i++)
+                                    {
+                                        Simulator.Sleep(0);
+                                    }
+                                    CheckKillAllSimGraveToPos();
+                                });
+
                                 StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " is Cancel and Exit ExtKillSimNiec! to Run Force Kill :) " + simDeathType.ToString(), StyledNotification.NotificationStyle.kGameMessagePositive));
 
-                                Actor.MoveInventoryItemsToAFamilyMember();
+                                if (Actor.Inventory != null)
+                                    Actor.MoveInventoryItemsToAFamilyMember();
                             }
                             catch (ResetException)
                             {
@@ -3100,50 +3136,31 @@ namespace NiecMod.Interactions
 
         public static void ListMorunExtKillSim(Sim actorlist, SimDescription.DeathType deathType)
         {
+            if (actorlist == null)
+                return;
+
+            if (actorlist.mSimDescription == null)
+                actorlist.mSimDescription = Create.NiecNullSimDescription();
+
+            var simDescription = actorlist.SimDescription;
+
             try
             {
 
                 try
                 {
-                    actorlist.SimDescription.IsGhost = true;
-                    actorlist.SimDescription.SetDeathStyle(deathType, true);
-                    //Urnstone.FinalizeSimDeath(actorlist.SimDescription, actorlist.Household);
-                    //ReactionBroadcaster broadcaster = new ReactionBroadcaster(actorlist, Urnstone.kHeartBrokenParams, new ReactionBroadcaster.BroadcastCallback(Urnstone.UrnstoneHeartBrokenReaction));
-                    /*
-                    try
-                    {
-
-                        HelperNra helperNra = new HelperNra();
-
-                        //helperNra = HelperNra;
-
-                        helperNra.mSim = actorlist;
-
-
-                        AlarmManager.Global.AddAlarm(30f, TimeUnit.Minutes, new AlarmTimerCallback(helperNra.CheckKillSimNotUrnstone), "MineKillCheckKillSim", AlarmType.NeverPersisted, null);
-                    }
-                    catch (NullReferenceException exception)
-                    { NiecException.WriteLog("helperNra " + NiecException.NewLine + NiecException.LogException(exception), true, true, false); }
-                     */
+                    simDescription.IsGhost = true;
+                    simDescription.SetDeathStyle(deathType, true);
                 }
 
                 catch
                 { }
 
-                if (actorlist.SimDescription.Household != null)
+                if (simDescription.Household != null)
                 {
-                    SimDescription simDescription = actorlist.SimDescription;
-                    List<Sim> listx = new List<Sim>();
-                    foreach (Sim sim in actorlist.Household.Sims)
+                    foreach (Sim nlist in NFinalizeDeath.Household_GetAllActors(simDescription.Household))
                     {
-                        if (sim != actorlist && !sim.IsSelectable && !(sim.Service is GrimReaper) && !sim.BuffManager.HasElement(BuffNames.Mourning) && !sim.BuffManager.HasElement(BuffNames.HeartBroken))
-                        {
-                            listx.Add(sim);
-                        }
-                    }
-                    if (listx.Count > 0)
-                    {
-                        foreach (Sim nlist in listx)
+                        if (nlist != actorlist && nlist.SimDescription != null  && nlist.SimDescription.IsHuman && nlist.BuffManager != null && !nlist.IsSelectable && !(nlist.Service is GrimReaper) && !nlist.BuffManager.HasElement(BuffNames.Mourning) && !nlist.BuffManager.HasElement(BuffNames.HeartBroken))
                         {
                             nlist.EnableInteractions();
                             BuffMourning.BuffInstanceMourning buffInstanceMourning;
@@ -3157,8 +3174,11 @@ namespace NiecMod.Interactions
                             {
                                 buffInstanceMourning.MissedSim = actorlist.SimDescription;
                             }
-                            foreach (Relationship relationship in Relationship.Get(actorlist.SimDescription))
+                            foreach (Relationship relationship in Relationship.Get(simDescription))
                             {
+                                if (relationship == null)
+                                    continue;
+
                                 if (actorlist.SimDescription.Partner == nlist.SimDescription)
                                 {
                                     if (relationship.LTR.HasInteractionBit(LongTermRelationship.InteractionBits.Marry))
@@ -3188,118 +3208,47 @@ namespace NiecMod.Interactions
                             }
                         }
                     }
-                    //return;
                 }
 
 
-                try
+                foreach (Sim nlist in NFinalizeDeath.SC_GetObjectsOnLot<Sim>(actorlist.LotCurrent))
                 {
-                    List<Sim> listxe = new List<Sim>();
-                    foreach (Sim sim in actorlist.LotCurrent.GetAllActors())
+                    if (nlist != null && nlist != actorlist && nlist.BuffManager != null && !nlist.IsInActiveHousehold && !(nlist.Service is GrimReaper) && !nlist.BuffManager.HasElement(BuffNames.Mourning) && !nlist.BuffManager.HasElement(BuffNames.HeartBroken))
                     {
-                        if (sim != actorlist && !sim.IsInActiveHousehold && !(sim.Service is GrimReaper) && !sim.BuffManager.HasElement(BuffNames.Mourning) && !sim.BuffManager.HasElement(BuffNames.HeartBroken))
+                        BuffMourning.BuffInstanceMourning buffInstanceMourning;
+
+                        buffInstanceMourning = (nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning);
+                        if (buffInstanceMourning == null)
                         {
-                            listxe.Add(sim);
+                            nlist.BuffManager.AddElement(BuffNames.Mourning, Origin.FromWitnessingDeath);
                         }
-                    }
-                    if (listxe.Count > 0)
-                    {
-                        foreach (Sim nlist in listxe)
+                        buffInstanceMourning = (nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning);
+                        if (buffInstanceMourning != null)
                         {
-                            BuffMourning.BuffInstanceMourning buffInstanceMourning;
-
-                            buffInstanceMourning = (nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning);
-                            if (buffInstanceMourning == null)
-                            {
-                                nlist.BuffManager.AddElement(BuffNames.Mourning, Origin.FromWitnessingDeath);
-                            }
-                            buffInstanceMourning = (nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning);
-                            if (buffInstanceMourning != null)
-                            {
-                                buffInstanceMourning.MissedSim = actorlist.SimDescription;
-                            }
-
-                            BuffHeartBroken.BuffInstanceHeartBroken buffInstanceHeartBroken;
-                            buffInstanceHeartBroken = (nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken);
-                            if (buffInstanceHeartBroken == null || buffInstanceHeartBroken.BuffOrigin != Origin.FromWitnessingDeath)
-                            {
-                                nlist.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);
-                            }
-                            else
-                            {
-                                nlist.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);
-                            }
-                            buffInstanceHeartBroken = (nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken);
-                            if (buffInstanceHeartBroken != null)
-                            {
-                                buffInstanceHeartBroken.MissedSim = actorlist.SimDescription;
-                            }
-
-
-
-
-
-
+                            buffInstanceMourning.MissedSim = actorlist.SimDescription;
                         }
 
+                        BuffHeartBroken.BuffInstanceHeartBroken buffInstanceHeartBroken;
+                        buffInstanceHeartBroken = (nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken);
+                        if (buffInstanceHeartBroken == null || buffInstanceHeartBroken.BuffOrigin != Origin.FromWitnessingDeath)
+                        {
+                            nlist.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);
+                        }
+                        else
+                        {
+                            nlist.BuffManager.AddElement(BuffNames.HeartBroken, Origin.FromWitnessingDeath);
+                        }
+                        buffInstanceHeartBroken = (nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken);
+                        if (buffInstanceHeartBroken != null)
+                        {
+                            buffInstanceHeartBroken.MissedSim = actorlist.SimDescription;
+                        }
                     }
                 }
-                catch (NullReferenceException)
-                { }
 
-                /*
-                try
-                {
-                    List<Sim> listxe = new List<Sim>();
-                    foreach (Sim sim in LotManager.Actors)
-                    {
-                        if (sim != actorlist && !sim.IsInActiveHousehold && !(sim.Service is GrimReaper))
-                        {
-                            listxe.Add(sim);
-                        }
-                    }
-                    if (listxe.Count > 0)
-                    {
-                        foreach (Sim nlist in listxe)
-                        {
-                            
-                            if (nlist.BuffManager.HasElement(BuffNames.HeartBroken))
-                            {
-                                BuffHeartBroken.BuffInstanceHeartBroken buffInstanceHeartBroken = nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken;
-                                ThumbnailKey thumbnailKey = buffInstanceHeartBroken.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                                ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey, buffInstanceHeartBroken.ThumbString);
-                                balloonData.mPriority = ThoughtBalloonPriority.High;
-                                nlist.ThoughtBalloonManager.ShowBalloon(balloonData);
-                                nlist.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
-                            }
-                            if (nlist.BuffManager.HasElement(BuffNames.Mourning))
-                            {
-                                BuffMourning.BuffInstanceMourning buffInstanceMourning = nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning;
-                                ThumbnailKey thumbnailKey2 = buffInstanceMourning.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                                ThoughtBalloonManager.BalloonData balloonData2 = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey2, buffInstanceMourning.ThumbString);
-                                balloonData2.mPriority = ThoughtBalloonPriority.High;
-                                nlist.ThoughtBalloonManager.ShowBalloon(balloonData2);
-                                nlist.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
-                            }
-
-                            
-
-                            
-
-
-                        }
-
-                    }
-                }
-                catch (NiecModException)
-                { }
-                
-                */
-
-                Urnstone urnstone = FindGhostsGrave(actorlist.SimDescription);
+                Urnstone urnstone = FindGhostsGrave(simDescription);
                 if (urnstone != null)
                 {
-                    //urnstone.mHeartBrokenBroadcaster = new ReactionBroadcaster(urnstone, Urnstone.kHeartBrokenParams, UrnstoneHeartBrokenReaction);
                     if (AssemblyCheckByNiec.IsInstalled("OpenDGS"))
                     {
                         urnstone.mHeartBrokenBroadcaster = new ReactionBroadcaster(urnstone, Urnstone.kHeartBrokenParams, Urnstone.UrnstoneHeartBrokenReaction);
@@ -3308,12 +3257,7 @@ namespace NiecMod.Interactions
                     {
                         urnstone.mHeartBrokenBroadcaster = new ReactionBroadcaster(urnstone, Urnstone.kHeartBrokenParams, UrnstoneHeartBrokenReaction);
                     }
-                    //urnstone.mHeartBrokenBroadcaster = new ReactionBroadcaster(urnstone, Urnstone.kHeartBrokenParams, Urnstone.UrnstoneHeartBrokenReaction);
                 }
-
-
-                //actorlist.LotCurrent.LastDiedSim = actorlist.SimDescription;
-
             }
             catch (ResetException)
             {
@@ -3321,105 +3265,48 @@ namespace NiecMod.Interactions
             }
             catch (Exception ex)
             {
-                NiecException.PrintMessage(ex.Message + " " + ex.StackTrace);
-                
-
+                NiecException.PrintMessage(ex.Message);
             }
         }
 
 
         public static void UrnstoneHeartBrokenReaction(Sim sim, ReactionBroadcaster broadcaster)
         {
-            /*
-            try
-            {
-                if (sim.IsInActiveHousehold) return;
-            }
-            catch
-            { }
-            */
-            if (sim != null)
+            var simd = (broadcaster.BroadcastingObject as Urnstone);
+            if (sim != null && sim.BuffManager != null && simd != null)
             {
                 if (sim.BuffManager.HasElement(BuffNames.HeartBroken))
                 {
-                    BuffHeartBroken.BuffInstanceHeartBroken buffInstanceHeartBroken = sim.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken;
-                    if (buffInstanceHeartBroken.MissedSim == (broadcaster.BroadcastingObject as Urnstone).DeadSimsDescription)
+                    var buffInstanceHeartBroken = sim.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken;
+                    if (buffInstanceHeartBroken != null &&
+                        buffInstanceHeartBroken.MissedSim.SimDescriptionId != 0 &&
+                        buffInstanceHeartBroken.MissedSim == simd)
                     {
                         ThumbnailKey thumbnailKey = buffInstanceHeartBroken.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                        ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey, buffInstanceHeartBroken.ThumbString);
-                        balloonData.mPriority = ThoughtBalloonPriority.High;
-                        sim.ThoughtBalloonManager.ShowBalloon(balloonData);
+                        var bd = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey, buffInstanceHeartBroken.ThumbString);
+                        bd.mPriority = ThoughtBalloonPriority.High;
+                        if (sim.ThoughtBalloonManager != null)
+                            sim.ThoughtBalloonManager.ShowBalloon(bd);
                         sim.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
                     }
                 }
+
                 if (sim.BuffManager.HasElement(BuffNames.Mourning))
                 {
-                    BuffMourning.BuffInstanceMourning buffInstanceMourning = sim.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning;
-                    if (buffInstanceMourning.MissedSim == (broadcaster.BroadcastingObject as Urnstone).DeadSimsDescription)
+                    var buffInstanceMourning = sim.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning;
+                    if (buffInstanceMourning != null &&
+                        buffInstanceMourning.MissedSim.SimDescriptionId != 0 &&
+                        buffInstanceMourning.MissedSim == simd)
                     {
                         ThumbnailKey thumbnailKey2 = buffInstanceMourning.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                        ThoughtBalloonManager.BalloonData balloonData2 = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey2, buffInstanceMourning.ThumbString);
-                        balloonData2.mPriority = ThoughtBalloonPriority.High;
-                        sim.ThoughtBalloonManager.ShowBalloon(balloonData2);
+                        var bd = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey2, buffInstanceMourning.ThumbString);
+                        bd.mPriority = ThoughtBalloonPriority.High;
+                        if (sim.ThoughtBalloonManager != null)
+                            sim.ThoughtBalloonManager.ShowBalloon(bd);
                         sim.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
                     }
                 }
             }
-            
-            
-
-
-            /*
-            List<Sim> listxe = new List<Sim>();
-            foreach (Sim sime in LotManager.Actors)
-            {
-                if (!sime.IsInActiveHousehold && !(sime.Service is GrimReaper))
-                {
-                    listxe.Add(sime);
-                }
-            }
-            if (listxe.Count > 0)
-            {
-                foreach (Sim nlist in listxe)
-                {
-                    try
-                    {
-                        if (nlist.BuffManager.HasElement(BuffNames.HeartBroken))
-                        {
-                            BuffHeartBroken.BuffInstanceHeartBroken buffInstanceHeartBroken = nlist.BuffManager.GetElement(BuffNames.HeartBroken) as BuffHeartBroken.BuffInstanceHeartBroken;
-                            if (buffInstanceHeartBroken.MissedSim == (broadcaster.BroadcastingObject as Urnstone).DeadSimsDescription)
-                            {
-                                ThumbnailKey thumbnailKey = buffInstanceHeartBroken.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                                ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey, buffInstanceHeartBroken.ThumbString);
-                                balloonData.mPriority = ThoughtBalloonPriority.High;
-                                nlist.ThoughtBalloonManager.ShowBalloon(balloonData);
-                                nlist.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
-                            }
-                        }
-                        if (nlist.BuffManager.HasElement(BuffNames.Mourning))
-                        {
-                            BuffMourning.BuffInstanceMourning buffInstanceMourning = nlist.BuffManager.GetElement(BuffNames.Mourning) as BuffMourning.BuffInstanceMourning;
-                            if (buffInstanceMourning.MissedSim == (broadcaster.BroadcastingObject as Urnstone).DeadSimsDescription)
-                            {
-                                ThumbnailKey thumbnailKey2 = buffInstanceMourning.MissedSim.GetThumbnailKey(ThumbnailSize.Large, 0);
-                                ThoughtBalloonManager.BalloonData balloonData2 = new ThoughtBalloonManager.DoubleBalloonData(thumbnailKey2, buffInstanceMourning.ThumbString);
-                                balloonData2.mPriority = ThoughtBalloonPriority.High;
-                                nlist.ThoughtBalloonManager.ShowBalloon(balloonData2);
-                                nlist.PlayReaction(ReactionTypes.HeartBroken, ReactionSpeed.AfterInteraction);
-                            }
-                        }
-                    }
-                    catch
-                    { }
-                    
-            
-
-
-
-                }
-            
-            }
-             * */
         }
 
 
@@ -3427,7 +3314,8 @@ namespace NiecMod.Interactions
         {
             foreach (Urnstone urnstone in NFinalizeDeath.SC_GetObjects<Urnstone>())
             {
-                if (object.ReferenceEquals(urnstone.DeadSimsDescription, sim))
+                //if (object.ReferenceEquals(urnstone.DeadSimsDescription, sim))
+                if ((object)urnstone.DeadSimsDescription == (object)sim)
                 {
                     return urnstone;
                 }
@@ -3501,7 +3389,7 @@ namespace NiecMod.Interactions
             }
         }
 
-        // Token: 0x0600A7E4 RID: 42980 RVA: 0x002FB840 File Offset: 0x002FA840
+
         private void EventCallbackCreateAshPile(StateMachineClient sender, IEvent evt)
         {
             this.mAshPile = (GlobalFunctions.CreateObjectOutOfWorld("AshPile") as AshPile);
@@ -3520,13 +3408,13 @@ namespace NiecMod.Interactions
             this.Actor.FadeOut(false, false, fadeTime);
         }
 
-        // Token: 0x0600A7E5 RID: 42981 RVA: 0x002FB957 File Offset: 0x002FA957
+
         private void EventCallbackHideSim(StateMachineClient sender, IEvent evt)
         {
             this.Actor.SetHiddenFlags((HiddenFlags)4294967295u);
         }
 
-        // Token: 0x0600A7E6 RID: 42982 RVA: 0x002FB968 File Offset: 0x002FA968
+
         private void EventCallbackTurnToGhost(StateMachineClient sender, IEvent evt)
         {
             if (!this.Actor.SimDescription.IsEP11Bot)
@@ -3538,7 +3426,7 @@ namespace NiecMod.Interactions
             World.ObjectSetGhostState(this.Actor.ObjectId, 23u, (uint)this.Actor.SimDescription.AgeGenderSpecies);
         }
 
-        // Token: 0x0600A7E7 RID: 42983 RVA: 0x002FB9DC File Offset: 0x002FA9DC
+
         private void EventCallbackFadeOutSim(StateMachineClient sender, IEvent evt)
         {
             this.Actor.FadeOut();
@@ -3571,15 +3459,14 @@ namespace NiecMod.Interactions
             }
         }
 
-        // Token: 0x04005BED RID: 23533
+
         public static readonly InteractionDefinition Singleton = new Definition();
 
         public static readonly InteractionDefinition NiecDefinitionDeathInteractionSocialSingleton = new SocialInteractionB.DefinitionDeathInteraction();
 
-        // Token: 0x04005BEE RID: 23534
+
         private AshPile mAshPile;
 
-        // Token: 0x04005BEF RID: 23535
         public bool CancelDeath = true;
 
 
@@ -3601,15 +3488,15 @@ namespace NiecMod.Interactions
 
         public bool mForceKillGrim = false;
 
-        // Token: 0x04005BF0 RID: 23536
+  
         public SocialJig SocialJig;
 
         private VisualEffect mDeathEffect;
 
-        // Token: 0x04005BF1 RID: 23537
+    
         public SimDescription.DeathType simDeathType = SimDescription.DeathType.None;
 
-        // Token: 0x04005BF2 RID: 23538
+     
         public bool PlayDeathAnimation = true;
 
 
@@ -3617,7 +3504,7 @@ namespace NiecMod.Interactions
 
         private sealed class Definition : InteractionDefinition<Sim, Sim, ExtKillSimNiec>, IDontNeedToBeCheckedInResort, IIgnoreIsAllowedInRoomCheck, IAllowedOnClosedVenues, IOverridesAgeTests, IUseTargetForAutonomousIsAllowedInRoomCheck, IScubaDivingInteractionDefinition, IUsableWhileOnFire, IUsableDuringFire, IUsableDuringBirthSequence, IUsableDuringShow
         {
-            // Token: 0x0600A7EA RID: 42986 RVA: 0x002FBA0B File Offset: 0x002FAA0B
+          
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
             {
                 try
@@ -3664,7 +3551,7 @@ namespace NiecMod.Interactions
                 return InteractionTestResult.Pass;
             }
 
-            // Token: 0x0600A7EB RID: 42987 RVA: 0x002FBA23 File Offset: 0x002FAA23
+           
             public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
                 try

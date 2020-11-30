@@ -11,26 +11,28 @@ namespace NiecMod.Nra
 {
     public static class SafeNRaas
     {
-        public static bool isnraasloaded = AssemblyCheckByNiec.IsInstalled("NRaasMasterController");
+        public static bool isnraasloaded = false; //AssemblyCheckByNiec.IsInstalled("NRaasMasterController");
 
         public static void NRCASParts_RemoveOutfits(SimDescriptionCore sim, OutfitCategories category, bool alternate)
         {
-            if (!isnraasloaded) { sim.RemoveOutfits(category, true); return; }
-            NiecNraTask.NraFunction temp = delegate
-            {
-                NRaas.CommonSpace.Helpers.CASParts.RemoveOutfits(sim, category, alternate);
-            };
-            temp();
+            //if (!isnraasloaded) { sim.RemoveOutfits(category, true); return; }
+            //NiecNraTask.NraFunction temp = delegate
+            //{
+            //    NRaas.CommonSpace.Helpers.CASParts.RemoveOutfits(sim, category, alternate);
+            //};
+            //temp();
+            sim.RemoveOutfits(category, true);
         }
         public static void NRUrnstones_CreateGrave(SimDescription me, SimDescription.DeathType deathType, bool ignoreExisting, bool report)
         {
-            if (!isnraasloaded) { NFinalizeDeath.GetKillNPCSimToGhost(me.CreatedSim, deathType); return; }
-            NiecNraTask.NraFunction temp = delegate {
-                Urnstones.CreateGrave(me, deathType, ignoreExisting, report);
-            };
-           // Delegate sdfsde = temp as Delegate;
-            //Delegate.Remove(temp, sdfsde);
-            temp();
+           //if (!isnraasloaded) { NFinalizeDeath.GetKillNPCSimToGhost(me.CreatedSim, deathType); return; }
+           //NiecNraTask.NraFunction temp = delegate {
+           //    Urnstones.CreateGrave(me, deathType, ignoreExisting, report);
+           //};
+           //// Delegate sdfsde = temp as Delegate;
+           ////Delegate.Remove(temp, sdfsde);
+           //temp();
+            NFinalizeDeath.GetKillNPCSimToGhost(me.CreatedSim, deathType);
         }
     }
 }

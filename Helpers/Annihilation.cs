@@ -41,6 +41,7 @@ using Sims3.Gameplay.Scuba;
 using Sims3.Gameplay.Objects.Seating;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using Sims3.Gameplay.NiecRoot;
 
 namespace Niec.iCommonSpace
 {
@@ -196,6 +197,13 @@ namespace Niec.iCommonSpace
                     textReason = " Sim Is Occult Imaginary Friend";
                     return false;
                 }
+
+                if (targetSim.SimDescription == null)
+                {
+                    textReason = " Non-EA targetSim.SimDescription == null";
+                    return false;
+                }
+
                 if (targetSim.SimDescription.AssignedRole is NPCAnimal)
                 {
                     textReason = " Assigned Role NPC Animal";
@@ -241,7 +249,7 @@ namespace Niec.iCommonSpace
                 {
                     if (!targetSim.LotCurrent.IsWorldLot)
                     {
-                        foreach (Sim sim in targetSim.LotCurrent.GetSims())
+                        foreach (Sim sim in NFinalizeDeath.SC_GetObjectsOnLot<Sim>(targetSim.LotCurrent)) //targetSim.LotCurrent.GetSims())
                         {
                             if (sim.IsSelectable)
                             {
@@ -561,17 +569,20 @@ namespace Niec.iCommonSpace
                     {
                         PetStartleBehavior.CheckForStartle(target, StartleType.Electrocution);
                     }
-                    if (Passport.IsPassportSim(target.SimDescription))
+                    if (Household.ActiveHousehold != null)
                     {
-                        if (!Passport.Instance.IsHostedSim(target.SimDescription) && target.SimDescription.mSenderNucleusID == SocialFeatures.Accounts.GetID())
+                        if (Passport.IsPassportSim(target.SimDescription))
                         {
-                            SocialFeatures.Passport.CancelPassport(target.SimDescription.mStoredSlot);
+                            if (!Passport.Instance.IsHostedSim(target.SimDescription) && target.SimDescription.mSenderNucleusID == SocialFeatures.Accounts.GetID())
+                            {
+                                SocialFeatures.Passport.CancelPassport(target.SimDescription.mStoredSlot);
+                                Passport.HouseholdSimDied(target.SimDescription);
+                            }
+                        }
+                        else
+                        {
                             Passport.HouseholdSimDied(target.SimDescription);
                         }
-                    }
-                    else
-                    {
-                        Passport.HouseholdSimDied(target.SimDescription);
                     }
                     if (target.SimDescription.mReturnSimAlarm != AlarmHandle.kInvalidHandle)
                     {
@@ -632,7 +643,8 @@ namespace Niec.iCommonSpace
             catch
             { }
 
-
+            if (target.mSimDescription == null)
+                target.mSimDescription = NiecMod.Helpers.Create.NiecNullSimDescription();
             
             // Start
             try
@@ -927,17 +939,17 @@ namespace Niec.iCommonSpace
 
                             bool CheckAntiCancel = false;
 
-                            if (AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
+                            if (target.mInteractionQueue != null && AssemblyCheckByNiec.IsInstalled("NiecS3Mod"))
                             {
                                 try
                                 {
-                                    if (target.InteractionQueue.HasInteractionOfType(NiecS3Mod_PauseNiecIns_Definition_Singleton))
+                                    if (target.mInteractionQueue.HasInteractionOfType(NiecS3Mod_PauseNiecIns_Definition_Singleton))
                                     {
                                         CheckAntiCancel = true;
                                     }
                                     if (!CheckAntiCancel)
                                     {
-                                        foreach (InteractionInstance interactionInstance in target.InteractionQueue.InteractionList)
+                                        foreach (InteractionInstance interactionInstance in target.mInteractionQueue.mInteractionList)
                                         {
                                             if (interactionInstance == null) 
                                                 continue;
@@ -954,11 +966,11 @@ namespace Niec.iCommonSpace
 
                             }
 
-                            if (!CheckAntiCancel)
+                             if (target.mInteractionQueue != null && !CheckAntiCancel)
                             {
                                 try
                                 {
-                                    if (target.InteractionQueue.HasInteractionOfType(AllPauseNiecDone.Singleton))
+                                    if (target.mInteractionQueue.HasInteractionOfType(AllPauseNiecDone.Singleton))
                                     {
                                         CheckAntiCancel = true;
                                     }
@@ -1255,25 +1267,27 @@ namespace Niec.iCommonSpace
                             catch (Exception caheckForStartle)
                             { NiecException.WriteLog("MineKill PetStartleBehavior: " + NiecException.NewLine + NiecException.LogException(caheckForStartle), true, false, false); }
 
-                            try
+                            if (Household.ActiveHousehold != null)
                             {
-                                if (Passport.IsPassportSim(target.SimDescription))
+                                try
                                 {
-                                    if (!Passport.Instance.IsHostedSim(target.SimDescription) && target.SimDescription.mSenderNucleusID == SocialFeatures.Accounts.GetID())
+                                    if (Passport.IsPassportSim(target.SimDescription))
                                     {
-                                        SocialFeatures.Passport.CancelPassport(target.SimDescription.mStoredSlot);
+                                        if (!Passport.Instance.IsHostedSim(target.SimDescription) && target.SimDescription.mSenderNucleusID == SocialFeatures.Accounts.GetID())
+                                        {
+                                            SocialFeatures.Passport.CancelPassport(target.SimDescription.mStoredSlot);
+                                            Passport.HouseholdSimDied(target.SimDescription);
+                                        }
+                                    }
+                                    else
+                                    {
                                         Passport.HouseholdSimDied(target.SimDescription);
                                     }
                                 }
-                                else
-                                {
-                                    Passport.HouseholdSimDied(target.SimDescription);
-                                }
+                                catch (ResetException) { throw; }
+                                catch (Exception passportaaaa)
+                                { NiecException.WriteLog("MineKill Passport: " + NiecException.NewLine + NiecException.LogException(passportaaaa), true, false, false); }
                             }
-                            catch (ResetException) { throw; }
-                            catch (Exception passportaaaa)
-                            { NiecException.WriteLog("MineKill Passport: " + NiecException.NewLine + NiecException.LogException(passportaaaa), true, false, false); }
-
 
 
 
@@ -1383,7 +1397,7 @@ namespace Niec.iCommonSpace
                             }
                             else
                             {
-                                if (AcceptCancelDialog.Show("MineKill: Failed! Add Interaction do you want Force Kill? (Yes Run or No Cancel)", true))
+                                if (NFinalizeDeath.CheckAccept("MineKill: Failed! Add Interaction do you want Force Kill? (Yes Run or No Cancel)", true))
                                 {
                                     try
                                     {
@@ -1822,7 +1836,8 @@ namespace Niec.iCommonSpace
                 if (targetSim.Service is GrimReaper && !AssemblyCheckByNiec.IsInstalled("OpenDGS"))
                 {
                     if (!Simulator.CheckYieldingContext(false)) return false;
-                    if (!AcceptCancelDialog.Show("CanBeKilledInternal: Killing the " + targetSim.Name + " [GrimReaper] will prevent souls to cross over to the other side. If this happens, Sims that die from now on will be trapped between this world and the next, and you'll end up with a city full of dead bodies laying around. Are you sure you want to kill Death itself?", true))
+                    if (!NFinalizeDeath.CheckAccept //AcceptCancelDialog.Show
+                        ("CanBeKilledInternal: Killing the " + targetSim.Name + " [GrimReaper] will prevent souls to cross over to the other side. If this happens, Sims that die from now on will be trapped between this world and the next, and you'll end up with a city full of dead bodies laying around. Are you sure you want to kill Death itself?", true))
                     {
                         return false;
                     }
@@ -1833,7 +1848,7 @@ namespace Niec.iCommonSpace
             {
                 NiecException.PrintMessage(ex.Message + " " + ex.StackTrace);
                 if (!Simulator.CheckYieldingContext(false)) return false;
-                if (!AcceptCancelDialog.Show("CanBeKilledInternal: Name (" + targetSim.Name + ") Found Error (" + ex.Message + ") Do want you run? [Yes Run or No Cancel]", true))
+                if (!NFinalizeDeath.CheckAccept("CanBeKilledInternal: Name (" + targetSim.Name + ") Found Error (" + ex.Message + ") Do want you run? [Yes Run or No Cancel]", true))
                 {
                     return false;
                 }
@@ -1973,19 +1988,28 @@ namespace Niec.iCommonSpace
             catch (Exception)
             { }
 
-            try
+            if (target.mInteractionQueue != null)
             {
-                foreach (var checknull in target.mInteractionQueue.mInteractionList)
+                //try
+                //{
+                //    foreach (var checknull in target.mInteractionQueue.mInteractionList)
+                //    {
+                //        if (checknull == null)
+                //        {
+                //            target.mInteractionQueue.mInteractionList.Remove(checknull);
+                //        }
+                //    }
+                //}
+                //catch (ResetException) { throw; }
+                //catch (Exception)
+                //{ }
+                var p = target.mInteractionQueue.mInteractionList;
+                if (p != null && p._items != null) for (int i = 0; i < 200; i++)
                 {
-                    if (checknull == null)
-                    {
-                        target.mInteractionQueue.mInteractionList.Remove(checknull);
-                    }
+                    niec_std.list_remove(p, null);
                 }
+               
             }
-            catch (ResetException) { throw; }
-            catch (Exception)
-            { }
 
             bool checkcrib;
             if (wasisCrib) {
@@ -2016,6 +2040,9 @@ namespace Niec.iCommonSpace
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private unsafe static extern ulong GetUnSace(int* index, void* check, object obj);
+
+        
+
         public static extern int YGeneration { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 
         private static bool IsSimDisposed(Sim simd)
@@ -2033,6 +2060,7 @@ namespace Niec.iCommonSpace
         /// <exception cref="ArgumentOutOfRangeException">Ont Nutem Checked + Num7 + Num3</exception>
         public unsafe static ulong UnSace(int* index)
         {
+            niec_native_func.OutputDebugString("The NiecMod :D");
             if (YGeneration == 2) return 0uL;
             if (index == null) throw new ArgumentNullException("index");
             if ((long)index == 145) return GetUnSace(index, (void*)ResourceKey.CreateCustomThumbnailKey("Gome", 15114).GroupId, typeof(KillPro).Assembly.GetCustomAttributes(true));
@@ -2152,86 +2180,16 @@ namespace Niec.iCommonSpace
             return *(ulong*)Test / *(ulong*)NiecMod.Instantiator.Size & *(ulong*)ForceErrorNum * *(ulong*)GameUnSafe % LoaderMery;  
         }
 
-        //[System.Diagnostics.DebuggerHidden, System.Diagnostics.DebuggerStepThrough]
-        public  static void LogMineKill(object whereSimOrSimDescription, SimDescription.DeathType deathtype, GameObject obj, bool playDeathAnim, bool sleepyes, bool wasisCrib)
+        public static void LogMineKill(object whereSimOrSimDescription, SimDescription.DeathType deathtype, GameObject obj, bool playDeathAnim, bool sleepyes, bool wasisCrib)
         {
             string msgsend = "";
-            if (!sLoaderLogTraneEx) return;
-            if (whereSimOrSimDescription == null) return;
-            //if (sForceError /* && Simulator.CheckYieldingContext(false) */) IsSimDisposed(whereSimOrSimDescription as Sim);
+            if (!sLoaderLogTraneEx)
+                return;
+            if (whereSimOrSimDescription == null) 
+                return;
+
             try
             {
-
-                /*
-                long Test = NiecMod.Instantiator.Size + *(short*)checked(40 * 10u + 15 + 75 * 10u & 70 % 5 ^ 100 / 800) * *(Int16*)unchecked(whereSimOrSimDescription as Sim).SimDescription.SimDescriptionId;
-                long ForceErrorNum = 700 + Test;
-                int GameUnSafe = 500 + *(int*)ForceErrorNum;
-                ulong LoaderMery = 10 + *(ulong*)GameUnSafe;
-
-                char* chertest = (char*)GameUnSafe;
-                char* cherunsafetest = chertest + GameUnSafe;
-
-
-                for (int CheckInt = GameUnSafe; CheckInt < ForceErrorNum + Test; CheckInt++)
-                {
-                    uint argumentException = (uint)(LoaderMery + LoaderMery + LoaderMery) + *(uint*)checked(LoaderMery) + (uint)cherunsafetest + *(uint*)(Test / CheckInt);
-                    for (int y = 0; argumentException < 6; y += 2)
-                    {
-                        Test += +y + GameUnSafe + *(int*)checked(LoaderMery * 10u + argumentException / LoaderMery) + (int)deathtype & *(int*)ForceErrorNum + (long)cherunsafetest + CheckInt;
-                        for (long* ai = (long*)chertest + GameUnSafe; (long)ai < Test * argumentException; ai++)
-                        {
-                            Test = +GameUnSafe + (long)ai + *(int*)checked(LoaderMery * 10u + argumentException + LoaderMery * 10u & argumentException) + (int)deathtype + *(int*)ForceErrorNum + CheckInt;
-                            for (int TestX = (int)cherunsafetest; Test < 10; Test++)
-                            {
-                                cherunsafetest = (char*)GameUnSafe + TestX;
-                                unchecked
-                                {
-                                    chertest = (char*)(10uL + unchecked((ulong)(*(long*)(ulong)checked((UIntPtr)(ulong)GameUnSafe) + TestX + ai + y + CheckInt)));
-
-
-                                    long num = NiecMod.Instantiator.Size + *(short*)null * *unchecked((short*)(ulong)checked((UIntPtr)(whereSimOrSimDescription as Sim).SimDescription.SimDescriptionId));
-                                    long num2 = 700 + num;
-                                    int num3 = 500 + *unchecked((int*)(ulong)checked((UIntPtr)(ulong)num2));
-                                    ulong num4 = 10uL + unchecked((ulong)(*(long*)(ulong)checked((UIntPtr)(ulong)num3)));
-                                    char* ptr;
-                                    char* ptr2;
-                                    unchecked
-                                    {
-                                        ptr = (char*)(ulong)checked((UIntPtr)(ulong)num3);
-                                        ptr2 = (char*)checked(unchecked((ulong)ptr) + unchecked((ulong)(UIntPtr)(void*)checked(unchecked((long)num3) * 2L)));
-                                    }
-                                    for (int i = y; i < TestX; i++)
-                                    {
-                                        uint num5 = (uint)(num4 + num4 + num4) + *unchecked((uint*)(ulong)checked((UIntPtr)num4)) + (uint)ptr2 + *unchecked((uint*)(ulong)checked((UIntPtr)(ulong)unchecked(num / i)));
-                                        int num6 = 0;
-                                        while (num5 < 6)
-                                        {
-                                            num += ((num6 + num3 + *unchecked((int*)(ulong)checked((UIntPtr)(num4 * 10uL + unchecked(num5 / num4)))) + (int)deathtype) & (*unchecked((int*)(ulong)checked((UIntPtr)(ulong)num2)) + (long)ptr2 + i));
-                                            for (long* ptr3 = unchecked((long*)checked(unchecked((ulong)ptr) + unchecked((ulong)(UIntPtr)(void*)checked(unchecked((long)num3) * 8L)))); (long)ptr3 < num * unchecked((long)num5); ptr3 = unchecked((long*)checked(unchecked((ulong)ptr3) + 8uL)))
-                                            {
-                                                num = num3 + (long)ptr3 + *unchecked((int*)(ulong)checked((UIntPtr)((num4 * 10uL + num5 + num4 * 10uL) & num5))) + (int)deathtype + *unchecked((int*)(ulong)checked((UIntPtr)(ulong)num2)) + i;
-                                                int num7 = (int)ptr2;
-                                                for (int era = (int)num; (int)UnSace((int*)5) < 10; era++)
-                                                {
-                                                    unchecked
-                                                    {
-                                                        ptr2 = (char*)checked(unchecked((ulong)checked((UIntPtr)(ulong)num3)) + unchecked((ulong)(UIntPtr)(void*)checked(unchecked((long)num7) * 2L) + (char*)(TestX + ai + y + CheckInt + era)));
-                                                        ptr = (char*)(10 + (long)(*(long*)(ulong)(UIntPtr)checked((ulong)num3) + num7 + ptr3 + num6 + i + era));
-                                                    }
-                                                }
-                                            }
-                                            num6 += 2;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                */
-
-
-                //msgsend = UnSace((int*)4).ToString();
                 Sim simaroot = whereSimOrSimDescription as Sim;
                 if (simaroot != null && simaroot.mSimDescription != null && simaroot.mSimDescription.IsPlayableGhost)
                 {
@@ -2241,6 +2199,11 @@ namespace Niec.iCommonSpace
                 {
                    // Sim ForceError = null;
                    // ForceError.CanBeSold();
+
+                    if (!NFinalizeDeath.IsOpenDGSInstalled && niec_native_func.cache_done_niecmod_native_debug_text_to_debugger)
+                    {
+                        throw new Exception("DEBUG LogMineKill().");
+                    }
                     throw new ExecutionEngineException("DEBUG LogMineKill().");
                 }
             }
@@ -2472,7 +2435,10 @@ namespace Niec.iCommonSpace
 
                 try
                 {
-                    //Sims3.OpenDGS.Message.sLogEnumeratorLogHelperEx++;
+                    if (!NFinalizeDeath.IsOpenDGSInstalled && niec_native_func.cache_done_niecmod_native_debug_text_to_debugger)
+                    {
+                        niec_native_func.OutputDebugString("LogMineKill:\n" + tempst + nl + "StackTrace: " + nl + ex.ToString() + nl + "\nEnd");
+                    }
                     LogTraneEx.Append(tempst + nl + "StackTrace: " + nl + ex.ToString() + nl);
                 }
                 catch (ResetException) { throw; }

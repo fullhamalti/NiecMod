@@ -64,6 +64,8 @@ namespace Sims3.NiecModList.Persistable
 
         public static List<object> SafeObjectGC = new List<object>();
 
+        public static List<object> SafeObjectGC_TempBim = new List<object>(1000);
+
         public static Random SafeRandomPart2 = new Random();
 
         public static Random SafeRandomPart3 = new Random(22555100);

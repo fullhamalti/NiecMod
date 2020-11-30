@@ -83,6 +83,18 @@ namespace NiecMod.Nra
             else niec_native_func.OutputDebugString("NMScript Exception Log\n" + ex.ToString() + "\nEnd");
         }
 
+        public static void NewSendTextExceptionToDebugger()
+        {
+            try
+            {
+                throw new Exception("");
+            }
+            catch (Exception ex)
+            {
+                niec_native_func.OutputDebugString("NMScriptN Exception Log\n" + ex.ToString() + "\nEnd");
+            }
+        }
+
         public static string ScriptError()
         {
             return "Script Error:" + NewLine;
@@ -611,7 +623,8 @@ namespace NiecMod.Nra
             try
             {
 
-                
+                niec_native_func.OutputDebugString("NMPrint: " + Message);
+
                 if (NotificationManager.sNotificationManager == null)
                     return;
                 StyledNotification.Format format = 

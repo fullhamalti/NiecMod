@@ -163,7 +163,17 @@ namespace NiecMod.Nra {
             return r;
         }
 
-        internal static void SafeCallSimDescCleanse(SimDescription simd)
+        private static void SafeCallSimDescCleanse(SimDescription simd)
+        {
+            NFinalizeDeath.SafeCall(() => { NFinalizeDeath.SimDescCleanse(simd, true, false); });
+        }
+
+        internal static void SafeCallSimDescCleanseO(SimDescription simd)
+        {
+            NFinalizeDeath.SafeCall(() => { NFinalizeDeath.SimDescCleanse(simd, true, false); });
+        }
+
+        internal static void SafeCallSimDescCleanseO1(SimDescription simd)
         {
             NFinalizeDeath.SafeCall(() => { NFinalizeDeath.SimDescCleanse(simd, true, false); });
         }
