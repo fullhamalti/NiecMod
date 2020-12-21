@@ -426,12 +426,12 @@ namespace NiecMod.Nra
 
         private static bool IsSpeciallyMarked(int mkv)
         {
-            return (mkv & 0xDED000) == 14602240;
+            return (mkv & 0xDED000) == 0xDED000;
         }
 
         private static bool IsSpeciallyMarked(ulong mkv)
         {
-            return (mkv & 0xDED00000DED000) == 62716143262945280L;
+            return (mkv & 0xDED00000DED000) == 0xDED00000DED000;
         }
 
         private static bool IsSpeciallyMarked(int mkv, SpecialMarks mark)
@@ -472,8 +472,11 @@ namespace NiecMod.Nra
             }
         }
 
-        private static void SpeciallyUnMark(SimDescriptionCore sd)
+        public static void SpeciallyUnMark(SimDescriptionCore sd)
         {
+            if (mkvali == null)
+                return;
+
             int numRandomMkv = 0;
             int checkLoop = 200;
 
@@ -497,12 +500,12 @@ namespace NiecMod.Nra
             }
         }
 
-        private static void SpeciallyUnMark(SimDescriptionCore sd, SpecialMarks mark)
+        public static void SpeciallyUnMark(SimDescriptionCore sd, SpecialMarks mark)
         {
             SpeciallyUnMark(sd, (int)mark);
         }
 
-        private static void SpeciallyUnMark(SimDescriptionCore sd, int mark)
+        public static void SpeciallyUnMark(SimDescriptionCore sd, int mark)
         {
             FieldInfo field = sd.GetType().GetField(mkvali, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (field != null)

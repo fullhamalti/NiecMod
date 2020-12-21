@@ -1716,7 +1716,7 @@ namespace Sims3.Gameplay.NiecRoot
 
                     if (Worker == null || 
                         Worker.mSimDescription == null ||
-                        Worker.HasBeenDestroyed ||
+                        !NFinalizeDeath.GameObjectIsValid(Worker.ObjectId.mValue) ||
                         Worker.GetSituationOfType<NiecSocialWorkerChildAbuseSituation>() == null) return;
 
                     CleanUp();

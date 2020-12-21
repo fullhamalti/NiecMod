@@ -102,9 +102,9 @@ namespace NiecMod.Helpers
                 "[dasc2020|tevcopy|testgetunsace|tevs|backuptevc|tmynfunc|tmnfunc2|chouselot|dnf|testhinlothome|tmnfunc3|exlists" +
                 "|testdttod|testloadlib|tmnfunc3x|loadlib|fixuphinlothome|exitgame|testyia|testye|tmnfunc4|looptargetdied4|tmnfunc5|testpyd|testmbox" +
                 "|testagssd|testagssdall|tmsfunc1|pmgas|tmsfunc2|setfuncptr|testksmym|saatwo|keepcreatesim|delallsim|dcdgs|agrss|drawd|importhouse" +
-                "|exlists2|exlists3|extestcpu|unsafenullbimdesc|chouselotnos|chouselotnosall|usev2" +
-                //"|c" +
-                //"|c" +
+                "|exlists2|exlists3|extestcpu|unsafenullbimdesc|chouselotnos|chouselotnosall|usev2|pt|alynull|forcesavegame|setfaw|nomn|setfunctest2" +
+                "|nonms|debughashs|removeisimo|testsigsv|forcelivemode|forceedittown|ralliq|ustsimallx|ustsimalld|addnmemh|typedebug|typedebug2" +
+                "|filedebug|filedebug2|filedebug3|filedebug4" +
                 //"|c" +
                 //"|c" +
                 //"|c" +
@@ -136,7 +136,11 @@ namespace NiecMod.Helpers
         public static List<StateMachineClient> nonOpendgsList01 = null;
         public static Sims3.NiecHelp.Tasks.NiecNraTask.NraFunction DGSMODS_TestFunc = null;
 
-        public static Sims3.NiecHelp.Tasks.NiecNraTask.NraFunction DGSMODS_TestFunc02 = null; 
+        public static Sims3.NiecHelp.Tasks.NiecNraTask.NraFunction DGSMODS_TestFunc02 = null;
+
+
+        public static NFinalizeDeath.FunctionX XDGSMODS_TestFunc = null;
+        public static NFinalizeDeath.FunctionX XDGSMODS_TestFunc02 = null; 
 
         public static bool ltrimhouse_bb = false;
         public static bool loopdunusedsu = false;
@@ -184,6 +188,15 @@ namespace NiecMod.Helpers
         }
 
         public static
+            void testsigsv_command()
+        {
+            if (IsOpenDGSInstalled)
+                return;
+            NiecMod.Helpers.NiecRunCommand.unsaferunnnull_command();
+            NiecMod.Helpers.NiecRunCommand.unsaferunnnullpro_command();
+        }
+
+        public static
             void unsafenullbimdesc_command()
         {
             BimDesc.UnsafeFixNUllSimDESC = !BimDesc.UnsafeFixNUllSimDESC;
@@ -202,6 +215,231 @@ namespace NiecMod.Helpers
                 niec_native_func.MessageBox(0, "NJOClass.unsaferunpe: " + NJOClass.unsaferunpe, "NiecMod", (niec_native_func.MB_Type)0);
             else
                 NFinalizeDeath.Show_MessageDialog("NJOClass.unsaferunpe: " + NJOClass.unsaferunpe);
+        }
+
+        public static void nomn_command(bool value, bool nodialbog)
+        {
+            NJOClass.bNoStyledNotification = value;
+            if (!nodialbog)
+            {
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                    niec_native_func.MessageBox(0, "NJOClass.bNoStyledNotification: " + NJOClass.bNoStyledNotification, "NiecMod", (niec_native_func.MB_Type)0);
+                else
+                    NFinalizeDeath.Show_MessageDialog("NJOClass.bNoStyledNotification: " + NJOClass.bNoStyledNotification);
+            }
+        }
+
+        public static
+            void alynull_command()
+        {
+            NJOClass.alynull = !NJOClass.alynull;
+            if (niec_native_func.cache_done_niecmod_native_message_box)
+                niec_native_func.MessageBox(0, "NJOClass.alynull: " + NJOClass.alynull, "NiecMod", (niec_native_func.MB_Type)0);
+            else
+                NFinalizeDeath.Show_MessageDialog("NJOClass.alynull: " + NJOClass.alynull);
+        }
+        public static
+            void nonms_command()
+        {
+            NJOClass.bNONMnoLog = !NJOClass.bNONMnoLog;
+            if (niec_native_func.cache_done_niecmod_native_message_box)
+                niec_native_func.MessageBox(0, "NJOClass.bNONMnoLog: " + NJOClass.bNONMnoLog, "NiecMod", (niec_native_func.MB_Type)0);
+            else
+                NFinalizeDeath.Show_MessageDialog("NJOClass.bNONMnoLog: " + NJOClass.bNONMnoLog);
+        }
+
+        public static void debughashs_command()
+        {
+            if (!NInjetMethed.NHashDEBUG)
+                return;
+
+            if (NHashStringDEBUG.debugUnHashData.Count == 0 && NHashStringDEBUG.debugUnHashData64.Count == 0)
+                return;
+            
+            niec_native_func.OutputDebugString("debughashs called.");
+
+            var tt = niec_native_func.cache_done_niecmod_native_file_create && niec_native_func.cache_done_niecmod_native_file_write;
+            StringBuilder sb;
+            var fileLogHandle = default(IntPtr);
+
+            if (tt)
+            {
+                fileLogHandle = niec_native_func.niecmod_native_file_create("Sims 3 Logs\\" + "NM Debug Hashs " + NFinalizeDeath.GetNowTimeToStr() + ".log");
+                if (!niec_std.is_valid_handle(fileLogHandle))
+                {
+                    fileLogHandle = niec_native_func.niecmod_native_file_create("C:\\Sims 3 Logs\\" + "NM Debug Hashs " + NFinalizeDeath.GetNowTimeToStr() + ".log");
+                }
+                tt = niec_std.is_valid_handle(fileLogHandle);
+            }
+
+            //if (tt)
+            //    sb = null;
+            //else
+                sb = new StringBuilder();
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "--- debughashs ---");
+            //else
+                sb.Append("--- debughashs ---");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "FNV64 Lists");
+            //else
+                sb.Append("FNV64 Lists");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            foreach (var item in NHashStringDEBUG.debugUnHashData64)
+            {
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "Hash: 0x" + item.key.ToString("X"));
+                //else
+                    sb.Append("Hash: 0x" + item.key.ToString("X"));
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "Name: " + item.value);
+                //else
+                    sb.Append("Name: " + item.value);
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+            }
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "FNV32 Lists");
+            //else
+                sb.Append("FNV32 Lists");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            foreach (var item in NHashStringDEBUG.debugUnHashData)
+            {
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "Hash: 0x" + item.key.ToString("X"));
+                //else
+                    sb.Append("Hash: 0x" + item.key.ToString("X"));
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "Name: " + item.value);
+                //else
+                    sb.Append("Name: " + item.value);
+
+                //if (tt)
+                //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+                //else
+                    sb.Append("\n");
+            }
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "\n");
+            //else
+                sb.Append("\n");
+
+            //if (tt)
+            //    niec_native_func.WriteTextToFileA(fileLogHandle, "End");
+            //else
+                sb.Append("End");
+
+            if (tt)
+            {
+                if (niec_native_func.WriteTextToFileA(fileLogHandle, sb.ToString()) == 1)
+                {
+                    if ((int)fileLogHandle != 0)
+                    {
+                        niec_native_func.niecmod_native_file_close(fileLogHandle);
+                    }
+                    niec_native_func.OutputDebugString("debughashs log file Created");
+                    return;
+                }
+            }
+
+            string text = null; //sb.ToString();
+
+            if (NDebugger.IsLogging())
+            {
+                text = sb.ToString();
+                NDebugger.Log(NDebugger.LogLevel.Debug, "debughashs", text, true);
+            }
+
+            //if (sb.Length > 850000)// && NDebugger.IsLogging())
+            //    return;
+
+            uint fileHandle = 0;
+            string s = Simulator.CreateExportFile(ref fileHandle, "NiecModHashList");
+            if (fileHandle == 0)
+                return;
+
+            sb.Append("\nFile Name: " + s + "\nDate: " + DateTime.Now.ToString());
+            sb.Append('\0');
+
+            text = sb.ToString();
+
+            if (!Simulator.AppendToScriptErrorFile(fileHandle, text.ToCharArray()))
+            {
+                Simulator.CloseScriptErrorFile(fileHandle);
+                return;
+            }
+
+            Simulator.CloseScriptErrorFile(fileHandle);
+            niec_native_func.OutputDebugString("debughashs Done.");
         }
 
         public static
@@ -586,7 +824,7 @@ namespace NiecMod.Helpers
             if (NFinalizeDeath.GameIs64Bit(true))
                 return;
 
-            if (NFinalizeDeath.func_address_GetAssemblies == 0)
+            if (NFinalizeDeath.func_address_GetAssemblies == 0 || NFinalizeDeath.DoneSafePreventGetAssembliesPro)
             {
                 if (NFinalizeDeath.CheckAccept("Call SafePreventGetAssemblies()?"))
                 {
@@ -694,13 +932,63 @@ namespace NiecMod.Helpers
 
         public static void exlists2_command()
         {
-            NFinalizeDeath.MsCorlibModifed_Exlists(false);
+            var re = NFinalizeDeath.MsCorlibModifed_Exlists(false);
+            if (re == 0)
+            {
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                {
+                    niec_native_func.MessageBox(0, "Done", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                }
+                else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Done");
+            }
+            else if (re == 2)
+            {
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                {
+                    niec_native_func.MessageBox(0, "Failed to Create log!", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                }
+                else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Failed to Create log!");
+            }
+            else if (re == 1)
+            {
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                {
+                    niec_native_func.MessageBox(0, "Exception Lists is empty.", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                }
+                else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Exception Lists is empty.");
+            }
         }
 
         public static void exlists3_command()
         {
             if (NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false) == 0)
-                NFinalizeDeath.MsCorlibModifed_Exlists(false);
+            {
+                var re = NFinalizeDeath.MsCorlibModifed_Exlists(false);
+                if (re == 0)
+                {
+                    if (niec_native_func.cache_done_niecmod_native_message_box)
+                    {
+                        niec_native_func.MessageBox(0, "Done", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                    }
+                    else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Done");
+                }
+                else if (re == 2)
+                {
+                    if (niec_native_func.cache_done_niecmod_native_message_box)
+                    {
+                        niec_native_func.MessageBox(0, "Failed to Create log!", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                    }
+                    else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Failed to Create log!");
+                }
+                else if (re == 1)
+                {
+                    if (niec_native_func.cache_done_niecmod_native_message_box)
+                    {
+                        niec_native_func.MessageBox(0, "Exception Lists is empty.", "NiecMod", niec_native_func.MB_Type.MB_OK);
+                    }
+                    else Sims3.UI.SimpleMessageDialog.Show("NiecMod", "Exception Lists is empty.");
+                }
+            }
         }
 
         public static void testagssdall_command()
@@ -855,7 +1143,8 @@ namespace NiecMod.Helpers
             if (!Simulator.CheckYieldingContext(false))
                 return;
 
-            if (NFinalizeDeath.CheckAccept("Clean SimDesc Disposed?")) {
+            if (ListCollon.NiecDisposedSimDescriptions != null && NFinalizeDeath.CheckAccept("Clean SimDesc Disposed?"))
+            {
                 foreach (var item in ListCollon.NiecDisposedSimDescriptions)
                 {
                     SimDescCleanseTask.SafeCallSimDescCleanseO(item);
@@ -1064,7 +1353,7 @@ namespace NiecMod.Helpers
                 DumpNativeFunction64bit();
                 return;
             }
-
+            r:
             if (AppDomain.CurrentDomain == null)
                 throw new NotSupportedException();
 
@@ -1083,6 +1372,7 @@ namespace NiecMod.Helpers
 
             uint an = 0;
             uint am = 0;
+            uint checksum = 0;
 
             if (fast)
             {
@@ -1090,7 +1380,7 @@ namespace NiecMod.Helpers
                 am = 0x00FFFFFFu;
             }
 
-            bool isdone = false, isdone1 = false;
+            bool isdone = false, isdone1 = false, tryagain = false;
 
             IntPtr a01 = default(IntPtr);
             IntPtr a02 = AssemblyCheckByNiec.FindAssembly("mscorlib")._mono_assembly;
@@ -1146,6 +1436,15 @@ namespace NiecMod.Helpers
                                         try
                                         {
                                             niec_native_func.OutputDebugString("Methed Name: " + itemMethed.Name + "\nIsGenericMethod: " + itemMethed.IsGenericMethod);
+                                            
+                                            niec_native_func.OutputDebugString("Calling GetMethodChecksum");
+                                            checksum = 0;
+                                            ScriptCore.TaskControl.GetMethodChecksum(itemMethed.MethodHandle, out checksum);
+                                            niec_native_func.OutputDebugString("Checksum: " + checksum);
+                                            if (!tryagain && checksum != 0)
+                                                continue;
+
+                                            niec_native_func.OutputDebugString("Calling Prelink");
                                             System.Runtime.InteropServices.Marshal.Prelink(itemMethed);
 
                                             if (!is_mscorlib)
@@ -1160,6 +1459,7 @@ namespace NiecMod.Helpers
                                                     continue;
                                                 }
                                             }
+
                                             //var p = itemMethed.GetCustomAttributes(false);
                                             //if (p != null)
                                             //{
@@ -1217,6 +1517,7 @@ namespace NiecMod.Helpers
                                             //}
                                             //catch (Exception)
                                             //{}
+
                                             uint funca;
                                             try
                                             {
@@ -1325,6 +1626,11 @@ namespace NiecMod.Helpers
             if (!isdone && !isdone1)
             {
                 NFinalizeDeath.Assert("Failed dnf command");
+                if (!tryagain && NFinalizeDeath.CheckAccept("Try Again?"))
+                {
+                    tryagain = true;
+                    goto r;
+                }
             }
 
             //new NCopyableTextDialog("isdone: " + isdone + "\nisdone1: " + isdone1).SafeShow("dnf command");
@@ -1865,7 +2171,24 @@ namespace NiecMod.Helpers
             }
             catch (Exception)
             { NFinalizeDeath.Assert("(SIGSEGV) Exception. niecmod_native_create_thread(...)"); }
-         
+
+            try
+            {
+                if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_create Debugger??"))
+                    NFinalizeDeath.Debugger_Break();
+
+                IntPtr r = niec_native_func.niecmod_native_file_create("NiecMod.log");
+                if (niec_std.is_valid_handle(r))
+                {
+                    NFinalizeDeath.Show_MessageDialog("Done Valid r: 0x" + ((uint)r).ToString("X"));
+                }
+                else
+                {
+                    NFinalizeDeath.Assert("Invalid. Try Again?");
+                }
+            }
+            catch (Exception)
+            { NFinalizeDeath.Assert("(SIGSEGV) Exception. niecmod_native_file_create(...)"); }
         }
 
         public static void exlt_command()
@@ -2430,13 +2753,16 @@ namespace NiecMod.Helpers
         public static
             void testassert_command()
         {
-            NFinalizeDeath.Assert(true, "Test True");
-            NFinalizeDeath.Assert(false,"Test False");
-
-            nonYieldRunFunc.RunFunc(() =>
+            Sims3.NiecHelp.Tasks.NiecTask.Perform(() =>
             {
-                NFinalizeDeath.Assert(true, "Test True Without Yield");
-                NFinalizeDeath.Assert(false, "Test False Without Yield");
+                NFinalizeDeath.Assert(true, "Test True");
+                NFinalizeDeath.Assert(false, "Test False");
+
+                nonYieldRunFunc.RunFunc(() =>
+                {
+                    NFinalizeDeath.Assert(true, "Test True Without Yield");
+                    NFinalizeDeath.Assert(false, "Test False Without Yield");
+                });
             });
         }
 
@@ -3377,6 +3703,10 @@ namespace NiecMod.Helpers
                 GCLotA_MBRACKUP = null;
                 return;
             }
+
+            if (NFinalizeDeath.SC_GetObjects<Sim>().Length == 0)
+                return;
+
             abackupBool = false;
             ustsimallpro_CommandI();
 
@@ -3863,17 +4193,20 @@ namespace NiecMod.Helpers
             if (LotManager.sActorList == null)
                 LotManager.sActorList = new List<Sim>();
 
+            var tt = LotManager.sActorList;
+
             try
             {
-                LotManager.sActorList.Clear();
+                tt.Clear();
             }
             catch (Exception)
-            { LotManager.sActorList = new List<Sim>(); }
+            { LotManager.sActorList = new List<Sim>(); tt = LotManager.sActorList; }
 
             foreach (var item in NFinalizeDeath.SC_GetObjects<Sim>())
             {
-                if (item == null) continue;
-                LotManager.sActorList.Add(item);
+                if (item == null)
+                    continue;
+                tt.Add(item);
             }
         }
 
@@ -4118,6 +4451,8 @@ namespace NiecMod.Helpers
                     NFinalizeDeath.testnomessbox_b = true;
                     if (NFinalizeDeath.CheckAccept("Unsafe"))
                     {
+                        if (NFinalizeDeath.CheckAccept("LoadDLLNativeLibrary(\"VrtyE.dll\")"))
+                            niec_native_func.LoadDLLNativeLibrary("VrtyE.dll");
                         NFinalizeDeath.World_NativeInstance = 0x10000000u;
                     }
                     else
@@ -4135,9 +4470,6 @@ namespace NiecMod.Helpers
 
                     if (NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false) != 0)
                         NFinalizeDeath.MsCorlibModifed_Exlists(false);
-
-
-                 
 
                     for (int i = 0; i < 500; i++)
                     {
@@ -4433,8 +4765,14 @@ namespace NiecMod.Helpers
 
                         var e = (ScriptCore.TaskContext)CopyTaskContext(task_context_org, true);
                         if (e.mFrames != null)
-                            ScriptCore.TaskControl.TaskControl_SetTaskContext(objID, ref e);
-                    }
+                        {
+                            if (NiecHelperSituation.isdgmods)
+                            {
+                                ScriptCore.TaskControl.TaskControl_SetTaskContext(objID, ref e);
+                            }
+                            else ScriptCore.Simulator.Simulator_DisableScriptImpl(objSim.mSimUpdateId.mValue);
+                        }
+                    } Simulator.EnableYieldAnalysis(null, null, null);
                 }
 
                 ScriptCore.Simulator.Simulator_DestroyObjectImpl(objSim.mSimUpdateId.mValue);
@@ -4679,15 +5017,15 @@ namespace NiecMod.Helpers
             if (unsafe_test_readmem)
             {
                 test_read_mem();
-                GC.Collect();
-                Sims3.NiecHelp.Tasks.NiecTask.Perform(() =>
-                {
-                    for (int i = 0; i < 200; i++)
-                    {
-                        Simulator.Sleep(0);
-                    }
-                    GC.Collect();
-                });
+                //GC.Collect();
+                //Sims3.NiecHelp.Tasks.NiecTask.Perform(() =>
+                //{
+                //    for (int i = 0; i < 200; i++)
+                //    {
+                //        Simulator.Sleep(0);
+                //    }
+                //    GC.Collect();
+                //});
             }
 
             NFinalizeDeath.MsCorlibModifed_Exlists(false);
@@ -4728,12 +5066,18 @@ namespace NiecMod.Helpers
             return 0;
         }
 
+        public static
+            bool RandomForceSetaa()
+        {
+            return aforcesetaa3_Command(true);
+        }
+
         public static 
             bool aforcesetaa3_Command(bool Safe)
         {
             if (PlumbBob.sSingleton == null) 
                 return false;
-            if (PlumbBob.sSingleton.mSelectedActor == null)
+            if (PlumbBob.SelectedActor == null)
             {
                 if (!Safe && NiecHelperSituation.__acorewIsnstalled__)
                 {
@@ -4747,7 +5091,7 @@ namespace NiecMod.Helpers
                 {
                     forcesetaa3_Command(NFinalizeDeath.GetRandomSim(NFinalizeDeath.SimIsValid), false, false);
                 }
-                return PlumbBob.sSingleton.mSelectedActor != null;
+                return PlumbBob.SelectedActor != null;
             }
             return true;
         }
@@ -5788,18 +6132,52 @@ namespace NiecMod.Helpers
         public static
             void ustsimall_Command()
         {
-            int i = 0;
             foreach (var objSim in NFinalizeDeath.SC_GetObjects<Sim>())
             {
                 if (objSim != null && !NFinalizeDeath.IsAllActiveHousehold_SimObject(objSim))
                 {
                     NFinalizeDeath.UnSafeForceErrorTargetSim(objSim);
                 }
-                i++;
-                if (i > 150 && Simulator.CheckYieldingContext(false))
+            }
+        }
+
+        public static void ustsimallx_Command()
+        {
+            foreach (var objSim in NFinalizeDeath.SC_GetObjects<Sim>())
+            {
+                if (objSim != null && !NFinalizeDeath.IsAllActiveHousehold_SimObject(objSim))
                 {
-                    i = 0;
-                    Simulator.Sleep(0);
+                    NFinalizeDeath.UnSafeForceErrorTargetSimPro(objSim);
+                }
+            }
+        }
+
+        public static void ustsimalld_Command()
+        {
+            Sim aobj = null;
+            foreach (var objSim in NFinalizeDeath.SC_GetObjects<Sim>())
+            {
+                if (NFinalizeDeath.IsAllActiveHousehold_SimObject(objSim)) {
+                    aobj = objSim;
+                    continue;
+                }
+
+                if (objSim != null)
+                {
+                    if (aobj != null && objSim != aobj)
+                    {
+                        Sims3.NiecHelp.Tasks.NiecTask.PerformSID(ScriptExecuteType.Threaded,() =>
+                        {
+                            var nhs = NFinalizeDeath.SafeGetSituationOfType<NiecHelperSituation>(aobj);
+                            if (nhs != null)
+                            {
+                                NFinalizeDeath._RunInteraction(nhs.CreateInteraction(objSim));
+                            }
+                        });
+                    }
+
+                    NFinalizeDeath.UnSafeForceErrorTargetSimPro(objSim);
+                    objSim.mSimDescription = ListCollon.NullSimSimDescription;
                 }
             }
         }
@@ -7129,6 +7507,35 @@ namespace NiecMod.Helpers
             } 
             return null;
         }
+
+        public static
+            void setfaw_command()
+        {
+            if (Instantiator.NSCGUInject)
+            {
+                if (NFinalizeDeath.CheckAccept("Set World Type?\nValue: " + NJOClass.sWorldType))
+                {
+                    NJOClass.sWorldType = NFinalizeDeath.GetIntDialog("World Type");
+                }
+                if (NFinalizeDeath.CheckAccept("Set World Name?\nValue: " + NJOClass.sWorldName))
+                {
+                    NJOClass.sWorldName = NFinalizeDeath.GetIntDialog("World Name");
+                }
+                if (NFinalizeDeath.CheckAccept("Set Future World?\nValue: " + NJOClass.__fakeFutrueWorld))
+                {
+                    NJOClass.__fakeFutrueWorld = !NJOClass.__fakeFutrueWorld;
+                }
+                if (NFinalizeDeath.CheckAccept("Set Vacation World?\nValue: " + NJOClass.__fakeTravalWorld))
+                {
+                    NJOClass.__fakeTravalWorld = !NJOClass.__fakeTravalWorld;
+                }
+                if (NFinalizeDeath.CheckAccept("Set University World?\nValue: " + NJOClass.__fakeUnScWorld))
+                {
+                    NJOClass.__fakeUnScWorld = !NJOClass.__fakeUnScWorld;
+                }
+            }
+        }
+
         public static // unprotected mono mscorlib 
             void clc_command()
         {
@@ -7474,6 +7881,16 @@ namespace NiecMod.Helpers
         }
 
         public static
+            void pt_command()
+        {
+            NJOClass.pt = !NJOClass.pt;
+            if (niec_native_func.cache_done_niecmod_native_message_box)
+                niec_native_func.MessageBox(0, "NJOClass.pt: " + NJOClass.pt, "NiecMod", (niec_native_func.MB_Type)0);
+            else
+                NFinalizeDeath.Show_MessageDialog("NJOClass.pt: " + NJOClass.pt);
+        }
+
+        public static
             void chouselotnosall_command()
         {
             var lots = LotManager.sLots;
@@ -7491,6 +7908,7 @@ namespace NiecMod.Helpers
                     NiecException.PrintMessagePro("chouselotnosall: " + packageFile, false, float.MaxValue);
                 }
             }
+            NiecException.PrintMessagePro("chouselotnosall Done!", false, float.MaxValue);
         }
 
         public static
@@ -7548,6 +7966,12 @@ namespace NiecMod.Helpers
                 { throw; }
                 catch { }
             }
+        }
+
+        public static
+            void AssertEADEBUG()
+        {
+            NFinalizeDeath.Assert(ScriptCore.GameUtils.GameUtils_GetCurrentFps() != 0, "ScriptCore.GameUtils.GameUtils_GetCurrentFps() != 0 failed\nShould EA Debug removed");
         }
 
         public static int testFuncCPUC = 1350;
@@ -7629,7 +8053,7 @@ namespace NiecMod.Helpers
                 }
                 catch (Exception)
                 { if (mthrow_on_error) throw; }
-
+                
                 try
                 {
                     f = tStateMachineClient.GetField("isforceerror", BindingFlags.Static | BindingFlags.Public);
@@ -7637,6 +8061,7 @@ namespace NiecMod.Helpers
                     {
                         f.SetValue(null, is_force_error);
                     }
+                    NJOClass.smc_isforceerror_b = is_force_error;
                 }
                 catch (Exception)
                 { if (mthrow_on_error) throw; }
@@ -7912,7 +8337,7 @@ namespace NiecMod.Helpers
         }
 
         public static void simisf_command() {
-            Simulator.CheckYieldingContext();
+            Simulator.CheckYieldingContext(true);
             if (AssemblyCheckByNiec.DGSSimIFaceIsInstalled())
             {
                 bool a, b;
@@ -8165,7 +8590,7 @@ namespace NiecMod.Helpers
                 setfunctest_commnad_methed = methodNameMod;
                 bool done = false;
                 Type voidType = typeof(void);
-                foreach (var item in type.GetMethods())
+                foreach (var item in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     if (done) 
                         break;
@@ -8254,7 +8679,139 @@ namespace NiecMod.Helpers
             }
         }
 
+        public static
+            void setfunctest2_commnad() // unprotected mono mscorlib 
+        {
+            Simulator.CheckYieldingContext(true);
 
+            string claasNameMod = StringInputDialog.Show
+                ("NiecMod", "Class?", setfunctest_commnad_cache_Claas ?? typeof(NiecRunCommand).ToString(), 256, StringInputDialog.Validation.None);
+
+            if (NFinalizeDeath.IsNullOrEmpty(claasNameMod))
+            { return; }
+
+            setfunctest_commnad_cache_Claas = claasNameMod;
+
+            Type type;
+            try
+            {
+                type = Type.GetType(claasNameMod, false);
+            }
+            catch (Exception exr)
+            {
+                exr.trace_ips = null;
+                exr.message = "";
+                NFinalizeDeath.Show_MessageDialog("internal error type:\n" + claasNameMod);
+                return;
+            }
+
+            Simulator.CheckYieldingContext(true);
+
+            if (type != null)
+            {
+                string methodNameMod = StringInputDialog.Show("NiecMod", "Method Name?", setfunctest_commnad_methed ?? "FastCodeEventTrackerV2", 256, StringInputDialog.Validation.None);
+                if (NFinalizeDeath.IsNullOrEmpty(methodNameMod))
+                { return; }
+
+                setfunctest_commnad_methed = methodNameMod;
+                bool done = false;
+                Type boolType = typeof(bool);
+                foreach (var item in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                {
+                    if (done)
+                        break;
+
+                    if (item == null)
+                        continue;
+
+                    if (item.ContainsGenericParameters)
+                        continue;
+
+                    if (item.IsAbstract || !item.IsStatic)
+                        continue;
+
+                    if (item.ReturnType != boolType)
+                        continue;
+
+                    var parInfo = item.GetParameters();
+                    if (parInfo == null)
+                        continue;
+
+                    if (parInfo.Length == 0)
+                    {
+                        var name = item.Name;
+                        if (name == null)
+                            continue;
+
+                        if (name.Contains(methodNameMod))
+                        {
+                            if (IsOpenDGSInstalled)
+                            {
+                                try
+                                {
+                                    XDGSMODS_TestFunc = (NFinalizeDeath.FunctionX)
+                                        Delegate.CreateDelegate
+                                        (typeof(NFinalizeDeath.FunctionX), item);
+
+                                    if (XDGSMODS_TestFunc == null)
+                                        continue;
+
+                                    done = true;
+                                }
+                                catch (Exception exr)
+                                {
+                                    exr.trace_ips = null;
+                                    exr.message = "";
+                                    continue;
+                                }
+
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    XDGSMODS_TestFunc02 = (NFinalizeDeath.FunctionX)
+                                        Delegate.CreateDelegate
+                                        (typeof(NFinalizeDeath.FunctionX), item);
+
+                                    if (XDGSMODS_TestFunc02 == null)
+                                        continue;
+
+                                    done = true;
+                                }
+                                catch (Exception exr)
+                                {
+                                    exr.trace_ips = null;
+                                    exr.message = "";
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (done)
+                {
+                    if (IsOpenDGSInstalled)
+                    {
+                        var r = XDGSMODS_TestFunc();
+                        NFinalizeDeath.Show_MessageDialog("Result: " + r);
+                    }
+                    else
+                    {
+                        var r = XDGSMODS_TestFunc02();
+                        NFinalizeDeath.Show_MessageDialog("Result: " + r);
+                    }
+                }
+                else
+                {
+                    NFinalizeDeath.Show_MessageDialog("Could not find Method Name:\n" + methodNameMod);
+                }
+            }
+            else
+            {
+                NFinalizeDeath.Show_MessageDialog("Could not find Type Name:\n" + claasNameMod);
+            }
+        }
 
         public static
             void clearetdata_Command()
@@ -8280,6 +8837,8 @@ namespace NiecMod.Helpers
         public static
             void delallsim_command()
         {
+            if (NFinalizeDeath.SC_GetObjects<Sim>().Length == 0)
+                return;
 
             if (!IsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore"))
             {
@@ -8289,6 +8848,11 @@ namespace NiecMod.Helpers
                 if (Simulator.CheckYieldingContext(false))
                     Simulator.Sleep(0);
 
+                var ah = Household.ActiveHousehold;
+                var aa = PlumbBob.SelectedActor;
+
+                var cah = NFinalizeDeath.CheckAccept("Check Active Household?");
+                var caa = cah || NFinalizeDeath.CheckAccept("Check Active Actor?");
 
                 Sims3.Gameplay.Gameflow.SetGameSpeed(Sims3.SimIFace.Gameflow.GameSpeed.Pause, false);
 
@@ -8305,19 +8869,20 @@ namespace NiecMod.Helpers
                     r01 = NFinalizeDeath.CheckAccept("Save Game?");
                 }
 
-                NPlumbBob.sCurrentSimTwo = null;
+                if (!caa && !cah)
+                    NPlumbBob.sCurrentSimTwo = null;
 
-                Sim aa = null;
-                Sim aa2 = null;
+                Sim aaa = null;
+                Sim aaa2 = null;
 
-                if (PlumbBob.sSingleton != null)
+                if (PlumbBob.sSingleton != null && !caa && !cah)
                 {
                     PlumbBob.sCurrentNonNullHousehold = null;
-                    aa = PlumbBob.sSingleton.mSelectedActor;
+                    aaa = PlumbBob.sSingleton.mSelectedActor;
                     PlumbBob.sSingleton.mSelectedActor = null;
 
                     NPlumbBob.sCurrentNonNullHousehold = null;
-                    aa2 = NPlumbBob.sCurrentSim;
+                    aaa2 = NPlumbBob.sCurrentSim;
                     NPlumbBob.sCurrentSim = null;
                     
                 }
@@ -8326,29 +8891,36 @@ namespace NiecMod.Helpers
                 {
                     if (item == null) 
                         continue;
+                    if (cah && item.Household == ah)
+                        continue;
+                    if (caa && item == aa)
+                        continue;
                     Bim.bSDestroy(item);
                 }
 
                 NFinalizeDeath.MsCorlibModifed_Exlists(false);
 
-                NFinalizeDeath.SafeCall(() =>
+                if (!caa && !cah)
                 {
-                    for (int i = 0; i < 2; i++)
+                    NFinalizeDeath.SafeCall(() =>
                     {
-                        PlumbBob.sCurrentNonNullHousehold = null;
-                        NPlumbBob.sCurrentNonNullHousehold = null;
-                        PlumbBob.DoSelectActor(aa, true);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            PlumbBob.sCurrentNonNullHousehold = null;
+                            NPlumbBob.sCurrentNonNullHousehold = null;
+                            PlumbBob.DoSelectActor(aaa, true);
 
-                        PlumbBob.sCurrentNonNullHousehold = null;
-                        NPlumbBob.sCurrentNonNullHousehold = null;
-                        PlumbBob.DoSelectActor(aa2, true);
-                    }
+                            PlumbBob.sCurrentNonNullHousehold = null;
+                            NPlumbBob.sCurrentNonNullHousehold = null;
+                            PlumbBob.DoSelectActor(aaa2, true);
+                        }
 
-                    for (int i = 0; i < 5; i++)
-                    {
-                        PlumbBob.DoSelectActor(null, true);
-                    }
-                });
+                        for (int i = 0; i < 5; i++)
+                        {
+                            PlumbBob.DoSelectActor(null, true);
+                        }
+                    });
+                }
 
                 VideoRecorder.SnapshotFileName = "delallsim_f_Screenshot";
                 VideoRecorder.TakeSnapshot();
@@ -8358,32 +8930,416 @@ namespace NiecMod.Helpers
 
                 NFinalizeDeath.MsCorlibModifed_Exlists(false);
 
+                if ( NFinalizeDeath.CheckAccept("Run allinvsim command?"))
+                {
+                    allinvsim_command();
+                    if (!caa && !cah)
+                    {
+                        NPlumbBob.sCurrentSimTwo = null;
+
+                        NFinalizeDeath.MsCorlibModifed_Exlists(false);
+
+                        if (PlumbBob.SelectedActor == null && NFinalizeDeath.CheckAccept("forcesetaa?"))
+                        {
+                            Sims3.NiecHelp.Tasks.NiecTask.Perform(() =>
+                            {
+                                Simulator.Sleep(0);
+                                bool laa = false;
+                                foreach (var item in NFinalizeDeath.SC_GetObjects<Sim>())
+                                {
+                                    if (item == null)
+                                        continue;
+
+                                    var simd = item.SimDescription;
+                                    if (simd == null || simd.IsPet)
+                                        continue;
+
+                                    var housed = simd.Household;
+                                    if (housed == null || NFinalizeDeath.IsSpecialHousehold(housed))
+                                        continue;
+
+                                    PlumbBob.sCurrentNonNullHousehold = null;
+                                    NPlumbBob.sCurrentNonNullHousehold = null;
+
+                                    for (int i = 0; i < 3; i++)
+                                    {
+                                        PlumbBob.DoSelectActor(item, true);
+                                        laa = true;
+                                    }
+                                    break;
+                                }
+                                if (laa)
+                                {
+                                    NFinalizeDeath.AssertX(PlumbBob.SelectedActor != null, "PlumbBob.SelectedActor != null failed.");
+                                }
+                            });
+                        }
+                    }
+                }
+
+                NFinalizeDeath.MsCorlibModifed_Exlists(false);
+
                 if (niec_native_func.cache_done_niecmod_native_message_box)
                 {
                     niec_native_func.MessageBox(0, "Play Ready?", "NiecMod", 0);
                 }
 
+
                 Sims3.Gameplay.Gameflow.SetGameSpeed(Sims3.SimIFace.Gameflow.GameSpeed.Pause, false);
             }
             else
             {
+                var ah = Household.ActiveHousehold;
+                var aa = PlumbBob.SelectedActor;
+
+                var cah = NFinalizeDeath.CheckAccept("Check Active Household?");
+                var caa = !cah && NFinalizeDeath.CheckAccept("Check Active Actor?");
+
                 foreach (var item in NFinalizeDeath.SC_GetObjects<Sim>())
                 {
                     if (item == null)
                         continue;
+                    if (cah && item.Household == ah)
+                        continue;
+                    if (caa && item == aa)
+                        continue;
                     NFinalizeDeath.ForceDestroyObject(item, false);
                 }
+                if (NFinalizeDeath.CheckAccept("Run allinvsim command?"))
+                {
+                    allinvsim_command();
+                }
             }
+        }
+
+        public static object nrtttt = null; // new NiecObjectPlus();
+
+        public unsafe static
+            void typedebug_command()
+        {
+            NFinalizeDeath.GetNull<LincSAT>();
+            var tyyy = (uint)niec_script_func.niecmod_script_get_type_ptr(typeof(NiecObjectPlus));
+            var tyyyX = (uint)niec_script_func.niecmod_script_get_type_ptr(typeof(LincSAT));
+            nrtttt = new NiecObjectPlus();
+            uint dnrtttt = *(uint*)(uint)nrtttt.obj_address();
+            var ttt = typeof (NiecObjectPlus).obj_address();
+            var ttth = typeof(NiecObjectPlus)._impl.value;
+
+            new NCopyableTextDialog("Type DEBUG\n\n" +
+
+                "dnrtttt: 0x" + (dnrtttt).ToString("X") +
+                "\nttt: 0x" + ((uint)ttt).ToString("X") +
+                "\ntyyy: 0x" + ((uint)tyyy).ToString("X") +
+                "\ntyyyX: 0x" + ((uint)tyyyX).ToString("X") +
+                "\ntttHandle: 0x" + ((uint)ttth).ToString("X") +
+                "\ntttobj: 0x" + ((uint)nrtttt.obj_address()).ToString("X")
+
+            ).SafeShow("typedebug command");
+        }
+
+        public static
+            void typedebug2_command()
+        {
+            var otyiyy = new object();
+            niec_script_func.niecmod_script_object_set_type_ptr2(otyiyy, typeof(NiecObjectPlus));
+            NFinalizeDeath.M((NiecObjectPlus)otyiyy);
+            niec_script_func.niecmod_script_object_set_type_ptr2(otyiyy, typeof(object));
+            NFinalizeDeath.Show_MessageDialog("Valid.");
+        }
+
+
+        public static IntPtr ptt   = default(IntPtr);
+        public static IntPtr pttx  = default(IntPtr);
+        public static IntPtr pttxx = default(IntPtr);
+
+        public static
+           void filedebug_command()
+        {
+            niec_native_func.init_class();
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_create Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            if (!niec_std.is_valid_handle(ptt))
+            {
+                //niec_native_func.niecmod_native_file_create(NFinalizeDeath.GetNowTimeToStr() + "_filedebug_command.log");
+                ptt = niec_native_func.niecmod_native_file_create("Sims 3 Logs\\filedebug_command.log");
+            }
+            if (!niec_std.is_valid_handle(ptt))
+            {
+                NFinalizeDeath.Show_MessageDialog("Failed.");
+                return;
+            }
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_whiletext Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_writetext(ptt, "Hello World! 0x" + ((uint)"NiecMod File".obj_address()).ToString("X") + "\n");
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_close Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_close(ptt);
+            ptt = default(IntPtr);
+
+            NFinalizeDeath.Show_MessageDialog("Done");
+        }
+
+        public static
+           void filedebug2_command()
+        {
+            //niec_native_func.init_class();
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_create Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            var ttyyya = default(IntPtr);
+
+            if (!niec_std.is_valid_handle(ttyyya))
+                ttyyya = niec_native_func.niecmod_native_file_create("Sims 3 Logs\\NiecModTestX.log");
+            if (!niec_std.is_valid_handle(ttyyya))
+            {
+                NFinalizeDeath.Show_MessageDialog("Failed.");
+                return;
+            }
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_whiletext Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_writetext(ttyyya, "Hello World!\n");
+            NFinalizeDeath.Show_MessageDialog("Done");
+        }
+
+        public static
+           void filedebug3_command()
+        {
+            niec_native_func.init_class();
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_create Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            if (!niec_std.is_valid_handle(pttx))
+            {
+                //niec_native_func.niecmod_native_file_create(NFinalizeDeath.GetNowTimeToStr() + "_filedebug3_command.log");
+                pttx = niec_native_func.niecmod_native_file_create("Sims 3 Logs\\filedebug3_command.log");
+            }
+            if (!niec_std.is_valid_handle(pttx))
+            {
+                NFinalizeDeath.Show_MessageDialog("Failed.");
+                return;
+            }
+
+            
+            var ttt = "Hello World Data! 0x" + ((uint)"NiecMod File".obj_address()).ToString("X") + "\n";
+            var tttl = ttt.Length;
+            var ttta = niec_native_func.StringToCoTaskMemAnsi(ttt); //System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(ttt);
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_write Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_write(pttx, ttta, tttl);
+
+            System.Runtime.InteropServices.Marshal.FreeCoTaskMem(ttta);
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_close Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_close(pttx);
+            pttx = default(IntPtr);
+
+            NFinalizeDeath.Show_MessageDialog("Done");
+        }
+        public static
+           void filedebug4_command()
+        {
+            niec_native_func.init_class();
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_create Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            if (!niec_std.is_valid_handle(pttxx))
+            {
+                //niec_native_func.niecmod_native_file_create(NFinalizeDeath.GetNowTimeToStr() + "_filedebug3_command.log");
+                pttxx = niec_native_func.niecmod_native_file_create("Sims 3 Logs\\filedebug4_command.log");
+            }
+            if (!niec_std.is_valid_handle(pttxx))
+            {
+                NFinalizeDeath.Show_MessageDialog("Failed.");
+                return;
+            }
+
+            var ttt = "Hello World Data! 0x" + ((uint)"NiecMod File".obj_address()).ToString("X") + "\n";
+            var tttl = ttt.Length;
+            var ttta = (IntPtr)niec_native_func.StringToScriptMemAnsi(ttt)[1];
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_write Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_write(pttxx, ttta, tttl);
+
+            if (NFinalizeDeath.CheckAccept("Call niecmod_native_file_close Debugger??"))
+                NFinalizeDeath.Debugger_Break();
+
+            niec_native_func.niecmod_native_file_close(pttxx);
+            pttxx = default(IntPtr);
+
+            NFinalizeDeath.Show_MessageDialog("Done");
+        }
+
+        // Sims 3 has been blocked from accessing Graphics handware.
+        public static
+            void forcesavegame_command()
+        {
+            if (NFinalizeDeath.unsafeForceSaveGameNoDialog() == LoadSaveManager.eLoadSaveErrorCode.kNoError)
+            {
+                NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false);
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                    niec_native_func.MessageBox(0, "Saved Game", "NiecMod", (niec_native_func.MB_Type)0);
+                else
+                    NFinalizeDeath.Show_MessageDialog("Saved Game");
+            }
+            else
+            {
+                NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false);
+                if (niec_native_func.cache_done_niecmod_native_message_box)
+                    niec_native_func.MessageBox(0, "Save failed.", "NiecMod", (niec_native_func.MB_Type)0);
+                else
+                    NFinalizeDeath.Show_MessageDialog("Save failed.");
+            }
+        }
+        public static
+           void forceedittown_command()
+        {
+            if (CameraController.GetTarget() == new Vector3(0, 0, 0))
+                return;
+
+            GameStates.mQuitDisableCount = 0;
+            GameStates.mQuitting = false;
+            GameStates.mQuittingTaskStarted = false;
+
+            // Fix Bug
+            if (!IsOpenDGSInstalled && Household.sNpcHousehold == null)
+            {
+                Household.sNpcHousehold = Household.Create();
+                Household.sNpcHousehold.Name = "NPCHousehold";
+            }
+
+            GameStates.TransitionToEditTown();
+        }
+
+        public static
+            void forcelivemode_command()
+        {
+            if (CameraController.GetTarget() == new Vector3(0, 0, 0))
+                return;
+
+            GameStates.mQuitDisableCount = 0;
+            GameStates.mQuitting = false;
+            GameStates.mQuittingTaskStarted = false;
+
+            try
+            {
+                if (GameStates.sSingleton != null && GameStates.sSingleton.mInWorldState != null)
+                    GameStates.sSingleton.mInWorldState.GotoReturnState();
+                if (EditTownPuck.sInstance != null && EditTownPuck.sInstance.mChangeSelectedHouseholdButton != null)
+                    EditTownPuck.sInstance.mChangeSelectedHouseholdButton.Enabled = true;
+            }
+            catch (Exception)
+            { }
+         
+
+            // Fix Bug
+            if (!IsOpenDGSInstalled && Household.sNpcHousehold == null)
+            {
+                Household.sNpcHousehold = Household.Create();
+                Household.sNpcHousehold.Name = "NPCHousehold";
+            }
+
+            var ied = EditTownPuck.sInstance;
+            if (ied != null)
+            {
+                ied.HidePanels();
+                ied.UpdateBackButton(true);
+                GameStates.TransitionToReturnState();
+                if (GameStates.NextInWorldStateId != GameStates.ReturnState)
+                {
+                    ied.UpdateBackButton(false);
+                }
+            }
+        }
+
+        public static
+            void removeisimo_command()
+        {
+            var aa = HitTargetSim() ?? PlumbBob.SelectedActor;
+            if (aa == null)
+                return;
+
+            var simd = aa.SimDescription;
+            if (simd == null || simd.IsPregnant || simd.mOutfits == null)
+                return;
+
+            var getInt = NFinalizeDeath.GetIntDialog("Index?");
+            if (getInt == -101)
+                return;
+
+            if (getInt == -102)
+            {
+                NFinalizeDeath.Show_MessageDialog("Invaild text.");
+                return;
+            }
+
+            getInt--;
+
+            if (getInt < 0)
+            {
+                NFinalizeDeath.Show_MessageDialog("Invaild text.");
+                return;
+            }
+
+            const string info =
+                "None\n" +
+                "Naked\n" +
+                "Everyday\n" +
+                "Formalwear\n" +
+                "Sleepwear\n" +
+                "Swimwear\n" +
+                "Athletic\n" +
+                "MartialArts\n" +
+                "Career\n" +
+                "Outerwear";
+
+            var outUserStr = StringInputDialog.Show(
+                "NiecMod",
+                info,
+                "Everyday",
+                StringInputDialog.Validation.None
+            );
+
+            if (outUserStr == null || outUserStr.Length == 0)
+                return;
+
+            var y = (Sims3.SimIFace.CAS.OutfitCategories)Enum.Parse(typeof(Sims3.SimIFace.CAS.OutfitCategories), outUserStr);
+
+            if (ListCollon.SafeObjectGC == null)
+                ListCollon.SafeObjectGC = new List<object>();
+
+            var simo = simd.RemoveOutfitInternal(y, getInt, false, false);
+            if (simo == null)
+            {
+                NFinalizeDeath.Show_MessageDialog("Could not find! Index: " + getInt);
+                return;
+            }
+            ListCollon.SafeObjectGC.Add(simo);
+
         }
 
         public static
             void allinvsim_command()
         {
             bool acore = !IsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore");
-            if (acore)
-            {
-                GC.Collect();
-            }
+            //if (acore)
+            //{
+            //    GC.Collect();
+            //}
 
             bool a = NFinalizeDeath.AutoMET != null;
             bool b = NFinalizeDeath.AutoMET_NTaskNeedAddToQure;
@@ -8416,6 +9372,8 @@ namespace NiecMod.Helpers
                 {
                     foreach (var simDesc in NFinalizeDeath.UpdateNiecSimDescriptions(false, false, true).ToArray())
                     {
+                        NFinalizeDeath.ValidateSimCreated(simDesc, null);
+
                         if (simDesc == null || simDesc.mOutfits == null || simDesc.mHairColors == null)
                             continue;
 
@@ -8431,8 +9389,6 @@ namespace NiecMod.Helpers
                                 simDesc.mSim = null;
                             }
                         }
-
-                        NFinalizeDeath.ValidateSimCreated(simDesc, null);
 
                         if (simDesc.mSim == null)
                         {
@@ -8451,6 +9407,7 @@ namespace NiecMod.Helpers
                                 {
                                     NFinalizeDeath.ForceDestroyObject(s, false);
                                 }
+                                delinv_sim(s);
                             }
                         }
                     }
@@ -8506,10 +9463,10 @@ namespace NiecMod.Helpers
                 NFinalizeDeath.AutoMET_StartUp(portal, b);
             }
 
-            if (acore)
-            {
-                GC.Collect();
-            }
+            //if (acore)
+            //{
+            //    GC.Collect();
+            //}
         }
 
         public static
@@ -8852,6 +9809,17 @@ namespace NiecMod.Helpers
             void rallirunlist_command() { NFinalizeDeath.RemoveAllIQRunningIList(); }
 
         public static
+            void ralliq_command() {
+                foreach (var item in NFinalizeDeath.SC_GetObjects<Sim>())
+                {
+                    if (item == null)
+                        continue;
+                    item_remove_iq_running_list(item, true);
+                    NFinalizeDeath.ForceCancelAllInteractionsWithoutCleanup(item);
+                }
+        }
+
+        public static
             void kill_sim_for_lot()
         {
             int i = NFinalizeDeath.GetIntDialog("killsimforlot() Count?");
@@ -9008,6 +9976,73 @@ namespace NiecMod.Helpers
 
             new NCopyableTextDialog(debug).SafeShow("dkeygivename command");
         }
+
+        public static
+            void addnmemh_command()
+        {
+            var ah = Household.ActiveHousehold ?? NFinalizeDeath.GetSafeRandomHousehold();
+            if (ah != null)
+            {
+                NFinalizeDeath.RemoveNullForHouseholdMembers(ah);
+                ah.mMembers.mAllSimDescriptions.Add(null);
+                if (NFinalizeDeath.unsafeForceSaveGameNoDialog("addnmemhID" + NFinalizeDeath.GetRandomID()) == LoadSaveManager.eLoadSaveErrorCode.kNoError)
+                {
+                    NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false);
+                    if (niec_native_func.cache_done_niecmod_native_message_box)
+                        niec_native_func.MessageBox(0, "Saved Game", "NiecMod", (niec_native_func.MB_Type)0);
+                    else
+                        NFinalizeDeath.Show_MessageDialog("Saved Game");
+                }
+                else
+                {
+                    NFinalizeDeath.MsCorlibModifed_ExlistsX(false, false);
+                    if (niec_native_func.cache_done_niecmod_native_message_box)
+                        niec_native_func.MessageBox(0, "Save failed.", "NiecMod", (niec_native_func.MB_Type)0);
+                    else
+                        NFinalizeDeath.Show_MessageDialog("Save failed.");
+                }
+            }
+        }
+
+        public static
+            void delinv_sim(Sim item)
+        {
+            if (item == null)
+                return;
+
+            if (item.mObjComponents == null)
+                return;
+
+            var i = item.Inventory;
+            if (i == null)
+                return;
+
+            NFinalizeDeath.DeleteInvSim(item);
+
+            try
+            {
+                if (item.InventoryComp == null)
+                {
+                    item.mObjComponents.Add(new Sims3.Gameplay.ObjectComponents.InventoryComponent(item));
+                }
+            }
+            catch (Exception)
+            { }
+
+            var ic = item.InventoryComp;
+            if (ic != null && ic.Inventory == null)
+            {
+                ic.mScriptObject = item;
+
+                try
+                {
+                    ic.Inventory = new Inventory(item);
+                }
+                catch (Exception)
+                { }
+            }
+        }
+
 
         public static
             void alldinv_command()
@@ -9403,8 +10438,6 @@ namespace NiecMod.Helpers
             {
                 NFinalizeDeath.Household_Remove(simd, false);
                 NFinalizeDeath.Household_Add(addsimtohousehold_data, simd, true);
-                simd.mHousehold = addsimtohousehold_data;
-
                 NFinalizeDeath.M(Create.NiecNullSimDescription(true, false, false));
 
                 try
@@ -9414,10 +10447,14 @@ namespace NiecMod.Helpers
                 }
                 catch (Exception)
                 { }
+
+                simd.mHousehold = addsimtohousehold_data;
             }
             else
             {
                 NFinalizeDeath.Household_Add(addsimtohousehold_data, simd, false);
+                simd.mHousehold = addsimtohousehold_data;
+
                 simd.IsNeverSelectable = false;
 
                 try
@@ -9496,7 +10533,6 @@ namespace NiecMod.Helpers
             {
                 NFinalizeDeath.Household_Remove(simd, false);
                 NFinalizeDeath.Household_Add(addsimtohousehold_data, simd, false);
-                simd.mHousehold = addsimtohousehold_data;
 
                 NFinalizeDeath.M(Create.NiecNullSimDescription(true, false, false));
 
@@ -9507,6 +10543,7 @@ namespace NiecMod.Helpers
                 }
                 catch (Exception)
                 { }
+                simd.mHousehold = addsimtohousehold_data;
             }
             else
             {
@@ -9520,6 +10557,7 @@ namespace NiecMod.Helpers
                 }
                 catch (Exception)
                 { }
+                simd.mHousehold = addsimtohousehold_data;
             }
 
             NFinalizeDeath.Household_RefrashAllActors(addsimtohousehold_data);
@@ -9969,7 +11007,7 @@ namespace NiecMod.Helpers
                     {
                         var simListOld = NFinalizeDeath.UpdateNiecSimDescriptions(false, false, true).ToArray();
                         if (simListOld.Length == 0) return;
-                        var simListNew = NFinalizeDeath.CopyFullSimDesc();
+                        var simListNew = NFinalizeDeath.CopyFullSimDesc(false);
                         if (simListNew == null || simListNew.Count == 0)
                             return;
 
@@ -10094,7 +11132,7 @@ namespace NiecMod.Helpers
                         int myAge = -264;
                         foreach (var item in NFinalizeDeath.UpdateNiecSimDescriptions(false, false, true).ToArray())
                         {
-                            if (item == null)
+                            if (item == null || item.mTraitManager == null)
                                 continue;
 
                             if (!item.IsValidDescription)
@@ -10970,6 +12008,10 @@ namespace NiecMod.Helpers
                         }
                         else SimpleMessageDialog.Show("NiecMod", "Could not find sim desc.");
                     }
+                    else if (temp == "nonm")
+                    {
+                        nomn_command(!NJOClass.bNoStyledNotification, false);
+                    }
                     else if (temp == "killsimforlot") { kill_sim_for_lot(); }
                     else if (temp == "dsavename")
                     {
@@ -11307,6 +12349,10 @@ namespace NiecMod.Helpers
                         psLoop_Sim = gameObj;
                         if (gameObj != null)
                             PlumbBob.ShowPlumbBob();
+                    }
+                    else if (temp == "setfaw")
+                    {
+                        setfaw_command();
                     }
                     else if (temp == "dallvsimdesc")
                     {
@@ -11751,6 +12797,10 @@ namespace NiecMod.Helpers
                     else if (temp == "hitloopdied2")
                     {
                         hitloopdied2_command();
+                    }
+                    else if (temp == "setfunctest2")
+                    {
+                        setfunctest2_commnad();
                     }
                     else if (temp == "tmnfunc5")
                     {
@@ -12270,9 +13320,9 @@ namespace NiecMod.Helpers
                         if (!Simulator.CheckYieldingContext(false))
                             return;
 
-                        LotLocation LotLocation = default(LotLocation);
-                        ulong Location = World.GetLotLocation(CameraController.GetTarget(), ref LotLocation);
-                        Lot TargetLot = LotManager.GetLot(Location);
+                        //LotLocation LotLocation = default(LotLocation);
+                        //ulong Location = World.GetLotLocation(CameraController.GetTarget(), ref LotLocation);
+                        Lot TargetLot = NFinalizeDeath.GetCameraTargetLotOrTargetLot();//LotManager.GetLot(Location);
                         if (TargetLot != null && !TargetLot.IsWorldLot && (World.LotIsEmpty(TargetLot.LotId) && TargetLot.IsLotEmptyFromObjects() || NFinalizeDeath.CheckAccept("UnSafe")))
                         {
                             try
@@ -12405,6 +13455,10 @@ namespace NiecMod.Helpers
                             }
                         }
                     }
+                    else if (temp == "nonms")
+                    {
+                        nonms_command();
+                    }
                     else if (temp == "renhstick") { NFinalizeDeath.ReAllNHSOnTick(null); }
                     else if (temp == "trimallsim")
                     {
@@ -12492,9 +13546,21 @@ namespace NiecMod.Helpers
                         if (sim == null) return;
                         NFinalizeDeath.RunSwapHousehold(sim);
                     }
+                    else if (temp == "forceedittown")
+                    {
+                        forceedittown_command();
+                    }
+                    else if (temp == "forcelivemode")
+                    {
+                        forcelivemode_command();
+                    }
                     else if (temp == "backuptevc")
                     {
                         backuptevc_command();
+                    }
+                    else if (temp == "addnmemh")
+                    {
+                        addnmemh_command();
                     }
                     else if (temp == "forcesetaa2")
                     {
@@ -12556,6 +13622,18 @@ namespace NiecMod.Helpers
                             else
                                 SimpleMessageDialog.Show("NiecMod", "Could not Find Sim Desc.");
                         }
+                    }
+                    else if (temp == "typedebug2")
+                    {
+                        typedebug2_command();
+                    }
+                    else if (temp == "filedebug")
+                    {
+                        filedebug_command();
+                    }
+                    else if (temp == "filedebug2")
+                    {
+                        filedebug2_command();
                     }
                     else if (temp == "debugdebuginfo")
                     {
@@ -13349,6 +14427,10 @@ namespace NiecMod.Helpers
                         }
                         Sims3.Gameplay.Gameflow.SetGameSpeed((Sims3.SimIFace.Gameflow.GameSpeed)num, false);
                     }
+                    else if (temp == "pt")
+                    {
+                        pt_command();
+                    }
                     else if (temp == "clc2")
                     {
                         clc2_command();
@@ -13502,6 +14584,10 @@ namespace NiecMod.Helpers
                             }
                         }
                     }
+                    else if (temp == "filedebug4")
+                    {
+                        filedebug4_command();
+                    }
                     else if (temp == "testgetunsace")
                     {
                         testgetunsace_command();
@@ -13526,6 +14612,14 @@ namespace NiecMod.Helpers
                     else if (temp == "pdats")
                     {
                         pdats_command();
+                    }
+                    else if (temp == "ustsimallx")
+                    {
+                        ustsimallx_Command();
+                    }
+                    else if (temp == "ustsimalld")
+                    {
+                        ustsimalld_Command();
                     }
                     else if (temp == "alldinv")
                     {
@@ -14015,6 +15109,10 @@ namespace NiecMod.Helpers
                     else if (temp == "testfastcode01")
                     {
                         testfastcode01_command();
+                    }
+                    else if (temp == "removeisimo")
+                    {
+                        removeisimo_command();
                     }
                     else if (temp == "chouselotnos")
                     {
@@ -14508,6 +15606,10 @@ namespace NiecMod.Helpers
                             }
                         }
                     }
+                    else if (temp == "ralliq")
+                    {
+                        ralliq_command();
+                    }
                     else if (temp == "deltargetsimdesc")
                     {
                         Sim Target = HitTargetSim();
@@ -14604,6 +15706,10 @@ namespace NiecMod.Helpers
                     else if (temp == "dasc2020")
                     {
                         dasc2020_command();
+                    }
+                    else if (temp == "debughashs")
+                    {
+                        debughashs_command();
                     }
                     else if (temp == "dtoa")
                     {
@@ -15531,6 +16637,10 @@ namespace NiecMod.Helpers
                         Create.CreateRandomNiecHelperSituation(null, false, false, true);
 
                     }
+                    else if (temp == "filedebug3")
+                    {
+                        filedebug3_command();
+                    }
                     else if (temp == "unsafeallrunnhs")
                     {
                         SimpleMessageDialog.Show("NiecMod", "NiecHelperSituation\nWorkingCount: " + NiecHelperSituation.WorkingNiecHelperSituationCount + "\nAHWorkingCount: " + NiecHelperSituation.Spawn.ActiveHouseholdWorkingNHS_Count() + "\nSimsCount: " + NFinalizeDeath.SC_GetObjects<Sim>().Length);
@@ -15628,10 +16738,14 @@ namespace NiecMod.Helpers
                         else
                             SimpleMessageDialog.Show("NiecMod", "Could not find the SimDesc.");
                     }
+                    else if (temp == "testsigsv")
+                    {
+                        testsigsv_command();
+                    }
                     else if (temp == "findinvdesc")
                     {
                         bool t = false;
-                        if (!AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap"))
+                        if (!NSC_ETRAP.IsDone && !AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap"))
                         {
                             if (!NFinalizeDeath.CheckAccept("You don't have 'NRaasErrorTrap Mod'\nPlease install mod\nRun?"))
                             {
@@ -15743,6 +16857,10 @@ namespace NiecMod.Helpers
                             }
                         }
                     }
+                    else if (temp == "alynull")
+                    {
+                        alynull_command();
+                    }
                     else if (temp == "removeallhouseholdlist")
                     {
                         OnHouseholdList = !OnHouseholdList;
@@ -15797,6 +16915,10 @@ namespace NiecMod.Helpers
                             listHouseholdbackup.Clear();
 
                         }
+                    }
+                    else if (temp == "typedebug")
+                    {
+                        typedebug_command();
                     }
                     else if (temp == "fixoccults")
                     {
@@ -16055,6 +17177,10 @@ namespace NiecMod.Helpers
                             });
                         }
                         else Simulator.DestroyObject(autoAntiNPCAutoManger);
+                    }
+                    else if (temp == "forcesavegame")
+                    {
+                        forcesavegame_command();
                     }
                     else if (temp == "savelot")
                     {
@@ -17991,13 +19117,13 @@ namespace NiecMod.Helpers
             return urnstone;
         }
 
-        public static bool  FindFoundSimIDNiecSimDesc(ulong newValueid)
+        public static bool  FindFoundSimIDNiecSimDesc(ulong id)
         {
             if (Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions != null)
             {
                 foreach (SimDescription item in Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions)
                 {
-                    if (item != null   &&item.SimDescriptionId == newValueid)
+                    if (item != null && item.mSimDescriptionId == id)
                     {
                         return true;
                     }
@@ -18006,13 +19132,13 @@ namespace NiecMod.Helpers
             return false;
         }
 
-        public static SimDescription FindNiecSimDescription(ulong newValueid)
+        public static SimDescription FindNiecSimDescription(ulong id)
         {
             if (Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions != null)
             {
                 foreach (SimDescription item in Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions)
                 {
-                    if (item.SimDescriptionId == newValueid)
+                    if (item.SimDescriptionId == id)
                     {
                         return item;
                     }
@@ -18021,62 +19147,55 @@ namespace NiecMod.Helpers
             return null;
         }
 
-        public static bool AddNiecSimDescription(SimDescription simdesc)
+        public static bool AddNiecSimDescription(SimDescription simd)
         {
+            if (simd == null)
+                return false;
 
-            if (simdesc == null) return false;
-            
-            //NiecMod.Nra.NiecException.WriteLog("AddNiecSimDescription DEBUG", true, true);
-            if (Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions == null) Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions = new List<SimDescription>(200);
+            if (Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions == null)
+                Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions = new List<SimDescription>(500);
+
             try
             {
-                if (niec_std.array_indexof(Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions._items, simdesc) == -1) //if (!Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions.Contains(simdesc))
+                if (niec_std.array_indexof
+                    (Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions._items,
+                    simd,
+                    Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions._size) == -1)
                 {
-                    
-                    //NiecMod.Nra.NiecException.WriteLog("AddNiecSimDescription DEBUG OK", true, true);
-                    Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions.Add(simdesc);
-                    if (FindFoundSimIDNiecSimDesc(simdesc.SimDescriptionId))
+                    Sims3.NiecModList.Persistable.ListCollon.NiecSimDescriptions.Add(simd);
+                    if (FindFoundSimIDNiecSimDesc(simd.SimDescriptionId))
                     {
-                        simdesc.mSimDescriptionId += (ulong)RandomUtil.GetInt(100, 900000);
-                        simdesc.mSimDescriptionId++;
-                        try
+                        simd.mOldSimDescriptionId = simd.SimDescriptionId;
+                        simd.mSimDescriptionId += (ulong)RandomUtil.GetInt(100, 900000);
+                        simd.mSimDescriptionId++;
+
+                        if (simd.CelebrityManager != null)
                         {
-                            if (simdesc.CelebrityManager != null)
-                            {
-                                simdesc.CelebrityManager.ResetOwnerSimDescription(simdesc.mSimDescriptionId);
-                            }
-                            if (simdesc.PetManager != null)
-                            {
-                                simdesc.PetManager.ResetOwnerSimDescription(simdesc.mSimDescriptionId);
-                            }
-                            if (simdesc.TraitChipManager != null)
-                            {
-                                simdesc.TraitChipManager.ResetOwnerSimDescription(simdesc.mSimDescriptionId);
-                            }
+                            simd.CelebrityManager.ResetOwnerSimDescription(simd.mSimDescriptionId);
                         }
-                        catch (ResetException)
-                        { throw; }
-                        catch
-                        { }
+                        if (simd.PetManager != null)
+                        {
+                            simd.PetManager.ResetOwnerSimDescription(simd.mSimDescriptionId);
+                        }
+                        if (simd.TraitChipManager != null)
+                        {
+                            simd.TraitChipManager.ResetOwnerSimDescription(simd.mSimDescriptionId);
+                        }
                     }
                     return true;
                 }
             }
-            catch (ResetException)
-            { throw; }
-            catch (Exception ex)
-            {
-                NiecMod.Nra.NiecException.WriteLog("AddNiecSimDescription" + NiecMod.Nra.NiecException.NewLine + NiecMod.Nra.NiecException.LogException(ex), true, true);
-            }
-            //NiecMod.Nra.NiecException.WriteLog("AddNiecSimDescription DEBUG Failed", true, true);
+            catch (ResetException) { throw; }
+            catch (Exception) { }
+
             return false;
         }
 
-        public static Urnstone GhostsGrave(SimDescription sim)
+        public static Urnstone GhostsGrave(SimDescription simd)
         {
             foreach (Urnstone urnstone in NFinalizeDeath.SC_GetObjects<Urnstone>())
             {
-                if (object.ReferenceEquals(urnstone.DeadSimsDescription, sim))
+                if (object.ReferenceEquals(urnstone.DeadSimsDescription, simd))
                 {
                     return urnstone;
                 }
@@ -18524,6 +19643,4 @@ namespace NiecMod.Helpers
             return lot.EntryPoint();
         }
     }
-
-
 }

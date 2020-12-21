@@ -67,6 +67,11 @@ namespace Sims3.Gameplay.Controllers.Niec
 
         [Tunable, TunableComment("kCreatesSim")]
         public static bool kCreatesSim = false;
+
+        static NTunable()
+        {
+            NiecMod.Instantiator.xmlload_DGS();
+        }
     }
 }
 

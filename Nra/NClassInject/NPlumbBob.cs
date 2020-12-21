@@ -182,7 +182,13 @@ namespace NiecMod.Nra
                     bool okParentTo = false;
                     if (actor.InWorld)
                     {
-                        okParentTo = splumbBob != null && PlumbBob.ParentTo(actor);
+                        try
+                        {
+                            okParentTo = splumbBob != null && PlumbBob.ParentTo(actor);
+                        }
+                        catch (Exception)
+                        { }
+                        
                         if (sim != actor)
                         {
                             if (actor.BuffManager != null)
@@ -224,7 +230,7 @@ namespace NiecMod.Nra
 
                             if (actor.InteractionQueue != null)
                             {
-                                InteractionInstance currentInteraction = actor.InteractionQueue.GetCurrentInteraction();
+                                InteractionInstance currentInteraction = NiecHelperSituation.__acorewIsnstalled__ ? NFinalizeDeath._GetCurrentInteraction(actor) : actor.InteractionQueue.GetCurrentInteraction();
                                 if (currentInteraction is ICelebrityImpressInteraction)
                                 {
                                     CelebrityManager.ShowImpressProgressMeterIfNecessary(actor, currentInteraction.Target as Sim);
@@ -235,15 +241,21 @@ namespace NiecMod.Nra
 
                     if (splumbBob != null)
                     {
-                        if (okParentTo)
+                        try
                         {
-                            World.AddObjectToScene(splumbBob.ObjectId);
-                            PlumbBob.ShowPlumbBob();
+                            if (okParentTo)
+                            {
+                                World.AddObjectToScene(splumbBob.ObjectId);
+                                PlumbBob.ShowPlumbBob();
+                            }
+                            else
+                            {
+                                PlumbBob.HidePlumbBob();
+                            }
                         }
-                        else
-                        {
-                            PlumbBob.HidePlumbBob();
-                        }
+                        catch (Exception)
+                        { }
+                     
                     }
 
                     World.SetWallCutawayFocusPos(actor.Position);
@@ -264,7 +276,13 @@ namespace NiecMod.Nra
 
                     if (splumbBob != null)
                     {
-                        PlumbBob.HidePlumbBob();
+                        try
+                        {
+                            PlumbBob.HidePlumbBob();
+                        }
+                        catch (Exception)
+                        { }
+                 
 
                         Slots.DetachFromSlot(splumbBob.ObjectId);
 

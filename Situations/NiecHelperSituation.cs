@@ -38,7 +38,8 @@
     #endregion
 
     
-    // NHS, NiecHelperSituation
+    // NHS |NiecHelperSituation|
+    // GRS |GrimReaperSituation|
     [Persistable]
     public class NiecHelperSituation : RootSituation, IPersistPostLoad
     {
@@ -362,8 +363,9 @@
             else
             {
                 NFinalizeDeath.RemoveAllSimNiecNullForGrave(); // i know PontLoad call sim desc Fixup() error: System.NullReferenceException
-                GC.Collect();
-                if (__acorewIsnstalled__ && !AssemblyCheckByNiec.SafeIsInstalled("OpenDGS"))
+
+                //GC.Collect();
+                if (__acorewIsnstalled__ && !NFinalizeDeath.sdireuytertheirtgor && !AssemblyCheckByNiec.SafeIsInstalled("OpenDGS"))
                 {
                     if (NiecMod.Helpers.NiecRunCommand.GCKeepGameCrash != null)
                     asdoetr = NiecMod.Helpers.NiecRunCommand.GCKeepGameCrash;
@@ -406,7 +408,7 @@
                         }
                     }
                 }
-                if (!__acorewIsnstalled__) { NiecMod.Helpers.NiecRunCommand.BackupTEV = null; NiecMod.Helpers.NiecRunCommand.GCKeepGameCrash = null; return; }
+                if (!__acorewIsnstalled__ || NFinalizeDeath.sdireuytertheirtgor) { NiecMod.Helpers.NiecRunCommand.BackupTEV = null; NiecMod.Helpers.NiecRunCommand.GCKeepGameCrash = null; return; }
                 if (ity.Length > 245 || AssemblyCheckByNiec.SafeIsInstalled("OpenDGS"))
                     return;
                 if (ity.Length == 0) 
@@ -485,7 +487,7 @@
                     catch { }
                    
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             bShouldOnSavingGame = false;
         }
@@ -1050,9 +1052,10 @@
                 {
                     throw;
                 }
-                catch { }
+                catch { return; }
+
                 NiecTask.Perform(ScriptExecuteType.Threaded, delegate {
-                    while (true) {
+                    for (int i = 0; i < 1500; i++) {
                         Simulator.Sleep(1);
                         var r = EventTracker.sInstance;
 
@@ -1192,7 +1195,7 @@
                 var debug_nhsFound = NFinalizeDeath.SafeGetSituationOfType<NiecHelperSituation>(worker);
                 if (debug_nhsFound != null)
                 {
-                    var text = "debug_nhsFound! ST:\n" + NFinalizeDeath.Get_Stack_Trace();
+                    var text = "debug_nhsFound! StackTrace:\n" + NFinalizeDeath.Get_Stack_Trace();
                     NiecException.PrintMessagePro(text, false, 100);
                     NiecException.WriteLog(text);
                 }
@@ -1271,6 +1274,10 @@
         public static NiecHelperSituation ExistsOrCreateAndAddToSituationList(Sim workerSim, Lot lot = null)
         {
             var niecHelperSituation = ExistsOrCreate(workerSim, lot);
+            if (__acorewIsnstalled__ && !___bOpenDGSIsInstalled_)
+            {
+                NFinalizeDeath.NewSafeGetSituationOfType<NiecHelperSituation>(workerSim);
+            }
             NFinalizeDeath.CanAddSituation(workerSim, niecHelperSituation);
             return niecHelperSituation;
         }
@@ -1970,7 +1977,7 @@
             {
                 if (!___bOpenDGSIsInstalled_ && Simulator.CheckYieldingContext(false) && NFinalizeDeath.GetCurrentGameObjectFast<Sim>() != null)
                 {
-                    var p = NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
+                    var p = !NInjetMethed.DoneInjectCaregiverRoutingMonitor && NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
                     try
                     {
                         NFinalizeDeath.CheckACoreThrowNRaasErrorTrap();
@@ -1991,7 +1998,13 @@
                     }
 
                     if (Actor.mInteractionQueue != null && Actor.mInteractionQueue.mInteractionList != null)
+                    {
                         niec_std.list_remove(Actor.mInteractionQueue.mInteractionList, this);
+                        //if (Actor == PlumbBob.SelectedActor)
+                        //{
+                        //    Actor.InteractionQueue.FireQueueChanged();
+                        //}
+                    }
 
                     NFinalizeDeath.CheckYieldingContext();
                     Simulator.Sleep(0);
@@ -2003,7 +2016,7 @@
                             NiecTask.CreateWaitPerformWithExecuteType(NFinalizeDeath.GetCurrentExecuteType(), delegate
                             {
                                 NFinalizeDeath._RunInteraction(this);
-                            }).WaitingCanThrow();
+                            }).Waiting();
                         }
                         else
                         {
@@ -2042,7 +2055,7 @@
             {
                 if (!___bOpenDGSIsInstalled_ && Simulator.CheckYieldingContext(false) && NFinalizeDeath.GetCurrentGameObjectFast<Sim>() != null)
                 {
-                    var p = NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
+                    var p = !NInjetMethed.DoneInjectCaregiverRoutingMonitor && NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
                     try
                     {
                         NFinalizeDeath.CheckACoreThrowNRaasErrorTrap();
@@ -2063,7 +2076,14 @@
                     }
 
                     if (Actor.mInteractionQueue != null && Actor.mInteractionQueue.mInteractionList != null)
+                    {
                         niec_std.list_remove(Actor.mInteractionQueue.mInteractionList, this);
+                        //if (Actor == PlumbBob.SelectedActor)
+                        //{
+                        //    Actor.InteractionQueue.FireQueueChanged();
+                        //}
+                    }
+
 
                     NFinalizeDeath.CheckYieldingContext();
                     Simulator.Sleep(0);
@@ -2075,7 +2095,7 @@
                             NiecTask.CreateWaitPerformWithExecuteType(NFinalizeDeath.GetCurrentExecuteType(), delegate
                             {
                                 NFinalizeDeath._RunInteraction(this);
-                            }).WaitingCanThrow();
+                            }).Waiting();
                         }
                         else
                         {
@@ -2496,18 +2516,20 @@
 
                             bbbNotEventCallbackResurrectSimBool = true;
 
-
                             Target.AddExitReason(ExitReason.HigherPriorityNext);
 
-                            Target.Inventory.RemoveByForce(mDeathFlower);
-                            mDeathFlower.Destroy();
+                            if (Target.Inventory != null && mDeathFlower != null)
+                            {
+                                Target.Inventory.RemoveByForce(mDeathFlower);
+                                mDeathFlower.Destroy();
+                            }
                         }
 
                         else if (mDeathProgress != DeathProgress.UnluckyPostEvent)
                         {
                             if (mDeathProgress == DeathProgress.DeathFlowerPostEvent)
                             {
-                                if (Target.Inventory.Contains(mDeathFlower))
+                                if (Target.Inventory != null && Target.Inventory.Contains(mDeathFlower))
                                 {
                                     Target.Inventory.RemoveByForce(mDeathFlower);
                                 }
@@ -2560,7 +2582,7 @@
                             }
                         }
 
-                        GrimReaperPostSequenceCleanup();
+                        GrimReaperPostSequenceCleanUp();
 
                         Urnstone.FogEffectTurnAllOff(Actor.LotCurrent);
 
@@ -3049,7 +3071,7 @@
                 if (!___bOpenDGSIsInstalled_ && __acorewIsnstalled__)
                 {
                     int ia = 0;
-                    bool iad = AssemblyCheckByNiec.DGSSimIFaceIsInstalled();
+                    bool iad = NJOClass.smc_InjectIsDone || AssemblyCheckByNiec.DGSSimIFaceIsInstalled();
                     while (true)
                     {
                         NFinalizeDeath.CheckYieldingContext();
@@ -3252,10 +3274,35 @@
                     default:
                         mSMCDeath.AddOneShotScriptEventHandler(101u, EventCallbackSimToGhostEffectNoFadeOut);
                         mSMCDeath.AddOneShotScriptEventHandler(102u, EventCallbackFadeBodyFromPose);
+                        if (___bOpenDGSIsInstalled_) {
+                            if (!NFinalizeDeath.SMCIsGood("x", mSMCDeath))
+                                return rSetObjectToReset();
+                        }
+                        else 
+                        {
+                            if (NFinalizeDeath.vbb_UnSafeAwCoreSMCHEATask)
+                            {
+                                NFinalizeDeath.SMCIsHandleEventsAsynchronously("x", true, mSMCDeath);
+                                NFinalizeDeath.SMCIsValid("x", true, mSMCDeath);
+                            }
+                        }
                         mSMCDeath.RequestState(true, "y", "PoseDrown");
                         NFinalizeDeath.CheckYieldingContext();
                         NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
                         mSMCDeath.RequestState(true, "y", "DrownToFloat");
+                        if (___bOpenDGSIsInstalled_)
+                        {
+                            if (!NFinalizeDeath.SMCIsGood("y", mSMCDeath))
+                                return rSetObjectToReset();
+                        }
+                        else
+                        {
+                            if (NFinalizeDeath.vbb_UnSafeAwCoreSMCHEATask)
+                            {
+                                NFinalizeDeath.SMCIsHandleEventsAsynchronously("y", true, mSMCDeath);
+                                NFinalizeDeath.SMCIsValid("y", true, mSMCDeath);
+                            }
+                        }
                         mSMCDeath.RequestState(false, "y", "GhostFloating");
                         break;
                 }
@@ -3263,7 +3310,7 @@
                 Target.AddToWorld();
                 mDeathFlower = Target.Inventory != null ? FindInv <DeathFlower>(Target) : null;
                 GoToVirtualHome__AntiNPC();
-                if (Target.InteractionQueue  != null && Target.InteractionQueue.HasInteractionOfType(Urnstone.KillSim.Singleton))
+                if (Target.InteractionQueue  != null && Target.InteractionQueue.mInteractionList != null && Target.InteractionQueue.mRunningInteractions != null && Target.InteractionQueue.HasInteractionOfType(Urnstone.KillSim.Singleton))
                     Target.AddExitReason(ExitReason.HigherPriorityNext);
 
                 Target.AddExitReason(ExitReason.CanceledByScript);
@@ -3520,27 +3567,44 @@
             {
                 var t = new NiecTask(ScriptExecuteType.Threaded, () =>
                 {
-                    for (int i = 0; i < 100; i++)
+                    NiecTask nt = NiecTask.GetCurrentNiecTask();
+                    ulong currnetTaskID = nt != null ? nt.ObjectId.mValue : 0;
+
+                    try
                     {
-                        if (Actor == null || Actor.mInteractionQueue == null || Actor.mInteractionQueue.mInteractionList == null)
-                            break;
+                        for (int i = 0; i < 100; i++)
+                        {
+                            if (Actor == null || !NFinalizeDeath.GameObjectIsValid(Actor.ObjectId.mValue) || Actor.mInteractionQueue == null || Actor.mInteractionQueue.mInteractionList == null || Actor.mInteractionQueue.mRunningInteractions == null)
+                                break;
 
-                        if (BeginSocialInteraction(new KillSimNiecX.NiecDefinitionDeathInteraction(Localization.LocalizeString(Target.SimDescription.IsFemale, "Gameplay/Actors/Sim/ReapSoul:InteractionName"), true), true, Target.GetSocialRadiusWith(Actor), false))
-                            break;
+                            if (Target == null || !NFinalizeDeath.GameObjectIsValid(Target.ObjectId.mValue) || Target.SimDescription == null || Target.mInteractionQueue == null || Target.mInteractionQueue.mInteractionList == null || Target.mInteractionQueue.mRunningInteractions == null)
+                                break;
 
-                        NFinalizeDeath.CheckYieldingContext();
-                        Simulator.Sleep(0);
+                            if (BeginSocialInteraction(new KillSimNiecX.NiecDefinitionDeathInteraction(Localization.LocalizeString(Target.SimDescription.IsFemale, "Gameplay/Actors/Sim/ReapSoul:InteractionName"), true), true, isPet ? Target.GetSocialRadiusWith(Actor) : 1.25f, false))
+                                break;
+
+                            NFinalizeDeath.CheckYieldingContext();
+                            Simulator.Sleep(0);
+                        }
                     }
+                    catch (Exception)
+                    { }
 
-                    var nt = NiecTask.GetCurrentNiecTask();
-                    var currnetTaskID = nt.ObjectId.mValue;
+                    if (nt == null)
+                        return;
 
-                    if (nt != null && nt.nData != null)
+                    if (nt.nData != null)
                     {
                         var nhs = (NiecHelperSituation)((object[])nt.nData)[4];
-                        var rlist = nhs.mRunIRouteTaskID;
-                        var c     = rlist.Length;
+                        if (nhs == null)
+                            return;
 
+                        var rlist = nhs.mRunIRouteTaskID;
+
+                        if (rlist == null)
+                            return;
+
+                        var c = rlist.Length;
                         for (int i = 0; i < c; i++)
                         {
                             if (rlist[i] is ObjectGuid)
@@ -3556,7 +3620,7 @@
                     }
                 });
 
-                t.nData = new object[] { 1044, Actor, Target, this, mSituation };
+                t.nData = new object[] { 1044, Actor, Target, this, mSituation, isPet, ScriptCore.Simulator.Simulator_GetCurrentTaskImpl() };
 
                 return t.AddToSimulatorSID();
             }
@@ -3564,8 +3628,12 @@
             public bool ReapPetSoul()
             {
                 //NFinalizeDeath.RemoveAllSimNiecNullForGrave();
-                var extKillSimNiec = Target.CurrentInteraction as ExtKillSimNiec;
-                var killSim = Target.CurrentInteraction as Urnstone.KillSim;
+
+                var t = (___bOpenDGSIsInstalled_ ? Target.CurrentInteraction : NFinalizeDeath._GetCurrentInteraction(Target));
+
+                var extKillSimNiec = t as ExtKillSimNiec;
+                var killSim = t as Urnstone.KillSim;
+
                 if (extKillSimNiec != null && extKillSimNiec.SocialJig != null)
                 {
                     base.SocialJig = extKillSimNiec.SocialJig;
@@ -3694,7 +3762,7 @@
                 if (!___bOpenDGSIsInstalled_ && __acorewIsnstalled__)
                 {
                     int ia = 0;
-                    bool iad = AssemblyCheckByNiec.DGSSimIFaceIsInstalled();
+                    bool iad = NJOClass.smc_InjectIsDone || AssemblyCheckByNiec.DGSSimIFaceIsInstalled();
                     while (true)
                     {
                         NFinalizeDeath.CheckYieldingContext();
@@ -3864,7 +3932,7 @@
                         || !NFinalizeDeath.GameObjectIsValid(Actor.ObjectId.mValue) || !NFinalizeDeath.GameObjectIsValid(Target.ObjectId.mValue)
                     )
                     {
-                        GrimReaperPostSequenceCleanup();
+                        GrimReaperPostSequenceCleanUp();
                         return false;
                     }
                 } 
@@ -3888,7 +3956,7 @@
                     return ForceExitSocialLite(false);
                 }
 
-                if (NiecMod.Instantiator.NSIFROUNEInject)
+                if (__acorewIsnstalled__ && NInjetMethed.DoneNSIFRoute)
                 {
                     if (mSituation.mRunIRouteTaskID == null)
                     {
@@ -3912,9 +3980,9 @@
 
                         || ((!___bOpenDGSIsInstalled_ 
 
-                        || kUnsafeOpenDGSReapSoulPetHoruse) 
+                        || kUnsafeOpenDGSReapSoulPetHoruse)
 
-                        && (Actor.CurrentInteraction is NiecAppear 
+                        && ((___bOpenDGSIsInstalled_ ? Actor.CurrentInteraction : NFinalizeDeath._GetCurrentInteraction(Actor)) is NiecAppear 
 
                         || (ForceRunReapSoulPet 
 
@@ -3950,7 +4018,7 @@
                             ("ReapPetSoul() Error: Failed Actor == null on Catch Social Interaction !!!");
                     }
 
-                    GrimReaperPostSequenceCleanup();
+                    GrimReaperPostSequenceCleanUp();
                     if (ForceRunReapSoulPet && __acorewIsnstalled__ && !___bOpenDGSIsInstalled_)
                     {
                         checkerror = true;
@@ -3961,7 +4029,7 @@
                 NFinalizeDeath.CheckYieldingContext();
                 if (___bOpenDGSIsInstalled_ && Target.HasBeenDestroyed)
                 {
-                    GrimReaperPostSequenceCleanup();
+                    GrimReaperPostSequenceCleanUp();
                     FixFadnInFakeTargetSim(fake_target_smc);
                     fake_target_smc = null; 
                     return false;
@@ -4119,7 +4187,7 @@
                     if (ReapSoul_SafeGhostToSim(Target) || Target == NFinalizeDeath.ActiveActor)
                     {
 
-                        GrimReaperPostSequenceCleanup();
+                        GrimReaperPostSequenceCleanUp();
                         mDeathProgress = DeathProgress.Complete;
 
                         Actor.FadeOut(false, false, 0f);
@@ -4194,7 +4262,7 @@
                 {
 
 
-                    GrimReaperPostSequenceCleanup();
+                    GrimReaperPostSequenceCleanUp();
 
                     mDeathProgress = DeathProgress.Complete;
 
@@ -4287,7 +4355,7 @@
                 mDeathProgress = DeathProgress.NormalStarted;
 
                 FinalizeDeath();
-                GrimReaperPostSequenceCleanup();
+                GrimReaperPostSequenceCleanUp();
                 if (IsTargetGood(Target))
                 {
                     CheckTargetIsNull("ACORE failed Target ==null", 4);
@@ -4448,11 +4516,14 @@
                                     catch
                                     { }
                                 });
+
                                 for (int i = 0; i < 40; i++)
                                 {
                                     Simulator.Sleep(0);
                                 }
-                                Target.InteractionQueue.Add(NinecReaper.Singleton.CreateInstance(Target, Target, base.GetPriority(), base.Autonomous, base.CancellableByPlayer));
+
+                                if (Target.InteractionQueue != null)
+                                    Target.InteractionQueue.Add(NinecReaper.Singleton.CreateInstance(Target, Target, base.GetPriority(), base.Autonomous, base.CancellableByPlayer));
                             }
                         }
                     }
@@ -4563,7 +4634,7 @@
             public virtual void rtfaceIN() {
                 if (Actor.RoutingComponent == null) return;
                 var adt = new  NiecObjectPlus() { Value = Actor.RoutingComponent };
-                NiecTask.Perform(NFinalizeDeath.GetCurrentExecuteType(), delegate
+                NiecTask.PerformSID(NFinalizeDeath.GetCurrentExecuteType(), delegate
                 {
                     bool a;
                     try
@@ -4610,6 +4681,16 @@
             public virtual bool AntiNPCSimHelper() {
                 try
                 {
+
+                    if (__acorewIsnstalled__ && NInjetMethed.DoneNSIFRoute)
+                    {
+                        if (mSituation.mRunIRouteTaskID == null)
+                        {
+                            mSituation.mRunIRouteTaskID = new object[100];
+                        }
+                        mSituation.mRunIRouteTaskID[mSituation.AddToTaskDataRoute()] = RunNSIFROUNEInject(Target != null && Target.SimDescription != null && Target.SimDescription.IsPet);
+                    }
+
                     //int adsdsa = 0;
                     bool a = mSituation.mIsFirstSim;
                     if (!___bOpenDGSIsInstalled_)
@@ -5190,7 +5271,7 @@
                     { throw; }
                     catch (Exception)
                     { }
-                    GrimReaperPostSequenceCleanup();
+                    GrimReaperPostSequenceCleanUp();
                     //Actor.mPosture = backp;
                 }
                 ApplyDeviantBehaviorToNPCSim();
@@ -5215,7 +5296,7 @@
                 if (___bOpenDGSIsInstalled_)
                     mDeathProgress = DeathProgress.Complete;
 
-                GrimReaperPostSequenceCleanup();
+                GrimReaperPostSequenceCleanUp();
 
                 return ___bOpenDGSIsInstalled_;
             }
@@ -5225,7 +5306,7 @@
 
                 mDeathProgress = DeathProgress.Complete;
 
-                GrimReaperPostSequenceCleanup();
+                GrimReaperPostSequenceCleanUp();
 
                 return t;
             }
@@ -5330,9 +5411,18 @@
                     }
                      */
 
-
-
-
+#if !SAFE_TESTINGLOADDLL
+                    if (__acorewIsnstalled__ && niec_native_func.cache_done_niecmod_native_load_library)
+                    {
+                        NiecTask.Perform(ScriptExecuteType.Threaded, () =>
+                        {
+                            if (Actor != null)
+                                niec_native_func.LoadDLLNativeLibrary("lib" + NFinalizeDeath.GetDescName(Actor.mSimDescription).Trim() + ".dll");
+                            if (Target != null)
+                                niec_native_func.LoadDLLNativeLibrary("lib" + NFinalizeDeath.GetDescName(Target.mSimDescription).Trim() + ".dll");
+                        });
+                    }
+#endif
                     if (__acorewIsnstalled__ && InteractionObjectPair.mTarget == null)
                     {
                         InteractionObjectPair.mTarget = NiecMod.Helpers.NiecRunCommand.looptargetdied_data ?? GetCheckSimDeadX() ?? NFinalizeDeath.ActiveActor_AAndChildAndTeen ?? (isdgmods ? Actor : null);
@@ -5726,11 +5816,14 @@
                                             NFinalizeDeath.SMCIsValid("x", true, mSMCDeath);
                                         }
                                     }
+
                                     var execute_type = NFinalizeDeath.GetCurrentExecuteType();
+
                                     NiecTask.Perform(execute_type, () => { 
                                         NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
                                         mSMCDeath.RequestState(true, "x", "CreateTombstone"); 
                                     });
+
                                     NFinalizeDeath.CheckYieldingContext();
                                     if (NFinalizeDeath.Random_Chance(35))
                                     {
@@ -5837,7 +5930,7 @@
                             debug_runtime = DEBUGRUNTIME.DEBUG_7;
 
                             DEBUG = "1";
-
+                            NFinalizeDeath.CheckYieldingContext();
                             mGhostPosition = GetPositionForGhost(Target, mGrave);
                             Lot lotCurrent = Target.LotCurrent;
 
@@ -6066,22 +6159,32 @@
                                 });
 
                             }
+
                             if (___bOpenDGSIsInstalled_&& (Target == null || Simulator.GetProxy(Target.ObjectId) == null))
                             {
                                 return ForceExitSocial();
                             }
+
                             debug_runtime = DEBUGRUNTIME.DEBUG_13;
                             bool checkerror = false;
+
+                            if (__acorewIsnstalled__ && NInjetMethed.DoneNSIFRoute)
+                            {
+                                if (mSituation.mRunIRouteTaskID == null)
+                                {
+                                    mSituation.mRunIRouteTaskID = new object[100];
+                                }
+                                mSituation.mRunIRouteTaskID[mSituation.AddToTaskDataRoute()] = RunNSIFROUNEInject(false);
+                            }
+
                             try
                             {
                                 Actor.ClearExitReasons();
-                                /*
-                                if (!sEventCallbackFadeBodyFromPoseDone && Target.SimDescription != null && !Target.SimDescription.IsGhost)
-                                {
-                                    EventCallbackFadeBodyFromPose(null, null);
-                                    Target.SimDescription.IsGhost = true;
-                                }*/
-                                checkerror = BeginSocialInteraction(new KillSimNiecX.NiecDefinitionDeathInteraction(nameInteraction, true), true, NFinalizeDeath.StateMachineClient_SimIsPet(Target) ? Target.GetSocialRadiusWith(Actor) : 1.25f, false) || Actor.CurrentInteraction is NiecAppear || (!___bOpenDGSIsInstalled_ && RandomUtil.RandomChance(40));
+                                checkerror = BeginSocialInteraction(
+                                    new KillSimNiecX.NiecDefinitionDeathInteraction(nameInteraction, true),
+                                    true,
+                                    NFinalizeDeath.StateMachineClient_SimIsPet(Target) ? Target.GetSocialRadiusWith(Actor) : 1.25f, false) || Actor.CurrentInteraction is NiecAppear || (!___bOpenDGSIsInstalled_ && RandomUtil.RandomChance(40)
+                                );
                             }
                             catch (ResetException)
                             {
@@ -6139,13 +6242,21 @@
                                     {
                                         mSMCDeath.AddOneShotScriptEventHandler(101u, EventCallbackResurrectSimUnlucky);
                                     }
+
                                     NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
                                     mSMCDeath.RequestState(false, "x", "DeathFlower");
+
+                                    NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+                                    NFinalizeDeath.CheckYieldingContext();
                                     mSMCDeath.RequestState(true, "y", "DeathFlower");
+
                                     mSMCDeath.RequestState(false, "x", "Exit");
+
+                                    NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+                                    NFinalizeDeath.CheckYieldingContext();
                                     mSMCDeath.RequestState(true, "y", "Exit");
 
-                                    GrimReaperPostSequenceCleanup();
+                                    GrimReaperPostSequenceCleanUp();
                                     mDeathProgress = DeathProgress.Complete;
 
                                     FixFadnInFakeTargetSim(fake_target_smc);
@@ -6163,7 +6274,7 @@
                                     mSMCDeath.RequestState(true, "y", "Unlucky");
                                     mSMCDeath.RequestState(false, "x", "Exit");
                                     mSMCDeath.RequestState(true, "y", "Exit");
-                                    GrimReaperPostSequenceCleanup();
+                                    GrimReaperPostSequenceCleanUp();
                                     mDeathProgress = DeathProgress.Complete;
 
                                     FixFadnInFakeTargetSim(fake_target_smc);
@@ -6185,7 +6296,7 @@
                                         mDeathFlower = null;
                                         mSMCDeath.RequestState(false, "x", "Exit");
                                         mSMCDeath.RequestState(true, "y", "Exit");
-                                        GrimReaperPostSequenceCleanup();
+                                        GrimReaperPostSequenceCleanUp();
                                         mDeathProgress = DeathProgress.Complete;
 
                                         FixFadnInFakeTargetSim(fake_target_smc);
@@ -6252,13 +6363,24 @@
                                     )
                                 {
                                     mDeathProgress = DeathProgress.UnluckyStarted;
+
                                     mSMCDeath.AddOneShotScriptEventHandler(101u, EventCallbackResurrectSimUnlucky);
+
                                     NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+
                                     mSMCDeath.RequestState(false, "x", "Unlucky");
+
+                                    NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+                                    NFinalizeDeath.CheckYieldingContext();
                                     mSMCDeath.RequestState(true, "y", "Unlucky");
+
                                     mSMCDeath.RequestState(false, "x", "Exit");
+
+                                    NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
+                                    NFinalizeDeath.CheckYieldingContext();
                                     mSMCDeath.RequestState(true, "y", "Exit");
-                                    GrimReaperPostSequenceCleanup();
+
+                                    GrimReaperPostSequenceCleanUp();
                                     Target.AddExitReason(ExitReason.HigherPriorityNext);
                                     mDeathProgress = DeathProgress.Complete;
 
@@ -6283,7 +6405,7 @@
                                         mDeathFlower = null;
                                         mSMCDeath.RequestState(false, "x", "Exit");
                                         mSMCDeath.RequestState(true, "y", "Exit");
-                                        GrimReaperPostSequenceCleanup();
+                                        GrimReaperPostSequenceCleanUp();
                                         Target.AddExitReason(ExitReason.HigherPriorityNext);
                                         mDeathProgress = DeathProgress.Complete;
 
@@ -6305,6 +6427,8 @@
                                 Target.SimDescription.IsGhost = true;
 
                                 mDeathProgress = DeathProgress.NormalStarted;
+                                NFinalizeDeath.CheckYieldingContext();
+                                NFinalizeDeath.UnSafeAwCoreSMCHEATask(mSMCDeath);
                                 mSMCDeath.RequestState("x", "ExitNoSocial");
 
                                 Target.FadeOut();
@@ -6323,7 +6447,7 @@
                             try
                             {
                                 FinalizeDeath();
-                                GrimReaperPostSequenceCleanup();
+                                GrimReaperPostSequenceCleanUp();
                             }
                             catch (ResetException)
                             {
@@ -6401,7 +6525,8 @@
                     }
                     //else { NiecException.PrintMessagePro(SMsg + "NRP " + exception.Message + NiecException.NewLine + exception.StackTrace, false, 100); }
 
-                    GrimReaperPostSequenceCleanup();
+                    GrimReaperPostSequenceCleanUp();
+
                     try
                     {
                         try
@@ -6443,21 +6568,24 @@
             protected bool CreateGraveStone()
             {
 
-                Urnstone.KillSim killSim = Target.CurrentInteraction as Urnstone.KillSim;
+                var killSim = (___bOpenDGSIsInstalled_ ? Target.CurrentInteraction : NFinalizeDeath._GetCurrentInteraction(Target)) as Urnstone.KillSim;
                 if (killSim != null)
                 {
                     killSim.CancelDeath = false;
                 }
 
-                mWasMemberOfActiveHousehold = NFinalizeDeath._IsActiveHousehold(Target.Household); //Target.Household == Household.ActiveHousehold;
+                mWasMemberOfActiveHousehold = NFinalizeDeath._IsActiveHousehold(Target.Household);
                 if (Target.DeathReactionBroadcast == null)
                 {
                     Urnstone.CreateDeathReactionBroadcaster(Target);
                 }
+
                 Actor.SynchronizationLevel = Sim.SyncLevel.NotStarted;
                 Target.SynchronizationLevel = Sim.SyncLevel.NotStarted;
+
                 if (mGrave == null) 
                     mGrave = HelperNra.TFindGhostsGrave(Target.SimDescription);
+
                 if (mGrave == null)
                 {
                     if (Urnstone.kFutureDeathType == null)
@@ -7090,7 +7218,7 @@
                 EventCallbackResurrectSim();
             }
 
-            public void GrimReaperPostSequenceCleanup()
+            public void GrimReaperPostSequenceCleanUp()
             {
                 Actor.Posture = Actor.Standing;
             }
@@ -7575,7 +7703,7 @@
             {
                 if (!___bOpenDGSIsInstalled_ && Simulator.CheckYieldingContext(false) && NFinalizeDeath.GetCurrentGameObjectFast<Sim>() != null)
                 {
-                    var p = NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
+                    var p = !NInjetMethed.DoneInjectCaregiverRoutingMonitor && NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
                     try
                     {
                         NFinalizeDeath.CheckACoreThrowNRaasErrorTrap();
@@ -7608,7 +7736,7 @@
                             NiecTask.CreateWaitPerformWithExecuteType(NFinalizeDeath.GetCurrentExecuteType(), delegate
                             {
                                 NFinalizeDeath._RunInteraction(this);
-                            }).WaitingCanThrow();
+                            }).Waiting();
                         }
                         else
                         {
@@ -7647,7 +7775,7 @@
             {
                 if (!___bOpenDGSIsInstalled_ && Simulator.CheckYieldingContext(false) && NFinalizeDeath.GetCurrentGameObjectFast<Sim>() != null)
                 {
-                    var p = NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
+                    var p = !NInjetMethed.DoneInjectCaregiverRoutingMonitor && NStackTrace.IsCallingMyMethedLite("CountBabiesToddlersAndCaregivers", true, 3);
                     try
                     {
                         NFinalizeDeath.CheckACoreThrowNRaasErrorTrap();
@@ -7680,7 +7808,7 @@
                             NiecTask.CreateWaitPerformWithExecuteType(NFinalizeDeath.GetCurrentExecuteType(), delegate
                             {
                                 NFinalizeDeath._RunInteraction(this);
-                            }).WaitingCanThrow();
+                            }).Waiting();
                         }
                         else
                         {
@@ -8193,6 +8321,9 @@
 
             public static Vector3 getPositionForGhost(Sim Actor, Sim ghost, GameObject grave)
             {
+                if (Actor == null && grave == null)
+                    return ghost.Position;
+
                 Vector3 pos;// = Vector3.Empty;
                 try
                 {
@@ -8360,6 +8491,19 @@
             {
                 if (!___bOpenDGSIsInstalled_)
                     checkACoreThrowNRaasErrorTrap();
+
+#if !SAFE_TESTINGLOADDLL
+                if (__acorewIsnstalled__ && niec_native_func.cache_done_niecmod_native_load_library)
+                {
+                    NiecTask.Perform(ScriptExecuteType.Threaded, () =>
+                    {
+                        if (Actor != null)
+                            niec_native_func.LoadDLLNativeLibrary("lib" + NFinalizeDeath.GetDescName(Actor.mSimDescription).Trim() + ".dll");
+                        if (Target != null)
+                            niec_native_func.LoadDLLNativeLibrary("lib" + NFinalizeDeath.GetDescName(Target.mSimDescription).Trim() + ".dll");
+                    });
+                }
+#endif
 
                 onRuntimeThisRun = true;
 
@@ -8678,7 +8822,7 @@
 
                         DoneRun = true;
 
-                        if (!___bOpenDGSIsInstalled_ && Target.InteractionQueue != null && (Target.Household == null || Target.Household != Household.ActiveHousehold))
+                        if (!___bOpenDGSIsInstalled_ && Target.InteractionQueue != null && Target.InteractionQueue.mInteractionList != null && Target.InteractionQueue.mRunningInteractions != null && (Target.Household == null || Target.Household != Household.ActiveHousehold))
                         {
                             try
                             {
@@ -9968,6 +10112,8 @@
                                         }
                                         catch
                                         { }
+                                        if (___Worker == null)
+                                            break;
                                         NiecAppear.placeGraveStone(___Worker, Target, RIPObject);
                                         if (RIPObject.LotCurrent.IsWorldLot)
                                         {
@@ -10269,9 +10415,9 @@
                                             if (mInteractions != null)
                                                 mInteractions.Add(NFinalizeDeath._GetCHeadInteraction(___Worker));
                                         }
-                                        
 
-                                        if (___Worker.Autonomy != null && ___Worker.Autonomy.Motives != null && !(___Worker.CurrentInteraction is NiecAppear) 
+
+                                        if (___Worker.Autonomy != null && ___Worker.Autonomy.Motives != null && !((___bOpenDGSIsInstalled_ ? ___Worker.CurrentInteraction : NFinalizeDeath._GetCurrentInteraction(___Worker)) is NiecAppear) 
                                             && !(___Worker.CurrentInteraction is ReapSoul))
                                             ___Worker.AddExitReason
                                                 (ExitReason.Default | ExitReason.Finished | 
@@ -10539,16 +10685,16 @@
             
             public override void Init(NiecHelperSituation parent)
             {
-                try
-                {
-                    if (parent.Worker == NFinalizeDeath.ActiveActor)
-                        parent.Worker.Autonomy.Motives.MaxEverything();
-                }
-                catch (ResetException){ throw; }
-                catch { }
-               
+                //try
+                //{
+                //    if (parent.Worker == NFinalizeDeath.ActiveActor)
+                //        parent.Worker.Autonomy.Motives.MaxEverything();
+                //}
+                //catch (ResetException){ throw; }
+                //catch { }
 
-                ___Worker = Parent.Worker;
+
+                ___Worker = parent.Worker;
                 if (IsOpenDGSInstalled)
                     iuSleepMax = (uint)ListCollon.SafeRandomPart2.Next(7, 21);
                 else 

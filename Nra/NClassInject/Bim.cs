@@ -179,6 +179,272 @@ namespace NiecMod.Nra
         public static bool AOrGROnlyRunningSim = false;
         public static Sim nullsim = null;
 
+        public bool bimHasBeenDestroyed
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public void bimPlayCustomIdle(StateMachineClient smc, IEvent evt)
+        {
+            if (XRun__X)
+                return;
+
+            if (NiecHelperSituation.__acorewIsnstalled__)
+            {
+                if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                {
+                    NFinalizeDeath.RUNIACORE(false);
+                }
+                else NFinalizeDeath.CheckNHSP();
+            }
+
+            if (ObjectId.mValue == 0)
+                return;
+            if (SimDescription == null || !SimDescription.IsValidDescription)
+                return;
+            if (IdleManager == null)
+                return;
+            if (BuffManager == null)
+                return;
+            if (LookAtManager == null)
+                return;
+            if (OverlayComponent == null)
+                return;
+            if (Inventory == null)
+                return;
+
+            if (!(Posture is StandingPosture) || Posture.CurrentStateMachine == null || InteractionQueue == null || InteractionQueue.HasInteractionOfType(CustomIdle.Singleton))
+            {
+                return;
+            }
+            if ((base.Inventory.Find<IPhoneCell>() as GameObject) == null)
+                return;
+            Posture.CurrentStateMachine.SetParameter("CustomJazzGraph", false);
+            CustomIdle customIdle = CustomIdle.Singleton.CreateInstance(this, this, new InteractionPriority(InteractionPriorityLevel.Zero), true, true) as CustomIdle;
+            customIdle.Hidden = true;
+            customIdle.JazzGraphName = IdleManager.LastCustomJazzGraph;
+            customIdle.LoopTimes = IdleManager.LastLoopCount;
+            if (customIdle.JazzGraphName == "TraitWorkaholic")
+            {
+                customIdle.IdleObject = (base.Inventory.Find<IPhoneCell>() as GameObject);
+                customIdle.ObjectName = "phonecell";
+            }
+            else if (customIdle.JazzGraphName == "Photography_idle")
+            {
+                customIdle.IdleObject = (Photography.GetBestCameraFromInventory(this) as GameObject);
+                if (customIdle.IdleObject is IPhone)
+                {
+                    customIdle.IdleObject = null;
+                }
+                else
+                {
+                    customIdle.ObjectName = "camera";
+                }
+            }
+            else if (customIdle.JazzGraphName == "SmartPhoneIdles")
+            {
+                customIdle.IdleObject = (base.Inventory.Find<IPhoneSmart>() as GameObject);
+                IPhoneSmart phoneSmart = customIdle.IdleObject as IPhoneSmart;
+                customIdle.ObjectName = "smartphone";
+                customIdle.VFX = VisualEffect.Create(phoneSmart.GetTextingEffect());
+                customIdle.VFX.ParentTo(customIdle.IdleObject, Slot.FXJoint_0);
+                customIdle.WaitAnimationToFinish = true;
+            }
+            else if (customIdle.JazzGraphName == "FuturePhoneIdles")
+            {
+                customIdle.IdleObject = (base.Inventory.Find<IPhoneFuture>() as GameObject);
+                IPhoneFuture phoneFuture = customIdle.IdleObject as IPhoneFuture;
+                customIdle.ObjectName = "smartphone";
+                customIdle.VFX = VisualEffect.Create(phoneFuture.GetTextingEffect());
+                customIdle.VFX.ParentTo(customIdle.IdleObject, Slot.FXJoint_0);
+                customIdle.WaitAnimationToFinish = true;
+            }
+            if (customIdle.IdleObject != null)
+            {
+                base.Inventory.SetInUse(customIdle.IdleObject);
+            }
+            InteractionQueue.AddNext(customIdle);
+        }
+        public void bimChooseStandingIdle(StateMachineClient smc, IEvent evt)
+        {
+            if (XRun__X)
+                return;
+
+            if (NiecHelperSituation.__acorewIsnstalled__)
+            {
+                if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                {
+                    NFinalizeDeath.RUNIACORE(false);
+                }
+                else NFinalizeDeath.CheckNHSP();
+            }
+
+            if (ObjectId.mValue == 0)
+                return;
+            if (SimDescription == null || !SimDescription.IsValidDescription)
+                return;
+            if (IdleManager == null)
+                return;
+            if (BuffManager == null)
+                return;
+            if (LookAtManager == null)
+                return;
+            if (OverlayComponent == null)
+                return;
+            if (SimDescription.ToddlerOrBelow)
+                return;
+
+            BuffInstance element = BuffManager.GetElement(BuffNames.HeartBroken);
+            if (((element != null && element.BuffOrigin == Origin.FromWitnessingDeath) || BuffManager.HasElement(BuffNames.Mourning)) && RandomUtil.RandomChance01(kMournPercentChance))
+            {
+                MournInteraction mournInteraction = MournInteraction.Singleton.CreateInstance(this, this, new InteractionPriority(InteractionPriorityLevel.Autonomous), true, true) as MournInteraction;
+                mournInteraction.Hidden = true;
+                InteractionQueue.AddNext(mournInteraction);
+                return;
+            }
+            if (BuffManager.HasElement(BuffNames.ItsJustSoTragic) && RandomUtil.RandomChance01(kMournTragicClown))
+            {
+                MournTragicClown mournTragicClown = MournTragicClown.Singleton.CreateInstance(this, this, new InteractionPriority(InteractionPriorityLevel.Autonomous), true, true) as MournTragicClown;
+                mournTragicClown.Hidden = true;
+                InteractionQueue.AddNext(mournTragicClown);
+                return;
+            }
+
+            string text = null;
+            int num = 0;
+            bool customJazzGraph;
+            ProductVersion productVersion;
+            do
+            {
+                if (text != null)
+                {
+                    return;
+                }
+                customJazzGraph = false;
+                productVersion = ProductVersion.BaseGame;
+                ThoughtBalloonPriority priority = mIdleManager.IsDistress ? ThoughtBalloonPriority.Extreme_ShowInSkewer : ThoughtBalloonPriority.Low;
+                if (Standing.CurrentIdleInstance != null)
+                {
+                    text = Standing.CurrentIdleInstance.GetNextAnimationName();
+                    productVersion = Standing.CurrentIdleInstance.ProductVersion;
+                }
+                if (string.IsNullOrEmpty(text))
+                {
+                    object thoughtBalloon;
+                    ThoughtBalloonAxis thoughtBalloonAxis;
+                    int nLoops;
+                    string text2 = mIdleManager.ChooseStandingIdle(out thoughtBalloon, out thoughtBalloonAxis, out customJazzGraph, out productVersion, out nLoops);
+                    DisplayIdleThoughtBalloon(thoughtBalloon, thoughtBalloonAxis, priority, IdleManager.IsDistress);
+                    if (!string.IsNullOrEmpty(text2))
+                    {
+                        if (customJazzGraph)
+                        {
+                            Standing.CurrentIdleInstance = new IdleInstance(text2, productVersion);
+                            text = Standing.CurrentIdleInstance.GetCustomJazzGraphName();
+                        }
+                        else
+                        {
+                            Standing.CurrentIdleInstance = new IdleInstance(text2, productVersion, nLoops);
+                            text = Standing.CurrentIdleInstance.GetNextAnimationName();
+                        }
+                    }
+                }
+                mIdleManager.LastIdle = text;
+            }
+            while (num++ <= 150 && string.IsNullOrEmpty(text));
+            if (!string.IsNullOrEmpty(text))
+            {
+                if (!customJazzGraph)
+                {
+                    smc.SetParameter("CustomJazzGraph", false);
+                    smc.SetParameter("AnimationName", text, productVersion);
+                }
+                else
+                {
+                    smc.SetParameter("CustomJazzGraph", true);
+                }
+            }
+        }
+        public void bimPlayDynamicIdle(StateMachineClient smc, IEvent evt)
+        {
+            if (XRun__X)
+                return;
+            if (InWorld && ObjectId.mValue != 0 && mIdleManager != null && mLookAtManager != null && OverlayComponent != null)
+            {
+                if (mIdleManager.LastIdleHasAudio)
+                {
+                    if (IsPlayingAudio)
+                    {
+                        IdleManager.ChooseStandingIdleWithoutAudio();
+                    }
+                    else
+                    {
+                        IsPlayingAudio = true;
+                    }
+                }
+                if (mIdleManager.LastIdle == "a_trait_insane_catchfly")
+                {
+                    smc.AddOneShotScriptEventHandler(1001u, mIdleManager.PlayCatchFlySound);
+                }
+                mLookAtManager.ClearAllLookAts(true);
+                smc.RemoveEventHandler(base.OverlayComponent.InteractionPartLevelCallback);
+                smc.RemoveEventHandler(base.OverlayComponent.ClearInteractionPartLevelCallback);
+                PlayFacialIdle(smc, evt);
+                base.OverlayComponent.UpdateInteractionFreeParts(IdleManager.LastAwarenessLevel);
+            }
+        }
+
+        public void bimExitDynamicIdle(StateMachineClient smc, IEvent evt)
+        {
+            if (XRun__X)
+                return;
+            if (InWorld && ObjectId.mValue != 0 && mIdleManager != null && OverlayComponent != null)
+            {
+                if (mIdleManager.LastIdleHasAudio)
+                {
+                    IsPlayingAudio = false;
+                    mIdleManager.StopIdleSound();
+                }
+                base.OverlayComponent.UpdateInteractionFreeParts(AwarenessLevel.OverlayUpperbody);
+                smc.AddPersistentSacsEventHandler(SacsEventSubTypes.kSacsEventOverlayLevelEvent, base.OverlayComponent.InteractionPartLevelCallback);
+                smc.AddPersistentSacsEventHandler(SacsEventSubTypes.kSacsEventAnimationDone, base.OverlayComponent.ClearInteractionPartLevelCallback);
+            }
+        }
+
+        public void bimChooseSeatedIdle(StateMachineClient smc, IEvent evt)
+        {
+            if (XRun__X)
+                return;
+            if (InWorld && ObjectId.mValue != 0 && mIdleManager != null && OverlayComponent != null)
+            {
+                ThoughtBalloonPriority priority = IdleManager.IsDistress ? ThoughtBalloonPriority.Extreme_ShowInSkewer : ThoughtBalloonPriority.Low;
+                bool isLivingChair = false;
+                bool hidden = false;
+                SittingPosture sittingPosture = Posture as SittingPosture;
+                if (sittingPosture != null)
+                {
+                    SitData target = sittingPosture.Part.Target;
+                    isLivingChair = (target != null && target.SitStyle == SitStyle.Living);
+                }
+                string thoughtBalloon;
+                ProductVersion productVersion;
+                string text = IdleManager.ChooseSeatedIdle(out thoughtBalloon, isLivingChair, out hidden, out productVersion);
+                if (string.IsNullOrEmpty(text))
+                {
+                    smc.SetParameter("Hidden", true);
+                }
+                else
+                {
+                    smc.SetParameter("AnimationName", text, productVersion);
+                    smc.SetParameter("Hidden", hidden);
+                }
+                DisplayIdleThoughtBalloon(thoughtBalloon, ThoughtBalloonAxis.kNeutral, priority, IdleManager.IsDistress);
+            }
+        }
+
         public void bimDispose() {
             if (XRun__X)
                 return;
@@ -210,12 +476,22 @@ namespace NiecMod.Nra
 
                 mThoughtBalloonManager = null;
             }
+
         }
 
         public void bimLoopIdle()
         {
             if (XRun__X)
                 return;
+
+            if (NiecHelperSituation.__acorewIsnstalled__)
+            {
+                if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                {
+                    NFinalizeDeath.RUNIACORE(false);
+                }
+                else NFinalizeDeath.CheckNHSP();
+            }
 
             if (!mIsAlreadyIdling)
             {
@@ -230,66 +506,127 @@ namespace NiecMod.Nra
                     }
                     PostureIdle();
                 }
+                catch (NotSupportedException ex)
+                {
+                    if (ex.source == "SimIFace")
+                    {
+                        if (!Instantiator.NSMCINJECT)
+                            throw;
+                        Simulator.Sleep(0);
+                        mIsAlreadyIdling = false;
+                    }
+                    else throw;
+                }
                 catch (SacsErrorException)
                 {
+                    Simulator.Sleep(0);
                     mIsAlreadyIdling = false;
                 }
             }
         }
+
+        public void bimStandingBridgeOriginUsed()
+        {
+            if (XRun__X)
+                return;
+
+            mPostureReturnedBridgeOrigin = false;
+            mIsAlreadyIdling = false;
+
+            if (IdleManager != null && base.ObjectId.mValue != 0)
+                IdleManager.StopFacialIdle(true);
+        }
+
 
         public void bimRouteFailure()
         {
             if (XRun__X)
                 return;
 
-            if (SimDescription.ToddlerOrBelow || Posture == null)// || !Posture.AllowsRouting())
+            if (SimDescription.ToddlerOrBelow || Posture == null)// || !Posture.AllowsRouting()) 
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    Simulator.Sleep(0);
+                }
                 return;
+            }
 
             for (int i = 0; i < 20; i++)
             {
+                if (NiecHelperSituation.__acorewIsnstalled__)
+                {
+                    if (!Instantiator.kDontCallDGSACore && NFinalizeDeath.RUNIACORE != null)
+                    {
+                        NFinalizeDeath.RUNIACORE(false);
+                    }
+                    else NFinalizeDeath.CheckNHSP();
+                }
+
+                if (ObjectId.mValue == 0)
+                    return;
+
                 PopCanePostureIfNecessary();
 
-                ScubaDiving scubaDiving = Posture as ScubaDiving;
-                if (scubaDiving != null)
+                //var scubaDiving = Posture as ScubaDiving;
+                if (Posture is ScubaDiving)
                 {
                     PlaySoloAnimation(SimDescription.IsMatureMermaid ? "a_mermaid_diveSwim_routeFail_x" : "a_scubaDiving_routeFail_x", true, ProductVersion.EP10);
                 }
 
                 else
                 {
-                    var stateMachineClient = StateMachineClient.Acquire(this, "routeFail");
-                    if (stateMachineClient == null)
-                        return;
-
-                    stateMachineClient.AddInterest<ScriptPosture>();
-                    var beingRiddenPosture = Posture as BeingRiddenPosture;
-
-                    if (beingRiddenPosture != null)
+                    StateMachineClient stateMachineClient = null;
+                    try
                     {
-                        stateMachineClient.SetActor("x", this);
-                        stateMachineClient.SetActor("y", beingRiddenPosture.Rider);
-                        stateMachineClient.EnterState("x", "Enter");
-                        stateMachineClient.EnterState("y", "Enter");
-                        stateMachineClient.RequestState(false, "x", "RouteFailMounted");
-                        stateMachineClient.RequestState(true, "y", "RouteFailMounted");
-                        stateMachineClient.RequestState("x", "Exit Synced");
+                        NFinalizeDeath.CheckYieldingContext();
+                        stateMachineClient = StateMachineClient.Acquire(this, "routeFail");
+                        if (stateMachineClient == null)
+                            return;
+
+                        stateMachineClient.AddInterest<ScriptPosture>();
+                        var beingRiddenPosture = Posture as BeingRiddenPosture;
+
+                        if (beingRiddenPosture != null)
+                        {
+                            stateMachineClient.SetActor("x", this);
+                            stateMachineClient.SetActor("y", beingRiddenPosture.Rider);
+                            stateMachineClient.EnterState("x", "Enter");
+                            stateMachineClient.EnterState("y", "Enter");
+                            stateMachineClient.RequestState(false, "x", "RouteFailMounted");
+                            stateMachineClient.RequestState(true, "y", "RouteFailMounted");
+                            stateMachineClient.RequestState("x", "Exit Synced");
+                        }
+                        else
+                        {
+                            stateMachineClient.SetActor("x", this);
+                            stateMachineClient.EnterState("x", "Enter");
+                            NFinalizeDeath.CheckYieldingContext();
+                            stateMachineClient.RequestState("x", "RouteFail");
+                            NFinalizeDeath.CheckYieldingContext();
+                            stateMachineClient.RequestState("x", "Exit");
+                        }
                     }
-                    else
+                    catch (SacsErrorException)
                     {
-                        stateMachineClient.SetActor("x", this);
-                        stateMachineClient.EnterState("x", "Enter");
-                        stateMachineClient.RequestState("x", "RouteFail");
-                        stateMachineClient.RequestState("x", "Exit");
+                        if (stateMachineClient != null)
+                            stateMachineClient.Dispose();
+                        break;
                     }
 
-                    stateMachineClient.Dispose();
+                    if (stateMachineClient != null)
+                        stateMachineClient.Dispose();
                 }
 
-                for (int xi = 0; xi < 5; xi++)
+                if (NiecHelperSituation.__acorewIsnstalled__)
                 {
-                    TraitFunctions.TraitReactionOnRouteFailure(this, ReactionSpeed.Immediate);
+                    for (int xi = 0; xi < 5; xi++)
+                    {
+                        TraitFunctions.TraitReactionOnRouteFailure(this, ReactionSpeed.Immediate);
+                    }
                 }
-                if (!NiecHelperSituation.isdgmods)
+
+                if (!NiecHelperSituation.__acorewIsnstalled__ || !NiecHelperSituation.isdgmods)
                     break;
             }
         }
@@ -337,32 +674,33 @@ namespace NiecMod.Nra
                 }
                 return false;
             }
-            if (posture is SwimmingInPool || posture is SittingInVehicle || posture is RidingPosture)
-            {
-                if (beforeCallback != null)
-                {
-                    beforeCallback(this, target, ReactionTypes.None, ReactionSpeed.None, false);
-                }
-                if (callback != null)
-                {
-                    callback(this, target, reactionType, ReactionSpeed.None, false);
-                }
-                return false;
-            }
+            //if (posture is SwimmingInPool || posture is SittingInVehicle || posture is RidingPosture)
+            //{
+            //    if (beforeCallback != null)
+            //    {
+            //        beforeCallback(this, target, ReactionTypes.None, ReactionSpeed.None, false);
+            //    }
+            //    if (callback != null)
+            //    {
+            //        callback(this, target, reactionType, ReactionSpeed.None, false);
+            //    }
+            //    return false;
+            //}
             bool flag2 = 0 != (reactionSpeed & ReactionSpeed.Immediate);
             bool flag3 = 0 != (reactionSpeed & ReactionSpeed.ImmediateWithoutOverlay);
             bool flag4 = 0 != (reactionSpeed & ReactionSpeed.AfterInteraction);
-            if (flag3)
-            {
-                if (Simulator.CurrentTask != base.ObjectId)
-                {
-                    return false;
-                }
-            }
-            else if ((Conversation != null || posture is SocializingPosture) && priority.Level <= InteractionPriorityLevel.UserDirected)
-            {
-                return false;
-            }
+            //if (flag3)
+            //{
+            //    if (Simulator.CurrentTask != base.ObjectId)
+            //    {
+            //        return false;
+            //    }
+            //}
+            //else 
+            //if ((Conversation != null || posture is SocializingPosture) && priority.Level <= InteractionPriorityLevel.UserDirected)
+            //{
+            //    return false;
+            //}
             if (mIsAlreadyIdling && IsStandingIdle && flag2)
             {
                 flag2 = false;
@@ -370,10 +708,10 @@ namespace NiecMod.Nra
             }
             if (flag2 && (mIsAlreadyIdling || (IsRouting && CarryStateMachine == null && (SimRoutingComponent.CheckCanPlayReactionAtEndOfRoute() || (base.RoutingComponent != null && base.RoutingComponent.GetDistanceRemainingOnRoute() >= SimScriptAdaptor.DistanceToTriggerOverlay)))) && (!IdleManager.sReactionAnimations.ContainsKey(reactionType) || IdleManager.TestReactionAnimation(reactionType, flag, true)))
             {
-                if (posture == null || !posture.AllowsReactionOverlay())
-                {
-                    return false;
-                }
+                //if (posture == null || !posture.AllowsReactionOverlay())
+                //{
+                //    return false;
+                //}
                 if (beforeCallback != null)
                 {
                     beforeCallback(this, target, reactionType, ReactionSpeed.Immediate, true);
@@ -435,7 +773,9 @@ namespace NiecMod.Nra
             }
             if ((flag3 || flag4) && IdleManager.sReactionAnimations.ContainsKey(reactionType))
             {
-                ReactionInteraction reactionInteraction = ReactionInteraction.Singleton.CreateInstance(this, this, priority, true, true) as ReactionInteraction;
+                priority.Level += 2;
+                var reactionInteraction = ReactionInteraction.Singleton.CreateInstance(this, this, this.Household == Household.ActiveHousehold ? new InteractionPriority(InteractionPriorityLevel.Zero) : priority, true, true) as ReactionInteraction;
+
                 reactionInteraction.SetReactionType(reactionType);
                 reactionInteraction.SetLookAtTarget(target);
                 reactionInteraction.SetRoute(reactionSpeed == ReactionSpeed.CriticalWithRoute);
@@ -447,17 +787,265 @@ namespace NiecMod.Nra
                 reactionInteraction.SetWatch(ShouldWatchUntilExit);
                 reactionInteraction.SetCheckOwnChild(flag);
                 reactionInteraction.SetPosture(posture);
-                reactionInteraction.Hidden = true;
+
+                if (this.Household == Household.ActiveHousehold)
+                { }
+                else
+                {
+                    reactionInteraction.Hidden = true;
+                    reactionInteraction.mMustRun = true;
+                }
+
                 reactionInteraction.SetTimeout(timeout, SimClock.Add(SimClock.CurrentTime(), TimeUnit.Minutes, timeout));
                 InteractionQueue.CancelAllInteractionsByType(ReactionInteraction.Singleton);
+
+
                 if (flag3)
                 {
-                    return reactionInteraction.RunInteraction();
+                    NiecTask.PerformSID(ScriptExecuteType.Threaded,() =>
+                    {
+                        NFinalizeDeath._RunInteraction(reactionInteraction);
+                    });
+                    return true;
                 }
-                InteractionQueue.AddNext(reactionInteraction);
-                return true;
+                if (this.Household == Household.ActiveHousehold)
+                { return InteractionQueue.AddNext(reactionInteraction); }
+                else
+                {
+                    return InteractionQueue.Add(reactionInteraction);
+                }
             }
             return false;
+        }
+
+        public static int checkintabimIsPointInLotSafelyRoutable = 0;
+        public static bool chekcdont = false;
+
+        public bool bimHandToolAllowIntersection(IGameObject objectToIntersect, Matrix44 testMatrix, bool bThisObjectShifted)
+        {
+            if (chekcdont || Posture == null)
+                return false;
+
+            if (Posture.OverrideAllowIntersection)
+            {
+                return Posture.HandToolAllowIntersection(objectToIntersect, testMatrix, bThisObjectShifted);
+            }
+            return false;
+        }
+
+
+        public bool bimIsPointInLotSafelyRoutable(Lot lot, Vector3 pos)
+        {
+            if (checkintabimIsPointInLotSafelyRoutable > 5)
+            {
+                return false;
+            }
+            try
+            {
+                if (lot == null || lot.Corners == null)
+                {
+                    return false;
+                }
+                if (pos.IsSimilarTo(Vector3.Zero) || pos.IsSimilarTo(Vector3.OutOfWorld))
+                {
+                    return false;
+                }
+                LotLocation location = LotLocation.Invalid;
+                ulong lotLocation = World.GetLotLocation(pos, ref location);
+                if (lot.IsWorldLot || lotLocation == lot.LotId)
+                {
+                    switch (World.GetTerrainType(pos))
+                    {
+                        case TerrainType.WorldSea:
+                        case TerrainType.WorldPond:
+                        case TerrainType.LotPool:
+                        case TerrainType.LotPond:
+                            return false;
+                        default:
+                            if (!lot.IsWorldLot)
+                            {
+                                Route route = SimRoutingComponent.CreateRouteAsAdult();
+                                route.SetOption(Route.RouteOption.EnableWaterPlanning, IsHuman);
+                                float num = 1f;
+                                if (lot.IsHouseboatLot())
+                                {
+                                    num += 1f;
+                                }
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    RadialRangeDestination radialRangeDestination = new RadialRangeDestination();
+                                    radialRangeDestination.mCenterPoint = lot.Corners[i];
+                                    radialRangeDestination.mfMinRadius = 0f;
+                                    radialRangeDestination.mfMaxRadius = num;
+                                    route.AddDestination(radialRangeDestination);
+                                    radialRangeDestination = new RadialRangeDestination();
+                                    int corner = (i + 1) % 4;
+                                    radialRangeDestination.mCenterPoint = (lot.Corners[i] + lot.Corners[corner]) * 0.5f;
+                                    radialRangeDestination.mfMinRadius = 0f;
+                                    radialRangeDestination.mfMaxRadius = num;
+                                    route.AddDestination(radialRangeDestination);
+                                }
+                                route.PlanFromPoint(pos);
+                                if (route.PlanResult.mType != RoutePlanResultType.Succeeded)
+                                {
+                                    return false;
+                                }
+                            }
+                            return true;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                checkintabimIsPointInLotSafelyRoutable++;
+                if (checkintabimIsPointInLotSafelyRoutable > 5)
+                {
+                    NFinalizeDeath.LoopISPoIntPos();
+                }
+                return false;
+            }
+
+            return false;
+        }
+
+        public void bimSetSacsDefaultParameters(StateMachineClient smc, string actorName)
+        {
+            if (smc != null && mSimDescription != null)
+            {
+                if (base.OverlayComponent != null)
+                {
+                    smc.AddPersistentSacsEventHandler(SacsEventSubTypes.kSacsEventOverlayLevelEvent, base.OverlayComponent.InteractionPartLevelCallback);
+                    smc.AddPersistentSacsEventHandler(SacsEventSubTypes.kSacsEventAnimationDone, base.OverlayComponent.ClearInteractionPartLevelCallback);
+                }
+                Age age;
+                switch (mSimDescription.Age)
+                {
+                    case CASAgeGenderFlags.Baby:
+                        age = Age.baby;
+                        break;
+                    case CASAgeGenderFlags.Toddler:
+                        age = Age.todler;
+                        break;
+                    case CASAgeGenderFlags.Child:
+                        age = Age.child;
+                        break;
+                    case CASAgeGenderFlags.Teen:
+                        age = Age.teen;
+                        break;
+                    case CASAgeGenderFlags.YoungAdult:
+                        age = Age.young_adult;
+                        break;
+                    case CASAgeGenderFlags.Adult:
+                        age = Age.adult;
+                        break;
+                    case CASAgeGenderFlags.Elder:
+                        age = Age.elder;
+                        break;
+                    default:
+                        age = Age.todler;
+                        break;
+                }
+                Species species;
+                switch (mSimDescription.Species)
+                {
+                    case CASAgeGenderFlags.Horse:
+                        species = Species.horse;
+                        break;
+                    case CASAgeGenderFlags.Dog:
+                        species = Species.dog;
+                        break;
+                    case CASAgeGenderFlags.Cat:
+                        species = Species.cat;
+                        break;
+                    case CASAgeGenderFlags.LittleDog:
+                        species = Species.littleDog;
+                        break;
+                    case CASAgeGenderFlags.Deer:
+                        species = Species.deer;
+                        break;
+                    case CASAgeGenderFlags.Raccoon:
+                        species = Species.raccoon;
+                        break;
+                    default:
+                        species = Species.human;
+                        break;
+                }
+                if (TraitManager != null && TraitManager.List != null)
+                {
+                    foreach (Trait item3 in TraitManager.List)
+                    {
+                        if (item3 != null)
+                        {
+                            smc.SetParameter(actorName, typeof(TraitNames), (ulong)item3.Guid, YesOrNo.yes);
+                        }
+                    }
+                }
+                if (BuffManager != null && BuffManager.List != null)
+                {
+                    foreach (BuffInstance item2 in BuffManager.List)
+                    {
+                        if (item2 != null && item2.mBuff != null)
+                        {
+                            smc.SetParameter(actorName, typeof(BuffNames), (ulong)item2.mBuff.BuffGuid, YesOrNo.yes);
+                        }
+                    }
+                }
+                if (MoodManager != null)
+                {
+                    MoodFlavor moodFlavor = MoodManager.MoodFlavor;
+                    if (moodFlavor != 0 && moodFlavor != MoodFlavor.Fulfilled)
+                    {
+                        smc.SetParameter(actorName, typeof(MoodFlavor), (ulong)MoodManager.MoodFlavor, YesOrNo.yes);
+                    }
+                }
+                uint paramHash9;
+                uint paramHash8;
+                uint paramHash7;
+                uint paramHash6;
+                uint paramHash5;
+                switch (actorName[0])
+                {
+                    case 'X':
+                    case 'x':
+                        paramHash9 = 499670524u;
+                        paramHash8 = 3485968198u;
+                        paramHash7 = 1341508501u;
+                        paramHash6 = 2555509350u;
+                        paramHash5 = 3242275675u;
+                        break;
+                    case 'Y':
+                    case 'y':
+                        paramHash9 = 2084444177u;
+                        paramHash8 = 1976724487u;
+                        paramHash7 = 1780181412u;
+                        paramHash6 = 2689495323u;
+                        paramHash5 = 585333186u;
+                        break;
+                    case 'Z':
+                    case 'z':
+                        paramHash9 = 3151015778u;
+                        paramHash8 = 2159644272u;
+                        paramHash7 = 2309280715u;
+                        paramHash6 = 2470126784u;
+                        paramHash5 = 3937651281u;
+                        break;
+                    default:
+                        paramHash9 = ResourceUtils.HashString32(actorName + ":Age");
+                        paramHash8 = ResourceUtils.HashString32(actorName + ":InBadMood");
+                        paramHash7 = ResourceUtils.HashString32(actorName + ":Sex");
+                        paramHash6 = ResourceUtils.HashString32(actorName + ":ScriptPosture");
+                        paramHash5 = ResourceUtils.HashString32(actorName + ":Species");
+                        break;
+                }
+                smc.SetParameter(paramHash9, typeof(Age), (ulong)age);
+                smc.SetParameter(paramHash8, (uint)(MoodManager != null && MoodManager.IsInNegativeMood ? 979470758 : 1668749452));
+                smc.SetParameter(paramHash7, (mSimDescription.Gender == CASAgeGenderFlags.Male) ? 3111576190u : 2204441813u);
+                smc.SetParameter(paramHash5, typeof(Species), (ulong)species);
+                if (Posture != null)
+                {
+                    smc.SetParameter(paramHash6, typeof(ScriptPosture), (ulong)Posture.GetSacsPostureParameter());
+                }
+            }
         }
 
         public void bimSimulate()
@@ -520,6 +1108,30 @@ namespace NiecMod.Nra
                 t.mEffect = null;
 
                 _this.mThoughtBalloonManager = null;
+            }
+
+            var iq = _this.InteractionQueue;
+            if (iq != null)
+            {
+                if (iq.mInteractionList != null)
+                {
+                    NFinalizeDeath.AddItemToList(GCSafeList, iq.mInteractionList);
+                    if (NiecHelperSituation.isdgmods)
+                    {
+                        iq.mInteractionList = new List<InteractionInstance>();
+                    }
+                    else iq.mInteractionList = null;
+                }
+                if (iq.mRunningInteractions != null)
+                {
+                    NFinalizeDeath.AddItemToList(GCSafeList, iq.mRunningInteractions);
+                    if (NiecHelperSituation.isdgmods)
+                    {
+                        iq.mRunningInteractions = new Stack<InteractionInstance>();
+                    }
+                    else
+                        iq.mRunningInteractions = null;
+                }
             }
 
             Simulator.DestroyObject(_this.mSimUpdateId);
@@ -627,12 +1239,21 @@ namespace NiecMod.Nra
                 if (iq.mInteractionList != null)
                 {
                     NFinalizeDeath.AddItemToList(GCSafeList, iq.mInteractionList);
-                    iq.mInteractionList = null;
+                    if (NiecHelperSituation.isdgmods)
+                    {
+                        iq.mInteractionList = new List<InteractionInstance>();
+                    }
+                    else iq.mInteractionList = null;
                 }
                 if (iq.mRunningInteractions != null)
                 {
                     NFinalizeDeath.AddItemToList(GCSafeList, iq.mRunningInteractions);
-                    iq.mRunningInteractions = null;
+                    if (NiecHelperSituation.isdgmods)
+                    {
+                        iq.mRunningInteractions = new Stack<InteractionInstance>();
+                    }
+                    else
+                        iq.mRunningInteractions = null;
                 }
             }
 
@@ -799,6 +1420,17 @@ namespace NiecMod.Nra
                             if (_this.mIdleManager != null)
                                 _this.mIdleManager.PlayNonDistressIdleIfNecessary();
                         }
+                        catch (NotSupportedException ex)
+                        {
+                            if (ex.source == "SimIFace")
+                            {
+                                if (!Instantiator.NSMCINJECT)
+                                    throw;
+                                NFinalizeDeath.CheckYieldingContext();
+                                Simulator.Sleep(0);
+                            }
+                            else throw;
+                        }
                         catch (SacsErrorException)
                         { }
                     }
@@ -865,7 +1497,25 @@ namespace NiecMod.Nra
                     _this.BridgeOrigin = null;
                     bridgeOrigin.MakeRequest();
                 }
-                _this.PostureIdle();
+
+                try
+                {
+                    _this.PostureIdle();
+                }
+                catch (NotSupportedException ex)
+                {
+                    if (ex.source == "SimIFace")
+                    {
+                        if (!Instantiator.NSMCINJECT)
+                            throw;
+                        NFinalizeDeath.CheckYieldingContext();
+                        Simulator.Sleep(0);
+                    }
+                    else throw;
+                }
+                catch (SacsErrorException)
+                { }
+               
             }
 
             if (_this.mAutonomy != null && AutonomyRestrictions.IsAnyAutonomyEnabled(_this))
@@ -941,7 +1591,7 @@ namespace NiecMod.Nra
 
             Sim sim = simIQ.mActor;
             InteractionInstance interactionInstance = simIQ.mInteractionList._items[0];
-            if (interactionInstance == null) 
+            if (interactionInstance == null || interactionInstance.Target == null) 
                 return;
 
             Lot targetLot = interactionInstance.GetTargetLot();
@@ -953,6 +1603,10 @@ namespace NiecMod.Nra
             {
                 return;
             }
+
+            if (interactionInstance.Target == null)
+                return;
+
             ItemComponent itemComp = interactionInstance.Target.ItemComp;
             if ((itemComp != null && itemComp.InventoryParent != null && itemComp.InventoryParent.Owner == sim) || simIQ.TryLocalToddlerCareRules(sim, interactionInstance, targetLot, mLevel, mRoom) || interactionInstance is Terrain.GoHereWith || (interactionInstance is Terrain.TeleportMeHere && !(interactionInstance is Terrain.TeleporterTeleportMe)))
             {
@@ -972,7 +1626,7 @@ namespace NiecMod.Nra
                 if (simIQ.ShouldTakeBabyOrToddlerWithUsTo(interactionInstance))
                 {
                     float num = (sim.Position - GetGameObjectInForInteractionPosition(interactionInstance)).LengthSqr();
-                    float num2 = 0.99f / num;
+                    float num2 = 0.99f / num + 1f;
                     float num3 = 9.01f + num2 % num;
                     if (!(num < num2) && !(num > num3))
                     {
@@ -1199,8 +1853,36 @@ namespace NiecMod.Nra
             {
                 throw;
             }
-            catch { if (NiecHelperSituation.__acorewIsnstalled__) throw; return false; }
-            
+            catch 
+            { 
+                if (!NiecHelperSituation.__acorewIsnstalled__) 
+                    throw; 
+                return false; 
+            }
+        }
+
+        public static bool SafeCallRunInteraction(InteractionInstance i)
+        {
+            var r = NiecTask.CreateWaitPerformWithExecuteTypeSID(ScriptExecuteType.Threaded, () =>
+            {
+                var p = NiecTask.GetCurrentNiecTask();
+                try
+                {
+                    p.WaitPerform_DoneResult = NFinalizeDeath._RunInteractionWithoutCleanUp(i);
+                }
+                catch (Exception)
+                {
+                    p.WaitPerform_DoneResult = false;
+                }
+            }).Waiting();
+
+            if (r is bool)
+                return (bool)r;
+            else
+            {
+                NDebugger.Log(NDebugger.LogLevel.FatelError, "SafeCallRunInteraction", "Interaction Name: " + i.GetType().AssemblyQualifiedName, false);
+            }
+            return false;
         }
 
         public static bool ProcessAllInteraction(Sim actorIsCurrentTask)
@@ -1293,10 +1975,10 @@ namespace NiecMod.Nra
                         continue;
                     }
 
-                    if (simIQList.IndexOf(inCurrentInteraction) != 0)
-                    {
-                        break;
-                    }
+                    //if (simIQList.IndexOf(inCurrentInteraction) != 0)
+                    //{
+                    //    break;
+                    //}
 
                     if (simIQList == null)
                         break;
@@ -1310,6 +1992,14 @@ namespace NiecMod.Nra
                         sim.PlayRouteFailFrequency = Sim.RouteFailFrequency.PlayRouteFailNextTimeOnly;
 
                         List<InteractionObjectPair> list = new List<InteractionObjectPair>();
+
+                        if (inCurrentInteraction.Target == null)
+                        {
+                            niec_std.list_remove(simIQList, inCurrentInteraction);
+                            if (sim.IsSelectable)
+                                simIQ.FireQueueChanged();
+                            continue;
+                        }
 
                         while (num > 0 && num2 > 0)
                         {
@@ -1338,7 +2028,7 @@ namespace NiecMod.Nra
                                 inCurrentInteraction.PosturePreconditions = null;
                             }
 
-                            interactionInstance2 = ((inCurrentInteraction.PosturePreconditions != null || sim.Posture is IHaveCustomTransitionForNullPosturePreconditions) ? sim.Posture.GetTransition(inCurrentInteraction) : sim.Posture.GetStandingTransition());
+                            interactionInstance2 = ((inCurrentInteraction.PosturePreconditions != null || sim.Posture is IHaveCustomTransitionForNullPosturePreconditions) ? sim.Posture.GetTransition(inCurrentInteraction) : (NiecHelperSituation.__acorewIsnstalled__ ? null : sim.Posture.GetStandingTransition()));
                             if (interactionInstance2 == null)
                             {
                                 num = 0;
@@ -1371,7 +2061,7 @@ namespace NiecMod.Nra
                                     {
                                         sim.LookAtManager.SetInteractionLookAt(inCurrentInteraction.Target as GameObject, Sim.LookAtInterestingnessOfTargetWhenRunningTransition, LookAtJointFilter.HeadBones);
                                     }
-                                    flag = NFinalizeDeath._RunInteractionWithoutCleanUp(interactionInstance2);
+                                    flag = NiecHelperSituation.__acorewIsnstalled__ && !NiecHelperSituation.isdgmods && NInjetMethed.DoneLoopIdle ? SafeCallRunInteraction(inCurrentInteraction) : NFinalizeDeath._RunInteractionWithoutCleanUp(interactionInstance2);
                                 }
                                 finally
                                 {
@@ -1539,7 +2229,7 @@ namespace NiecMod.Nra
 
                     try
                     {
-                        okI = NFinalizeDeath._RunInteractionWithoutCleanUp(inCurrentInteraction);
+                        okI = NiecHelperSituation.__acorewIsnstalled__ && !NiecHelperSituation.isdgmods && NInjetMethed.DoneLoopIdle ? SafeCallRunInteraction(inCurrentInteraction) : NFinalizeDeath._RunInteractionWithoutCleanUp(inCurrentInteraction);
                         if (okI)
                         {
                             inCurrentInteraction.CallCallbackOnCompletion(sim);

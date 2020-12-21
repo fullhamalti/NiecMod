@@ -212,6 +212,17 @@
             Color activeEyebrowColor = hairColors[4];
             SimDescriptionCore simDescriptionCore = new SimDescriptionCore();
             simDescriptionCore.HomeWorld = homeWorld;
+
+            if (!Sims3.Gameplay.NiecRoot.NiecHelperSituation.__acorewIsnstalled__ && !Nra.NFinalizeDeath.IsOpenDGSInstalled)
+            {
+                try
+                {
+                    NiecMod.Nra.ACoreS_Census.SpeciallyUnMark(simDescriptionCore);
+                }
+                catch (Exception)
+                { }
+            }
+
             bool useDyeColor = age == CASAgeGenderFlags.Elder;
             GeneticColor[] hairColors2 = simDescriptionCore.HairColors;
             for (int i = 0; i < 4; i++)
