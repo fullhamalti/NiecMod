@@ -440,6 +440,10 @@ namespace Sims3.Gameplay.NiecNonOpenDGS.Interactions
                 {
                     relationshipClassification = LTRData.Get(relationship.LTR.CurrentLTR).RelationshipClass;
                 }
+
+                if (Actor == null || Target == null || Actor.Genealogy == null || Target.Genealogy == null)
+                    return true;
+
                 if (relationshipClassification == LTRData.RelationshipClassification.High || Actor.Genealogy.IsBloodRelated(Target.Genealogy))
                 {
                     if (relationship != null && relationship.AreRomantic() && relationship.LTR.IsPositive)

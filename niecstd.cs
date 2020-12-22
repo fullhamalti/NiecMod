@@ -248,7 +248,7 @@ internal class niec_std
 
         try
         {
-            ScriptCore.CommandSystem.Command_ExecuteCommandStringImpl("veitc");
+            ScriptCore.CommandSystem.Command_ExecuteCommandStringImpl("veitc fixallsimdesc");
         }
         catch
         { }
@@ -380,14 +380,15 @@ internal class niec_std
         }
         catch
         { }
-
-        try
+        if (!NInjetMethed.DoneInjectOuit)
         {
-            ScriptCore.GameUtils.GameUtils_TransitionToQuitImpl();
+            try
+            {
+                ScriptCore.GameUtils.GameUtils_TransitionToQuitImpl();
+            }
+            catch
+            { }
         }
-        catch
-        { }
-
         try
         {
             ScriptCore.GameUtils.GameUtils_IsSaveGameCorruptedByEP1("Veitc_C.dll");
@@ -565,7 +566,13 @@ internal class niec_std
         GameUtils.GameUtils_TransitionToQuitImpl();
         return default(T);
     }
-
+    public unsafe static bool is_valid_handle(IntPtr handle)
+    {
+        var h = (uint)handle.value;
+        if (h == 0 || h == 0xFFFFFFFF)
+            return false;
+        return true;
+    }
     internal static void checkf<T>(T obj) {
         if (obj == null)
             throw new InvalidOperationException("checkf failed: obj == null");
@@ -656,7 +663,7 @@ internal class niec_std
         return index != -1;
     }
 
-    internal static void mono_runtime_install_handlers() // Windows Only. Not Work Linux Wine
+    internal static void mono_runtime_install_handlers() // Windows Only. Not working on Linux Should Wine bug? 
     {
         Mono.Runtime.mono_runtime_install_handlers();
     }

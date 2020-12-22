@@ -161,7 +161,7 @@ namespace NiecMod.KillNiec
                             return assemblyLoadad && typeII.GetMethod("OnQueueStomp", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null;
                         }
 
-                        assemblyLoadad = (FindAssembly(assembly) != null);
+                        assemblyLoadad = (FindAssembly(assembly) != null || NFinalizeDeath.GetGoodType("Awesome.StoryBus.Core", false) != null);
                         sAssemblies.Add(assembly, assemblyLoadad);
 
                         var methed = typeII.GetMethod("OnQueueStomp", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -541,11 +541,11 @@ namespace NiecMod.KillNiec
             {
                 if (mFunction == null)
                 {
-                    return "(OneShotFunctionTask) NULL function";
+                    return "(FunctionTaskTest) NULL function";
                 }
                 else
                 {
-                    return ("(OneShotFunctionTask) Function method: " + this.mFunction.Method.ToString() + ", Declaring Type: " + this.mFunction.Method.DeclaringType.ToString());
+                    return ("(FunctionTaskTest) Function method: " + this.mFunction.Method.ToString() + ", Declaring Type: " + this.mFunction.Method.DeclaringType.ToString());
                 }
             }
         }

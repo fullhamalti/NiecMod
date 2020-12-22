@@ -50,12 +50,64 @@ namespace NiecMod.Nra
             return tem;
         }
 
+        public static void niecmod_scipt_pre_ptr_obj_create_method(Type typeDelegate, Type typeObject, MethodInfo methodInfo)
+        {
+            if (typeDelegate == null)
+                throw new ArgumentNullException("typeDelegate");
+            if (typeObject == null)
+                throw new ArgumentNullException("typeObject");
+            if (methodInfo == null)
+                throw new ArgumentNullException("methodInfo");
+            if (methodInfo.IsStatic)
+                throw new ArgumentException("Method is static");
+
+            var targetObject = new object();
+            if (!niecmod_script_object_set_type_ptr2(targetObject, typeObject))
+                throw new ArgumentException("niecmod_script_object_set_type_ptr3 failed.");
+
+            try
+            {
+                Delegate.CreateDelegate(typeDelegate, targetObject, methodInfo);
+            }
+            catch (Exception)
+            {
+                niecmod_script_object_set_type_ptr3<object>(targetObject);
+                throw;
+            }
+
+            niecmod_script_object_set_type_ptr3<object>(targetObject);
+        }
+
+        public static void niecmod_scipt_pre_ptr_obj_create_method2<T,TD>(MethodInfo methodInfo)
+        {
+            if (methodInfo == null)
+                throw new ArgumentNullException("methodInfo");
+            if (typeof(TD) == null)
+                throw new ArgumentNullException("typeof(TD)");
+            if (methodInfo.IsStatic)
+                throw new ArgumentException("Method is static");
+
+            var targetObject = new object();
+            if (!niecmod_script_object_set_type_ptr3<T>(targetObject))
+                throw new ArgumentException("niecmod_script_object_set_type_ptr3 failed.");
+
+            try
+            {
+                Delegate.CreateDelegate(typeof(TD), targetObject, methodInfo);
+            }
+            catch (Exception)
+            {
+                niecmod_script_object_set_type_ptr3<object>(targetObject);
+                throw;
+            }
+            niecmod_script_object_set_type_ptr3<object>(targetObject);
+        }
 
         public unsafe static bool niecmod_script_set_custom_native_function(IntPtr funcHandle, IntPtr p_func_address)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return false;
-
+#if GameVersion_0_Release_2_0_209
             if (funcHandle == emtpyptr)
             {
                 return false;
@@ -65,12 +117,15 @@ namespace NiecMod.Nra
             *(uint*)func_address = (uint)p_func_address.value;
 
             return true;
+#else
+            return false;
+#endif // GameVersion_0_Release_2_0_209
         }
         public static bool niecmod_script_set_custom_native_function2(MethodInfo internal_function, uint p_func_address)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return false;
-
+#if GameVersion_0_Release_2_0_209
             var vfunc = internal_function as MonoMethod;
             if (vfunc == null)
             {
@@ -84,15 +139,17 @@ namespace NiecMod.Nra
 
             uint func_address = ((uint)vfunc.mhandle.ToInt32()) + 0x20u;
             global::System.Runtime.InteropServices.Marshal.WriteInt32(new IntPtr((int)func_address), (int)p_func_address);
-
             return true;
+#else
+            return false;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public unsafe static bool niecmod_script_set_custom_native_function_dlln_created(IntPtr internaldll_function, uint p_func_address)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return false;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function == emtpyptr)
             {
                 return false;
@@ -124,13 +181,16 @@ namespace NiecMod.Nra
                 niec_native_func.OutputDebugString("Done");
                 return true;
             }
+#else
+            return false;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public unsafe static uint niecmod_script_get_custom_native_function_dlln_created(IntPtr internaldll_function)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function == emtpyptr)
             {
                 return 0;
@@ -159,13 +219,16 @@ namespace NiecMod.Nra
 
                 return *(uint*)func_address;
             }
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public unsafe static bool niecmod_script_set_custom_native_function_dll_created(IntPtr internaldll_function, uint p_func_address)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return false;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function == emtpyptr)
             { 
                 return false;
@@ -223,12 +286,15 @@ namespace NiecMod.Nra
 				niec_native_func.OutputDebugString("Done");
                 return true;
             }
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
         public unsafe static uint niecmod_script_get_custom_native_function_dll_created(IntPtr internaldll_function)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function == emtpyptr)
             {
                 return 0;
@@ -285,6 +351,9 @@ namespace NiecMod.Nra
 
                 return *(uint*)func_address;
             }
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public static bool niecmod_script_set_custom_native_function_dll(IntPtr internal_function, uint p_func_address)
@@ -308,7 +377,7 @@ namespace NiecMod.Nra
             bool gameIs64 = NFinalizeDeath.GameIs64Bit(false);
             try
             {
-                throw new Exception();
+                throw new Exception("");
             }
             catch (Exception ex)
             {
@@ -334,7 +403,7 @@ namespace NiecMod.Nra
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function == null)
             {
                 return 0;
@@ -361,10 +430,11 @@ namespace NiecMod.Nra
                     r = *(uint*)func_address;
                     return;
                 }
-
-                
             });
             return r;
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public static Dictionary<IntPtr, uint> sCheckMethodChecksum = new Dictionary<IntPtr, uint>();
@@ -374,10 +444,13 @@ namespace NiecMod.Nra
             if (NFinalizeDeath.GameIs64Bit(false))
             {
                 if (shouldThrowOnFailure)
-                    throw new ArgumentException("Sims 3 64 Bit Found.");
+                    throw new NotSupportedException("Sims 3 64 bit version not supported.");
                 return false;
             }
 
+#if !GameVersion_0_Release_2_0_209
+            throw new NotSupportedException("Game versions not supported. Only Patch 1.67.2");
+#else
             niec_native_func.OutputDebugString("niecmod_script_copy_ptr_func_to_func(...) called");
 
 
@@ -395,8 +468,72 @@ namespace NiecMod.Nra
                 return false;
             }
 
-            niec_native_func.OutputDebugString("Name A: " + a.Name + " | IsGeneric: " + a.IsGenericMethod + " | Type: " + a.GetType().ToString());
-            niec_native_func.OutputDebugString("Name T: " + t.Name + " | IsGeneric: " + t.IsGenericMethod + " | Type: " + t.GetType().ToString());
+            if (t == a)
+            {
+                NFinalizeDeath.AssertX(false, "script_copy_ptr_func_to_func: if (t == a) ST:\n" + NDebugger.GetCurrentStackLite());
+                return false;
+            }
+
+            niec_native_func.OutputDebugString("Name A: " + a.DeclaringType.FullName + "." + a.Name + " | IsGeneric: " + a.IsGenericMethod + " | Type: " + a.GetType().ToString());
+            niec_native_func.OutputDebugString("Name T: " + t.DeclaringType.FullName + "." + t.Name + " | IsGeneric: " + t.IsGenericMethod + " | Type: " + t.GetType().ToString());
+
+            uint tuint;
+
+            if (sCheckMethodChecksum != null)
+            {
+                if (t is MonoMethod && sCheckMethodChecksum.TryGetValue(((MonoMethod)t).mhandle, out tuint))
+                    return false;
+                if (t is MonoCMethod && sCheckMethodChecksum.TryGetValue(((MonoCMethod)t).mhandle, out tuint))
+                    return false;
+            }
+
+            uint au = 0;
+            uint tu = 0;
+
+            try
+            {
+                //niec_native_func.OutputDebugString("calling GetMethodImplementationFlags");
+                //a.GetMethodImplementationFlags();
+                //niec_native_func.OutputDebugString("calling GetParameters");
+                //a.GetParameters();
+                //niec_native_func.OutputDebugString("calling GetMethodImplementationFlags T");
+                //t.GetMethodImplementationFlags();
+                //niec_native_func.OutputDebugString("calling GetParameters T");
+                //t.GetParameters();
+                //
+                //niec_native_func.OutputDebugString("calling NFinalizeDeath.M(a.Attributes)");
+                //NFinalizeDeath.M(a.Attributes);
+                //niec_native_func.OutputDebugString("calling NFinalizeDeath.M(t.Attributes)");
+                //NFinalizeDeath.M(t.Attributes);
+
+                if (t is MonoMethod)
+                {
+                    niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(t.MethodHandle, out tu);");
+                    ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)t).mhandle, out tu);
+                    niec_native_func.OutputDebugString("tu: 0x" + tu.ToString("X"));
+                }
+                else if (t is MonoCMethod)
+                {
+                    niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(t.MethodHandle, out tu);");
+                    ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoCMethod)t).mhandle, out tu);
+                    niec_native_func.OutputDebugString("tu: 0x" + tu.ToString("X"));
+                }
+
+                if (a is MonoMethod)
+                {
+                    niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(a.MethodHandle, out au);");
+                    ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)a).mhandle, out au);
+                    niec_native_func.OutputDebugString("au: 0x" + au.ToString("X"));
+                }
+                else if (a is MonoCMethod)
+                {
+                    niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(a.MethodHandle, out au);");
+                    ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoCMethod)a).mhandle, out au);
+                    niec_native_func.OutputDebugString("au: 0x" + au.ToString("X"));
+                }
+            }
+            catch (Exception)
+            { }
 
             if (a is ConstructorInfo && t is ConstructorInfo)
             {
@@ -405,50 +542,44 @@ namespace NiecMod.Nra
                 var cah = ((MonoCMethod)a).mhandle;
                 var cth = ((MonoCMethod)t).mhandle;
 
+                niec_native_func.OutputDebugString("cahandle: " + ((uint)cah).ToString("X"));
+                niec_native_func.OutputDebugString("cthandle: " + ((uint)cth).ToString("X"));
+
+                if (cah == null || cth == null)
+                {
+                    niec_native_func.OutputDebugString("if (cah == null || cth == null)");
+                    return false;
+                }
+
                 uint camethod_ptr = *(uint*)((uint)cah + 0x14);
                 uint ctmethod_ptr = *(uint*)((uint)cth + 0x14);
 
-                return niecmod_script_copy_ptr_methed_to_methed_internal<ConstructorInfo>(
+                niec_native_func.OutputDebugString("amethod_ptr: " + camethod_ptr.ToString("X"));
+                niec_native_func.OutputDebugString("ctmethod_ptr: " + ctmethod_ptr.ToString("X"));
+
+                if (camethod_ptr == 0 || camethod_ptr == 0xAA || ctmethod_ptr == 0 || ctmethod_ptr == 0xAA)
+                {
+                    niec_native_func.OutputDebugString("if (camethod_ptr == 0 || camethod_ptr == 0xAA || ctmethod_ptr == 0 || ctmethod_ptr == 0xAA)");
+                    return false;
+                }
+
+                var r = niecmod_script_copy_ptr_methed_to_methed_internal<ConstructorInfo>(
                     new IntPtr() { value = (void*)camethod_ptr },
                     new IntPtr() { value = (void*)ctmethod_ptr },
                     copy_methed_info
                 );
+
+                if (r && sCheckMethodChecksum != null)
+                {
+                    sCheckMethodChecksum.Add(((MonoCMethod)t).mhandle, (au * (20 & 15 / au + 0x50) + 30));
+                }
+
+                niec_native_func.OutputDebugString("copy_ptr_methed_to_methed_internal: " + r);
+                niec_native_func.OutputDebugString("niecmod_script_copy_ptr_func_to_func(...) Done!");
+
+                return r;
             }
 
-            uint tuint;
-            if (sCheckMethodChecksum != null && sCheckMethodChecksum.TryGetValue(((MonoMethod)t).mhandle, out tuint))
-                return true;
-
-            uint au = 0;
-            uint tu = 0;
-
-            try
-            {
-                niec_native_func.OutputDebugString("calling GetMethodImplementationFlags");
-                a.GetMethodImplementationFlags();
-                niec_native_func.OutputDebugString("calling GetParameters");
-                a.GetParameters();
-                niec_native_func.OutputDebugString("calling GetMethodImplementationFlags T");
-                t.GetMethodImplementationFlags();
-                niec_native_func.OutputDebugString("calling GetParameters T");
-                t.GetParameters();
-
-                niec_native_func.OutputDebugString("calling NFinalizeDeath.M(a.Attributes)");
-                NFinalizeDeath.M(a.Attributes);
-                niec_native_func.OutputDebugString("calling NFinalizeDeath.M(t.Attributes)");
-                NFinalizeDeath.M(t.Attributes);
-                
-
-                niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(t.MethodHandle, out tu);");
-                ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)t).mhandle, out tu);
-                niec_native_func.OutputDebugString("tu: 0x" + tu.ToString("X"));
-
-                niec_native_func.OutputDebugString("calling ScriptCore.TaskControl.GetMethodChecksum(a.MethodHandle, out au);");
-                ScriptCore.TaskControl.TaskControl_GetMethodChecksum(((MonoMethod)a).mhandle, out au);
-                niec_native_func.OutputDebugString("au: 0x" + au.ToString("X"));
-            }
-            catch (Exception)
-            {}
             try
             {
                 if (check)
@@ -547,6 +678,7 @@ namespace NiecMod.Nra
             niec_native_func.OutputDebugString("niecmod_script_copy_ptr_func_to_func(...) Done!");
 
             return tx;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public static bool niecmod_script_check_func_e_func(MethodInfo a, MethodInfo t, bool shouldThrowOnFailure) 
@@ -678,10 +810,16 @@ namespace NiecMod.Nra
             uint ptr_a = (uint)method_ptr_a.value;
             uint ptr_t = (uint)method_ptr_t.value;
 
+            //if (ptr_a == ptr_t)
+            //{
+            //    NFinalizeDeath.AssertX(false, "script_copy_ptr_methed_to_methed_internal\nif (ptr_a == ptr_t) ST:\n" + NDebugger.CurrentStackLite());
+            //    return false;
+            //}
+
             if (*(uint*)(ptr_a) == 0x00000000)
             {
                 NFinalizeDeath.AssertX
-                    (false, "*(uint*)(ptr_a) == 0x00000000\nST:\n" + NFinalizeDeath.GetSTLite01());
+                    (false, "*(uint*)(ptr_a) == 0x00000000\nStackTrace:\n" + NDebugger.GetCurrentStackLite());
                 return false;
             }
 
@@ -729,7 +867,7 @@ namespace NiecMod.Nra
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (internaldll_function.value == null)
             {
                 return 0;
@@ -759,6 +897,9 @@ namespace NiecMod.Nra
 
             });
             return r;
+#else 
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
 
@@ -786,7 +927,7 @@ namespace NiecMod.Nra
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (internal_function == null)
             {
                 return 0;
@@ -800,6 +941,9 @@ namespace NiecMod.Nra
             {
                 return niecmod_safecall_script_get_func_ptr_dll2(internal_function);
             }
+#else 
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
 
@@ -810,6 +954,7 @@ namespace NiecMod.Nra
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
 
+#if GameVersion_0_Release_2_0_209
             if (funcHandle.value == null)
             {
                 return 0;
@@ -823,14 +968,89 @@ namespace NiecMod.Nra
             });
 
             return r;
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
+        public unsafe static IntPtr niecmod_script_get_type_ptr(Type type)
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+                return new IntPtr(0);
+#if GameVersion_0_Release_2_0_209
+            if (type == null || type._impl.value == null)
+                return new IntPtr(0);
+
+            uint t = *(uint*)((uint)type._impl.value + 0x18);
+            if (t == 0x00000000) // not created
+                return new IntPtr(0);
+
+            uint y = *(uint*)(t + 0x4);
+
+            if (y == 0xFFFF0000)
+                return new IntPtr(0);
+
+            return new IntPtr() { value = (void*)y };
+#else
+            return new IntPtr(0);
+#endif
+        }
+
+        public unsafe static IntPtr niecmod_script_get_type_ptr2<T>()
+        {
+            if (NFinalizeDeath.GameIs64Bit(false))
+                return new IntPtr(0);
+#if GameVersion_0_Release_2_0_209
+            var type = typeof(T);
+            if (type == null || type._impl.value == null)
+                return new IntPtr(0);
+
+            uint t = *(uint*)((uint)type._impl.value + 0x18);
+            if (t == 0x00000000) // not created
+                return new IntPtr(0);
+
+            uint y = *(uint*)(t + 0x4);
+
+            if (y == 0xFFFF0000)
+                return new IntPtr(0);
+
+            return new IntPtr() { value = (void*)y };
+#else
+            return new IntPtr(0);
+#endif
+        }
+
+        public unsafe static bool niecmod_script_object_set_type_ptr(object obj, IntPtr typePtr) // obj.GetType() :)
+        {
+            if (obj == null || typePtr.value == null)
+                return false;
+
+            if (sizeof(void*) == 0x8) // Sims 3 64 bit version
+            {
+                *(ulong*)niec_native_func.MonoObjectAsPointerU64(obj) = (ulong)typePtr.value;
+            }
+            else
+            {
+                *(uint*)niec_native_func.MonoObjectAsPointerU(obj) = (uint)typePtr.value;
+            }
+
+            return true;
+        }
+
+        public unsafe static bool niecmod_script_object_set_type_ptr2(object obj, Type type)
+        {
+            return niecmod_script_object_set_type_ptr(obj, niecmod_script_get_type_ptr(type));
+        }
+        public unsafe static bool niecmod_script_object_set_type_ptr3<T>(object obj)
+        {
+            return niecmod_script_object_set_type_ptr(obj, niecmod_script_get_type_ptr2<T>());
+        }
 
         public unsafe static uint niecmod_script_get_func_ptr(IntPtr funcHandle)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             if (funcHandle == emtpyptr)
             {
                 return 0;
@@ -838,13 +1058,16 @@ namespace NiecMod.Nra
 
             uint func_address = ((uint)funcHandle.ToInt32()) + 0x20u;
             return *(uint*)func_address;
+#else
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
 
         public static uint niecmod_script_get_func_ptr2(MethodInfo internal_function)
         {
             if (NFinalizeDeath.GameIs64Bit(false))
                 return 0;
-
+#if GameVersion_0_Release_2_0_209
             var vfunc = internal_function as MonoMethod;
             if (vfunc == null)
             {
@@ -866,6 +1089,9 @@ namespace NiecMod.Nra
             {
                 return 0;
             }
+#else 
+            return 0;
+#endif // GameVersion_0_Release_2_0_209
         }
     }
 }

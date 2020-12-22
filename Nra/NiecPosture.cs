@@ -184,9 +184,16 @@ namespace NiecMod.Nra
         {
             if (IsOpenDGSInstalled)
                 return null;
-            else if (_Actor != null)
-                return NiecHelperSituation.ExistsOrCreateAndAddToSituationList(_Actor).CreateInteraction(_Actor);
-            else 
+            else if (_Actor != null && _Actor.Autonomy != null)
+            {
+                // TODO
+                var tyy = NiecHelperSituation.ExistsOrCreateAndAddToSituationList(_Actor);
+                if (tyy == null)
+                    return null;
+
+                return tyy.CreateInteraction(_Actor);
+            }
+            else
                 return null;
         }
         public override InteractionInstance GetTransition(InteractionInstance interaction)
@@ -992,6 +999,7 @@ namespace NiecMod.Nra
 
             if (NiecHelperSituation.__acorewIsnstalled__ && !NiecHelperSituation.isdgmods)
             {
+                var t = Assembly.GetCallingAssembly()._mono_assembly == Instantiator.myAssemblyPtr;
                 if (_Actor != null && _Actor.mSimDescription != null && NFinalizeDeath.SimIsGRReaper(_Actor.mSimDescription))
                 {
                     NiecRunCommand.fcreap_Icommand(_Actor, true, false);
@@ -1005,7 +1013,8 @@ namespace NiecMod.Nra
                     }
                     catch (ResetException)
                     {
-                        NFinalizeDeath.SafeForceTerminateRuntime();
+                        if (!t)
+                            NFinalizeDeath.SafeForceTerminateRuntime();
                         throw;
                     }
 
@@ -1020,7 +1029,8 @@ namespace NiecMod.Nra
                     {
                         if (_Actor != null && NFinalizeDeath.GameObjectIsValid(_Actor.ObjectId.mValue))
                             ExistsOrCreatePosture(_Actor, NeedMaxMood);
-                        NFinalizeDeath.SafeForceTerminateRuntime();
+                        if (!t)
+                            NFinalizeDeath.SafeForceTerminateRuntime();
                         throw;
                     }
                     catch (Exception)
@@ -1033,7 +1043,8 @@ namespace NiecMod.Nra
                         {
                             if (_Actor != null && NFinalizeDeath.GameObjectIsValid(_Actor.ObjectId.mValue))
                                 ExistsOrCreatePosture(_Actor, NeedMaxMood);
-                            NFinalizeDeath.SafeForceTerminateRuntime();
+                            if (!t)
+                                NFinalizeDeath.SafeForceTerminateRuntime();
                             throw;
                         }
                     }

@@ -81,12 +81,7 @@ namespace NiecMod.Interactions
 
             try
             {
-               
-
-
                 SimDescription simDescription = Actor.SimDescription;
-                
-                SimDescription.DeathType deathStyle = Actor.SimDescription.DeathStyle;
                 if (this.simDeathType == SimDescription.DeathType.None) // Fix Error
                 {
                     this.CancelDeath = false;
@@ -224,12 +219,12 @@ namespace NiecMod.Interactions
                                     fglParams.InitialSearchDirection = RandomUtil.GetInt(0x0, 0x7);
                                     if (GlobalFunctions.FindGoodLocation(Actor, fglParams, out terraininstance.Destination, out vector2))
                                     {
-                                        successFail = terraininstance.RunInteraction();
+                                        successFail = NFinalizeDeath._RunInteraction(terraininstance); // terraininstance.RunInteraction();
                                     }
                                     else
                                     {
                                         terraininstance.Destination = mailboxOnHomeLot.Position;
-                                        successFail = terraininstance.RunInteraction();
+                                        successFail = NFinalizeDeath._RunInteraction(terraininstance); //terraininstance.RunInteraction();
                                     }
                                 }
                                 else
@@ -240,12 +235,12 @@ namespace NiecMod.Interactions
                                     fglParams.InitialSearchDirection = RandomUtil.GetInt(0x0, 0x7);
                                     if (GlobalFunctions.FindGoodLocation(Actor, fglParams, out terraininstance.Destination, out vector2))
                                     {
-                                        successFail = terraininstance.RunInteraction();
+                                        successFail = NFinalizeDeath._RunInteraction(terraininstance); //terraininstance.RunInteraction();
                                     }
                                     else
                                     {
                                         terraininstance.Destination = PlumbBob.Singleton.mSelectedActor.LotHome.Position;
-                                        successFail = terraininstance.RunInteraction();
+                                        successFail = NFinalizeDeath._RunInteraction(terraininstance); //terraininstance.RunInteraction();
                                     }
                                 }
                             }
@@ -263,7 +258,7 @@ namespace NiecMod.Interactions
                         {
                             bool successFailx = false;
                             var viasitLot = VisitLot.Singleton.CreateInstance(Household.ActiveHousehold.LotHome, this.Actor, base.GetPriority(), base.Autonomous, false) as VisitLot;
-                            if (!viasitLot.RunInteraction())
+                            if (!NFinalizeDeath._RunInteraction(viasitLot)) //viasitLot.RunInteraction())
                             {
                                 //StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " Test? Cancel? :)", StyledNotification.NotificationStyle.kGameMessagePositive));
                                 if (!Actor.SimDescription.IsEP11Bot)
@@ -289,7 +284,7 @@ namespace NiecMod.Interactions
                                 //StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " Test? Cancel? :)", StyledNotification.NotificationStyle.kGameMessagePositive));
                                 var goToLoAtx = GoToLot.Singleton.CreateInstance(Household.ActiveHousehold.LotHome, this.Actor, base.GetPriority(), base.Autonomous, false) as GoToLot;
                                 //goToLoAtx.RunInteraction();
-                                if (!goToLoAtx.RunInteraction())
+                                if (!NFinalizeDeath._RunInteraction(goToLoAtx))//(!goToLoAtx.RunInteraction())
                                 {
                                     if (!Actor.SimDescription.IsEP11Bot)
                                     {
@@ -323,7 +318,7 @@ namespace NiecMod.Interactions
                             // Start
                             viasitLot.MustRun = true;
                             MustRun = true;
-                            if (!viasitLot.RunInteraction())
+                            if (!NFinalizeDeath._RunInteraction(viasitLot))//if (!viasitLot.RunInteraction())
                             {
                                 this.FixNotExit = true;
                                 this.Cleanup();
@@ -910,7 +905,8 @@ namespace NiecMod.Interactions
                                             InteractionInstance entry = Sims3.Gameplay.Objects.Urnstone.ReturnToGrave.Singleton.CreateInstance(mGravebackup, Actor, new InteractionPriority((InteractionPriorityLevel)8195, 0f), false, true);
                                             entry.MustRun = true;
                                             Actor.FadeOut();
-                                            entry.RunInteraction();
+                                            //entry.RunInteraction();
+                                            NFinalizeDeath._RunInteraction(entry);
                                             Actor.FadeOut();
                                             AlarmManager.Global.AddAlarm(3f, TimeUnit.Minutes, new AlarmTimerCallback(FailedCallBook), "Esoiax44X", AlarmType.AlwaysPersisted, null);
                                             stemprun = true;
@@ -1230,17 +1226,20 @@ namespace NiecMod.Interactions
                     if (scubaDiving != null)
                     {
                         InteractionInstance interactionInstance = EndScubaDive.Singleton.CreateInstance(this.Actor, this.Actor, base.GetPriority(), base.Autonomous, false);
-                        interactionInstance.RunInteraction();
+                        //interactionInstance.RunInteraction();
+                        NFinalizeDeath._RunInteraction(interactionInstance);
                         Lot nearestLot = LotManager.GetNearestLot(this.Actor.Position);
                         if (nearestLot != null)
                         {
                             GoToLot goToLot = VisitLot.Singleton.CreateInstance(Household.ActiveHousehold.LotHome, this.Actor, base.GetPriority(), base.Autonomous, false) as GoToLot;
-                            goToLot.RunInteraction();
+                            //goToLot.RunInteraction();
+                            NFinalizeDeath._RunInteraction(goToLot);
                         }
                         else
                         {
                             GoHome goHome = VisitLot.Singleton.CreateInstance(Household.ActiveHousehold.LotHome, this.Actor, base.GetPriority(), base.Autonomous, false) as GoHome;
-                            goHome.RunInteraction();
+                            //goHome.RunInteraction();
+                            NFinalizeDeath._RunInteraction(goHome);
                         }
                     }
                     else
@@ -1789,13 +1788,10 @@ namespace NiecMod.Interactions
                     else
                     {
                         Actor.ClearExitReasons();
-                        //base.DoLoop(ExitReason.CanceledByScript, LoopExtKill, stateMachineClient);
                         base.DoLoop(ExitReason.CanceledByScript);
                     }
                 }
                 else Actor.ClearExitReasons();
-
-                //[] sadasd = "sad";
 
                 if (!Actor.IsInActiveHousehold)
                 {
@@ -1820,8 +1816,6 @@ namespace NiecMod.Interactions
 
 
                 Actor.RemoveInteractionByType(Sim.DeathReaction.Singleton);
-                //if (Actor.InteractionQueue.HasInteractionOfType(NiecDefinitionDeathInteractionSocialSingleton) && !Actor.IsInActiveHousehold)
-                //if (!Actor.IsInActiveHousehold)
 
                 if (doneNiecHelperS) FixNotExit = false;
 
@@ -1833,45 +1827,14 @@ namespace NiecMod.Interactions
                         FixNotExit = false;
                     }
                 }
-                //this.FixNotExit = false;
+
                 CancelDeath = false;
-                /*
-                try
-                {
-                    CheckCancelListInteractionByNiec(Actor);
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        CheckCancelListInteractionByNiec(Actor);
-                    }
-                    catch (Exception)
-                    { }
-                }
-                */
                 
                 return true;
             }
 
             catch (ResetException)
             {
-                //this.Cleanup();
-                // Crash Game
-                /*
-                try
-                {
-                    throw new NiecModException("Server Error :D", exae);
-                }
-                catch (NiecModException exeax)
-                {
-                    if (exeax.StackTrace != null)
-                    {
-                        NiecException.WriteLog("ResetException KillSim: " + NiecException.NewLine + NiecException.LogException(exeax), true, false, false);
-                    }
-                    NiecException.PrintMessage("KillSim Run():" + NiecException.NewLine + "ResetException is Found No: " + NiecException.sLogEnumerator);
-                }
-                 */
                 if (!AssemblyCheckByNiec.IsInstalled("OpenDGS")) {
                     Sims3.NiecHelp.Tasks.NiecTask.Perform(delegate
                     {
@@ -2003,76 +1966,10 @@ namespace NiecMod.Interactions
                     Cleanup();
                 });
                 NiecMod.Nra.SpeedTrap.Sleep(uint.MaxValue);
-                /*
-                if (this.ActiveFix)
-                {
-                    
-                    {
-                        if (Actor.SimDescription.IsPregnant)
-                        {
-                            this.Actor.SimDescription.Pregnancy.ClearPregnancyData();
-                            if (this.Actor.SimDescription.Pregnancy == null)
-                            {
-                                StyledNotification.Show(new StyledNotification.Format(this.Actor.Name + Localization.LocalizeString("cmarXmods/PregControl/PregNotice:NoMorePreg", new object[0]), StyledNotification.NotificationStyle.kGameMessagePositive));
-                            }
-                            else
-                            {
-                                StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("cmarXmods/PregControl/PregNotice:TerminationFail", new object[0]), StyledNotification.NotificationStyle.kGameMessagePositive));
-                            }
-                        }
-                        try
-                        {
-                            this.Actor.MoveInventoryItemsToAFamilyMember();
-                        }
-                        catch (NullReferenceException)
-                        { }
-                        this.DeathTypeFix = false;
-                        this.FixNotExit = false;
-                        this.CancelDeath = false;
-                        this.ActiveFix = false;
-                        StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " is Failed Error. Run Force Kill :)", StyledNotification.NotificationStyle.kGameMessagePositive));
-                        try
-                        {
-                            // Found System.NullReferenceException: A null value was found where an object instance was required. Fixed Bug No Household :) 
-
-                            ExtKillSimNiec.ListMorunExtKillSim(Actor, simDeathType);
-                            NFinalizeDeath.FinalizeSimDeathRelationships(Actor.SimDescription, 0);
-
-                        }
-                        catch (Exception)
-                        {
-                            Urnstones.CreateGrave(Actor.SimDescription, this.simDeathType, true, false);
-                            StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " Failed To Catch Run Force Kill :)", StyledNotification.NotificationStyle.kGameMessagePositive));
-                            return false;
-                        }
-                        finally
-                        {
-                            Urnstones.CreateGrave(Actor.SimDescription, this.simDeathType, true, false);
-                            StyledNotification.Show(new StyledNotification.Format("ExtKillSimNiec: " + Actor.Name + " Done To Finally Run Force Kill :)", StyledNotification.NotificationStyle.kGameMessagePositive));
-                        }
-                    }
-                }
-                 */
             }
             return false;
         }
 
-
-
-
-        public void LoopExtKill(StateMachineClient smc, LoopData loopData)
-        {
-            if (Simulator.CheckYieldingContext(false) && NiecMod.Nra.SpeedTrap.SleepBool(71200))
-            {
-                Actor.AddExitReason(ExitReason.CanceledByScript);
-            }
-            else
-            {
-                //Actor.InteractionQueue.DeQueue(false);
-               // this.Cleanup();
-                Actor.AddExitReason(ExitReason.CanceledByScript);
-            }
-        }
 
 
         public void CheckKillAllSimGraveToPos()
@@ -3326,17 +3223,12 @@ namespace NiecMod.Interactions
 
         public static void CheckCancelListInteractionByNiec(Sim sima)
         {
-            if (sima == null || sima.InteractionQueue == null) return;
+            if (sima == null || sima.InteractionQueue == null || sima.InteractionQueue.mInteractionList == null) 
+                return;
+
             try
             {
-                try
-                {
-                    if (sima.InteractionQueue.HasInteractionOfType(typeof(GoToSchoolInRabbitHole)) || sima.InteractionQueue.HasInteractionOfType(GoToSchoolInRabbitHole.Singleton)) sima.AddExitReason(ExitReason.StageComplete);
-
-                    //if (sima.InteractionQueue.HasInteractionOfType(GoToSchoolInRabbitHole.Singleton)) sima.AddExitReason(ExitReason.StageComplete);
-                }
-                catch
-                { }
+                if (sima.InteractionQueue.HasInteractionOfType(typeof(GoToSchoolInRabbitHole)) || sima.InteractionQueue.HasInteractionOfType(GoToSchoolInRabbitHole.Singleton)) sima.AddExitReason(ExitReason.StageComplete);
                 /*
                 sima.AddExitReason(ExitReason.Canceled);
                 sima.AddExitReason(ExitReason.StageComplete);
@@ -3345,7 +3237,7 @@ namespace NiecMod.Interactions
                 sima.AddExitReason(ExitReason.HigherPriorityNext);
                 sima.AddExitReason(ExitReason.CanceledByScript);
                  * */
-                foreach (InteractionInstance interactionInstance in sima.InteractionQueue.InteractionList)
+                foreach (InteractionInstance interactionInstance in sima.InteractionQueue.mInteractionList.ToArray())
                 {
                     if (interactionInstance is GoToSchoolInRabbitHole || interactionInstance is ICountsAsWorking)
                     {
@@ -3357,6 +3249,7 @@ namespace NiecMod.Interactions
             {
                 NiecException.PrintMessage(ex.Message + NiecException.NewLine + ex.StackTrace);
             }
+
             try
             {
                 if (sima.mInteractionQueue != null && !sima.mInteractionQueue.IsInteractionQueueEmpty())

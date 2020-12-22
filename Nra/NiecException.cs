@@ -91,7 +91,7 @@ namespace NiecMod.Nra
             }
             catch (Exception ex)
             {
-                niec_native_func.OutputDebugString("NMScriptN Exception Log\n" + ex.ToString() + "\nEnd");
+                niec_native_func.OutputDebugString("NMScriptN Exception Log\n" + ex.stack_trace + "\nEnd");
             }
         }
 

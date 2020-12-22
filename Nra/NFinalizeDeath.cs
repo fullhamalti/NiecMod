@@ -416,26 +416,6 @@ namespace NiecMod.Nra
                                 {
                                     GrimReaper.Instance.MakeServiceRequest(mSim.LotCurrent, true, ObjectGuid.InvalidObjectGuid);
                                 }
-                                /*
-                                var asdoei = mSim.CurrentInteraction as ExtKillSimNiec;
-                                if (asdoei != null)
-                                {
-                                    // Add New
-                                    if (GameUtils.IsInstalled(ProductVersion.EP10) && mSim.Posture != null && !(mSim.Posture is ScubaDiving))
-                                    {
-                                        Lot lotloot = mSim.LotCurrent;
-                                        if (lotloot != null && lotloot.IsDivingLot)
-                                        {
-                                            ScubaDiving scubaDivinga = new ScubaDiving(asdoei.mCurrentStateMachine, Ocean.Singleton, mSim);
-                                            if (scubaDivinga != null)
-                                            {
-                                                mSim.Posture = scubaDivinga;
-                                                scubaDivinga.StartBubbleEffects();
-                                            }
-                                        }
-                                    }
-                                }
-                                 * */
                             }
                         }
                         catch
@@ -502,26 +482,6 @@ namespace NiecMod.Nra
                                     {
                                         GrimReaper.Instance.MakeServiceRequest(mSim.LotCurrent, true, ObjectGuid.InvalidObjectGuid);
                                     }
-                                    /*
-                                    var asdoei = mSim.CurrentInteraction as ExtKillSimNiec;
-                                    if (asdoei != null)
-                                    {
-                                        // Add New
-                                        if (GameUtils.IsInstalled(ProductVersion.EP10) && mSim.Posture != null && !(mSim.Posture is ScubaDiving))
-                                        {
-                                            Lot lotloot = mSim.LotCurrent;
-                                            if (lotloot != null && lotloot.IsDivingLot)
-                                            {
-                                                ScubaDiving scubaDivinga = new ScubaDiving(asdoei.mCurrentStateMachine, Ocean.Singleton, mSim);
-                                                if (scubaDivinga != null)
-                                                {
-                                                    mSim.Posture = scubaDivinga;
-                                                    scubaDivinga.StartBubbleEffects();
-                                                }
-                                            }
-                                        }
-                                    }
-                                     * */
                                 }
                             }
                             catch
@@ -556,10 +516,8 @@ namespace NiecMod.Nra
                 }
                 catch (Exception ex)
                 { NiecException.WriteLog("HelperNraPro: Error A" + NiecException.LogException(ex), true, true, false); }
+
                 mSim.FadeIn();
-                //mSim.SimRoutingComponent.DisableDynamicFootprint();
-                
-                //mSim.SimRoutingComponent.EnableDynamicFootprint();
 
                 if (mSim.LotCurrent != null && !mSim.LotCurrent.IsWorldLot)
                 {
@@ -892,8 +850,9 @@ namespace NiecMod.Nra
             {
                 NiecException.WriteLog(ex.ToString(), true, true, false);
             }
+
             if (Simulator.CheckYieldingContext(false))
-            Simulator.Sleep(uint.MaxValue);
+                Simulator.Sleep(uint.MaxValue);
         }
 
         public void Stop()
@@ -991,6 +950,11 @@ namespace NiecMod.Nra
 
         public virtual void Update() {
             //_hash = Value.GetHashCode;
+        }
+
+        public virtual bool IsDone()
+        {
+            return false;
         }
 
         public object[] ValueList = null;
@@ -1939,7 +1903,7 @@ namespace NiecMod.Nra
         {
             if (Instantiator.SYNInject)
             {
-                if (NSystemException.__IListEx != null)
+                if (NSystemException.__IListEx != null && NSystemException.__IListEx.Count > 0)
                 {
                     return NSystemException.__IListEx;
                 }
@@ -1997,7 +1961,7 @@ namespace NiecMod.Nra
             }
             
         }
-
+        public static bool dontdebstr = false;
         public static bool is_d_scobjectscmd = false;
 
         public static TValue[] GetValuesDictionary<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> _this)
@@ -3020,8 +2984,8 @@ namespace NiecMod.Nra
                                     tOptionsModel.mSaveInProgress = true;
                             }
 
-                            if (!IsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore"))
-                                GC.Collect();
+                            //if (!IsOpenDGSInstalled && AssemblyCheckByNiec.IsInstalled("AweCore"))
+                            //    GC.Collect();
 
                             eLoadSaveErrorCode = (LoadSaveManager.eLoadSaveErrorCode)LoadSaveManager.SaveGame(loadSaveFileInfo2, (GameStates.HasTravelData || GameStates.MovingWorldName != null) ? true : false);
                             if (tOptionsModel != null)
@@ -4628,8 +4592,20 @@ System.NullReferenceException: A null value was found where an object instance w
             }
             catch (StackOverflowException) { throw; }
             catch (ResetException) { throw; }
-            catch (Exception)
-            { }
+            catch (Exception) { }
+
+            if (TargetLot.mSavedData != null)
+            {
+                TargetLot.mSavedData.mCachedCost = 0;
+
+                try
+                {
+                    TargetLot.UpdateCachedCost();
+                }
+                catch (StackOverflowException) { throw; }
+                catch (ResetException) { throw; }
+                catch (Exception) { }
+            }
 
             return SC_GetObjectsOnLot<GameObject>(TargetLot).Length == 0 && World.LotIsEmpty(TargetLot.LotId);
         }
@@ -5335,7 +5311,8 @@ System.NullReferenceException: A null value was found where an object instance w
                                 TestAddInteractionError_data01 = Sims3.SimIFace.StringTable.gStringTable;
                                 Sims3.SimIFace.StringTable.gStringTable = null;
 
-                                testInteraction.AddInteractions(activeActor, listTemp); // info: tempPar = new object[] {activeActor, listTemp};
+                                if (!Instantiator.NIOPInject)
+                                    testInteraction.AddInteractions(activeActor, listTemp); // info: tempPar = new object[] {activeActor, listTemp};
                                 if (cachemethed_METestAddInteractionErrorTestPMPPIsNotNull)
                                 {
                                     // info: tempPar2 = new object[] {  testInteraction.InteractionDefinition, testInteraction, activeActor };
@@ -5444,15 +5421,16 @@ System.NullReferenceException: A null value was found where an object instance w
             if (objID.mValue == 0) return new Vector3(0, 0, 1);
             return ScriptCore.Objects.Objects_GetForward(objID.mValue);
         }
+
         public static void CheckNHSP() {
             if (Simulator.CheckYieldingContext(false)) {
                 Sim currentSim = GetCurrentGameObjectFast<Sim>();
-                if (currentSim != null && (NiecHelperSituation.isdgmods || !SimIsGRReaper(currentSim.mSimDescription)) && currentSim.Posture is NiecHelperSituationPosture)
-                {
+                if (currentSim != null && (NiecHelperSituation.isdgmods || !SimIsGRReaper(currentSim.mSimDescription)) && currentSim.Posture is NiecHelperSituationPosture) {
                     NiecHelperSituationPosture.r_internal(currentSim);
                 }
             }
         }
+
         public static void CheckNHSPFast(Sim currentSim)
         {
             if (Simulator.CheckYieldingContext(false))
@@ -7165,28 +7143,6 @@ System.NullReferenceException: A null value was found where an object instance w
             catch { }
         }
 
-        public static string GetSTLite01()
-        {
-            var st = new NStackTrace(1);
-            var sb = new StringBuilder();
-            for (int stack = st.FrameCount - 1; stack >= 0; stack--)
-            {
-                var sf = st.GetFrame(stack);
-                if (st == null)
-                    continue;
-
-                var m = sf.methodBase;
-                if (m == null)
-                    continue;
-
-                sb.Append(m.DeclaringType.Name);
-                sb.Append("::");
-                sb.Append(m.Name);
-                sb.Append('\n');
-            }
-            return sb.ToString();
-        }
-
         public static string GetObjectSTLite01(ulong ObjectID)
         {
             ScriptCore.TaskContext context;
@@ -7733,6 +7689,46 @@ System.NullReferenceException: A null value was found where an object instance w
             }
         }
 
+        public static MethodBase GetGoodMethods(Type type, Type[] types, string name, BindingFlags bindingAttr) // fast code :)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+            if (types == null)
+                types = new Type[0];
+            else
+            {
+                for (int i = 0; i < types.Length; i++)
+                {
+                    if (types[i] == null)
+                    {
+                        throw new ArgumentNullException("types[" + i + "]");
+                    }
+                }
+            }
+
+            var methods = ((MonoType)type).GetMethodsByName(name, bindingAttr, false, type);
+            if (methods != null)
+            {
+                foreach (var methodBase in methods)
+                {
+                    if (methodBase == null)
+                    {
+                        continue;
+                    }
+
+                    var parameters = methodBase.GetParameters();
+                    if (parameters != null && parameters.Length == types.Length && System.Reflection.Binder.Default.check_arguments(types, parameters))
+                    {
+                        return methodBase;
+                    }
+                }
+            }
+            return null; //type.GetMethod(name, bindingAttr, null, types, null);
+        }
+
         public static Sim GetSafeSelectActor()
         {
             if (NPlumbBob.sCurrentSimTwo != null)
@@ -7922,6 +7918,22 @@ System.NullReferenceException: A null value was found where an object instance w
             return actor.IsSimulating;
         }
 
+        public static void LoopISPoIntPos()
+        {
+            NiecTask.Perform(() =>
+            {
+                //while (true)
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Simulator.Sleep(0);
+                    }
+                    
+                    Bim.checkintabimIsPointInLotSafelyRoutable = 0;
+                }
+            });
+        }
+
         public static 
             void TestSetActiveActor(Sim Target, bool checkPlumbBobNull)
         {
@@ -7952,7 +7964,7 @@ System.NullReferenceException: A null value was found where an object instance w
             ActiveActor = Target;
 
             if (Target != null) {
-                if (Target.Household != null) 
+                if (Target.Household != null && !Instantiator.ahHHHHh) 
                 {
                     Assert
                         (PlumbBob.sCurrentNonNullHousehold != null,
@@ -7963,6 +7975,7 @@ System.NullReferenceException: A null value was found where an object instance w
                       "PlumbBob.sSingleton.mSelectedActor != null");
             } 
             else {
+                if (!Instantiator.ahHHHHh) 
                 Assert(PlumbBob.sCurrentNonNullHousehold == null, 
                       "PlumbBob.sCurrentNonNullHousehold == null");
 
@@ -8411,7 +8424,7 @@ System.NullReferenceException: A null value was found where an object instance w
 
         public static string GetNowTimeToStr()
         {
-            return DateTime.Now.ToString().Replace('/', '-').Replace(':', '_');
+            return DateTime.Now.ToString().Replace('/', '-').Replace(':', '.');
         }
 
         public static Household Household_CloneHousehold(Household d, bool deleteNewPackageFile)
@@ -8546,7 +8559,7 @@ System.NullReferenceException: A null value was found where an object instance w
             //Print("GetLastPackageName: Could not find Package!");
             return null;
         }
-        public static List<SimDescription> CopyFullSimDesc()
+        public static List<SimDescription> CopyFullSimDesc(bool dontCopy)
         {
             if (Bin.sSingleton == null)
             {
@@ -8635,6 +8648,9 @@ System.NullReferenceException: A null value was found where an object instance w
                 return null;
 
             NiecException.PrintMessagePro(packageFile, false, float.MaxValue);
+
+            if (dontCopy)
+                return null;
 
             if (Simulator.CheckYieldingContext(false))
                 Simulator.Sleep(0);
@@ -11324,7 +11340,7 @@ System.NullReferenceException: A null value was found where an object instance w
                         {
                             ths.AssertClearOutfitsUnsafeWorks();
                         }
-                        else
+                        else if (ths.mOutfits != null)
                         {
                             ths.ClearOutfits(false);
                         }
@@ -11688,7 +11704,7 @@ System.NullReferenceException: A null value was found where an object instance w
             {
                 return new List<SimDescription>();
             }
-            return house.AllSimDescriptions;
+            return house.AllSimDescriptions ?? new List<SimDescription>();
         }
         public static SimDescription[] NiecHouseholdsAllPro(Household house)
         {
@@ -11733,18 +11749,25 @@ System.NullReferenceException: A null value was found where an object instance w
         }
         public static void HouseholdCleanse(Household house, bool noCheck)
         {
-            HouseholdCleanse(house, noCheck, true);
+            HouseholdCleanse(house, noCheck, !NiecHelperSituation.__acorewIsnstalled__ || IsOpenDGSInstalled);
         }
         public static void HouseholdCleanse(Household house, bool noCheck, bool safe)
         {
-            if (house == null) return;
-            if (safe && house.HasBeenDestroyed) return;
+            if (house == null) 
+                return;
+            if (safe && house.HasBeenDestroyed)
+                return;
+
             try
             {
-                if (house == ActiveHousehold) return;
+                if (house == ActiveHousehold) 
+                    return;
+
                 try
                 {
-                    if (house == Household.ActiveHousehold) return;
+                    if (house == Household.ActiveHousehold) 
+                        return;
+
                 }
                 catch (StackOverflowException) { throw; }
                 catch (ResetException) { throw; }
@@ -11752,9 +11775,8 @@ System.NullReferenceException: A null value was found where an object instance w
                 {}
                 if (!noCheck)
                 {
-
-                    
-                    if (house.IsSpecialHousehold) return;
+                    if (house.IsSpecialHousehold) 
+                        return;
                 }
 
             }
@@ -11772,6 +11794,9 @@ System.NullReferenceException: A null value was found where an object instance w
 
                 foreach (SimDescription sim in NiecHouseholdsAll(house).ToArray())
                 {
+                    if (sim == null)
+                        continue;
+
                     SimDescCleanse(sim, true, safe);
                 }
 
@@ -11779,7 +11804,7 @@ System.NullReferenceException: A null value was found where an object instance w
                 {
                     foreach (var item in SC_GetObjects<Bill>())
                     {
-                        if (item.OriginatingHousehold == house)
+                        if (item != null && item.OriginatingHousehold == house)
                         {
                             item.OriginatingHousehold = null;
                             item.DestroyBill(false);
@@ -11795,6 +11820,8 @@ System.NullReferenceException: A null value was found where an object instance w
                 {
                     if (house == PlumbBob.sCurrentNonNullHousehold) 
                         PlumbBob.sCurrentNonNullHousehold = null;
+                    if (house == NPlumbBob.sCurrentNonNullHousehold)
+                        NPlumbBob.sCurrentNonNullHousehold = null;
 
                     if (house == Household.sNpcHousehold)
                     {
@@ -11880,7 +11907,8 @@ System.NullReferenceException: A null value was found where an object instance w
                 catch (ResetException) { throw; }
                 catch
                 { }
-                
+
+                RemoveNullForHouseholdMembers(house);
 
                 try
                 {
@@ -11897,15 +11925,15 @@ System.NullReferenceException: A null value was found where an object instance w
                 if (HouseHome != null)
                 {
                     HouseHome.mHousehold = null;
-
                 }
+
                 if (!safe)
                 {
                     try
                     {
                         house.mbInited = false;
                         house.mAncientCoinCount = 0;
-                        house.mBioText = null;
+                        house.BioText = null;
                         house.mFamilyFunds = 0;
                         house.mDelinquentFunds = 0;
                         house.mHouseholdId = 0;
@@ -11926,7 +11954,7 @@ System.NullReferenceException: A null value was found where an object instance w
                             house.mMembers.mAllSimDescriptions.Clear();
                             house.mMembers.mPetSimDescriptions.Clear();
                             house.mMembers.mSimDescriptions.Clear();
-                            house.mMembers = new Household.Members();
+                            //house.mMembers = new Household.Members();
                         }
                         house.mVirtualLotHome = null;
                         house.mVirtualLotId = 0;
@@ -11953,11 +11981,7 @@ System.NullReferenceException: A null value was found where an object instance w
                 catch (Exception)
                 {
                     // Do Nothing 
-                } 
-               // if (!safe)
-               //     house.mbInited = false;
-                //if (!safe)
-                //    Simulator.DestroyObject(sad);
+                }
             }
             catch (StackOverflowException) { throw; }
             catch (ResetException) { throw; }
@@ -11968,27 +11992,9 @@ System.NullReferenceException: A null value was found where an object instance w
         }
         public static void HouseholdCleanse(Household house)
         {
-            HouseholdCleanse(house, false, true);
+            HouseholdCleanse(house, false, !NiecHelperSituation.__acorewIsnstalled__ || IsOpenDGSInstalled);
         }
-        /*
-        public:
-            void NFinalizeDeath::HouseholdCleanse(Household* house, SimDescription* NoSimDesc) {
-            if (house == null) return;
-            try
-            {
-                for each (SimDescription sim in new List<SimDescription>(NiecHouseholdsAll(house)))
-                {
-                    if (sim != NoSimDesc)
-                        SimDescCleanse(sim, true);
-                }
 
-                house->Destroy();
-                house->Dispose();
-            }
-            catch (...) 
-            { }
-         }
-         */
         public static void  HouseholdCleanse (Household house, SimDescription NoSimDesc)
         {
             if (house == null) return;
@@ -12342,21 +12348,28 @@ System.NullReferenceException: A null value was found where an object instance w
         {
             CacheAssemblyEA();
             var p = assembly._mono_assembly.value;
-            foreach (var item in EA_Assemblies)
+            IntPtr[] vList = EA_Assemblies;
+
+            for (int i = 0; i < vList.Length; i++)
             {
-                //if (assembly == item) return true;
-                if (p == item.value) 
-                    return true;
-            }
-            if (isEAStoreObjects)
-            {
-                foreach (var item in EAStore_Assemblies)
+                if (p == vList[i].value)
                 {
-                    //if (assembly == item) return true;
-                    if (p == item.value)
-                        return true;
+                    return true;
                 }
             }
+
+            if (isEAStoreObjects)
+            {
+                vList = EAStore_Assemblies;
+                for (int i = 0; i < vList.Length; i++)
+                {
+                    if (p == vList[i].value)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -12640,6 +12653,15 @@ System.NullReferenceException: A null value was found where an object instance w
 			
         }
 
+        public static string GetDescName(SimDescription simd)
+        {
+            if (simd == null)
+                return "no name";
+            var name = simd.FirstName + " " + simd.LastName;
+            if (name.Trim().Length == 0)
+                return "no name";
+            return name;
+        }
 
         public static T[] SC_GetObjectsIScriptLogic<T>() where T : IScriptLogic
         {
@@ -12653,7 +12675,9 @@ System.NullReferenceException: A null value was found where an object instance w
 
         public static void DeleteInvSim(Sim Actor)
         {
-            if (Actor == null) return;
+            if (Actor == null)
+                return;
+
             try
             {
                 _MoveInventoryItemsToAFamilyMember
@@ -12662,12 +12686,17 @@ System.NullReferenceException: A null value was found where an object instance w
             catch (StackOverflowException) { throw; }
             catch (ResetException) { throw; }
             catch { }
+
             if (Actor.mObjComponents != null)
             {
                 Type typeI = typeof(Sims3.Gameplay.ObjectComponents.InventoryComponent);
-                foreach (var item in Actor.mObjComponents.ToArray())
+                var p = Actor.mObjComponents;
+
+                foreach (var item in p.ToArray())
                 {
-                    if (item == null) continue;
+                    if (item == null) 
+                        continue;
+
                     if (item.BaseType == typeI)
                     {
                         try
@@ -12677,8 +12706,8 @@ System.NullReferenceException: A null value was found where an object instance w
                         catch (StackOverflowException) { throw; }
                         catch (ResetException) { throw; }
                         catch { }
-                        
-                        Actor.mObjComponents.Remove(item);
+
+                        p.Remove(item);
                     }
                 }
             }
@@ -13285,6 +13314,57 @@ System.NullReferenceException: A null value was found where an object instance w
             return;
         }
 
+        public static void SetProgressDialogTitle(string titleText, bool adjustSize)
+        {
+            if (titleText == null)
+            {
+                NDebugger.Log(NDebugger.LogLevel.Error, "SetProgressDialogTitle", "titleText arg is null", true);
+                return;
+            }
+            ProgressDialog sDialog = ProgressDialog.sDialog;
+            if (sDialog == null)
+            {
+                NDebugger.Log(NDebugger.LogLevel.Error, "SetProgressDialogTitle", "ProgressDialog.sDialog is null", true);
+                return;
+            }
+            var text = sDialog.mModalDialogWindow.GetChildByID(1, true) as Text;
+            if (text == null)
+            {
+                NDebugger.Log(NDebugger.LogLevel.Error, "SetProgressDialogTitle", "ProgressDialog don't have Text's Child!", true);
+                return;
+            }
+            if (adjustSize)
+            {
+                Rect areaModalDialogWindow = sDialog.mModalDialogWindow.Area;
+                float width = sDialog.mModalDialogWindow.Area.Width - text.Area.Width;
+
+                text.Caption = titleText;
+                areaModalDialogWindow.Width = text.Area.Width + width;
+                sDialog.mModalDialogWindow.Area = areaModalDialogWindow;
+
+                if (sDialog.mAnimHolder != null)
+                {
+                    Rect areaAnimHolder = sDialog.mAnimHolder.Area;
+                    float width2 = (areaModalDialogWindow.Width - sDialog.mAnimHolder.Area.Width) / 2;
+
+                    areaAnimHolder.Set
+                        (width,
+                        sDialog.mAnimHolder.Area.TopLeft.y,
+                        width + sDialog.mAnimHolder.Area.Width,
+                        sDialog.mAnimHolder.Area.BottomRight.y);
+
+                    sDialog.mAnimHolder.Area = areaAnimHolder;
+                }
+                else NDebugger.Log(NDebugger.LogLevel.Error, "SetProgressDialogTitle", "ProgressDialog don't have AnimHolder!", true);
+            }
+            else
+            {
+                text.Caption = titleText;
+            }
+            //if (Simulator.CheckYieldingContext(false))
+                Simulator.Sleep(0);
+        }
+
         public static bool SimDescCleanse(IMiniSimDescription me, bool clear, bool safe)
         {
             if (me == null) return false;
@@ -13417,7 +13497,7 @@ System.NullReferenceException: A null value was found where an object instance w
                             if (other == null)
                                 continue;
                             MiniSimDescription miniOther = MiniSimDescription.Find(other.SimDescriptionId);
-                            if (miniOther == null)
+                            if (miniOther == null || miniOther.mMiniRelationships == null)
                                 continue;
 
                             miniOther.RemoveMiniRelatioship(me.SimDescriptionId);
@@ -14167,7 +14247,6 @@ System.NullReferenceException: A null value was found where an object instance w
             obj_Sim.mSnubManager = null;
             obj_Sim.mMapTagManager = null;
             obj_Sim.mDreamsAndPromisesManager = null;
-            obj_Sim.mDreamsAndPromisesManager = null;
             obj_Sim.mDeepSnowEffectManager = null;
             obj_Sim.mFlags = 0;
             obj_Sim.SleepDreamManager = null;
@@ -14203,6 +14282,65 @@ System.NullReferenceException: A null value was found where an object instance w
 
             DeleteInvSim(obj_Sim);
         }
+        public static void UnSafeForceErrorTargetSimPro(Sim obj_Sim)
+        {
+            Autonomy autonmy = obj_Sim.Autonomy;
+            if (autonmy != null)
+            {
+                var aSituationComponent = autonmy.SituationComponent;
+
+                if (aSituationComponent != null)
+                    aSituationComponent.mSituations = new List<Situation>();
+
+                autonmy.mSituationComponent = null;
+                autonmy.mMotives = null;
+            }
+
+            obj_Sim.mAutonomy = null;
+            obj_Sim.mBuffManager = null;
+            obj_Sim.mMoodManager = null;
+            obj_Sim.mInteractionQueue = null;
+            obj_Sim.mLookAtManager = null;
+            obj_Sim.mIdleManager = null;
+            obj_Sim.mThoughtBalloonManager = null;
+            obj_Sim.mSocialComponent = null;
+            obj_Sim.mSnubManager = null;
+            obj_Sim.mMapTagManager = null;
+            obj_Sim.mDreamsAndPromisesManager = null;
+            obj_Sim.mDeepSnowEffectManager = null;
+            obj_Sim.mFlags = 0;
+            obj_Sim.SleepDreamManager = null;
+            obj_Sim.mCelebrity = null;
+            obj_Sim.mActorsUsingMe = null;
+            obj_Sim.mClothingReactionBroadcaster = null;
+            obj_Sim.mOpportunityManager = null;
+            obj_Sim.mPosture = null;
+            obj_Sim.mActiveSwitchOutfitHelper = null;
+            obj_Sim.mMapTagManager = null;
+            obj_Sim.mSimCommodityInteractionMap = null;
+
+            try
+            {
+                if (obj_Sim.mInteractions != null && obj_Sim.mInteractions._items != null)
+                {
+                    List_FastClearEx(ref obj_Sim.mInteractions);
+                    for (int i = 0; i < 50; i++)
+                    {
+                        obj_Sim.mInteractions.Add(null);
+                    }
+                }
+            }
+            catch (StackOverflowException) { throw; }
+            catch (ResetException) { throw; }
+            catch { }
+                
+
+            if (obj_Sim.mPosture as NiecPosture == null)
+                obj_Sim.mPosture = new NiecPosture(obj_Sim);
+
+            obj_Sim.mObjComponents = null;
+        }
+
 
         public static void SimDescRemoveMSD(ulong id)
         {
@@ -14241,6 +14379,15 @@ System.NullReferenceException: A null value was found where an object instance w
                         }
                     }
                 }
+            }
+        }
+
+        public static void LoopSMCI()
+        {
+            while (true)
+            {
+                Simulator.Sleep(0);
+                NJOClass.tortiyri = 0;
             }
         }
 
@@ -16453,6 +16600,17 @@ System.NullReferenceException: A null value was found where an object instance w
         public static
             void AutoSave()
         {
+            // Sims 3 has been blocked from accessing Graphics handware.
+            if (ScriptCore.GameUtils.GameUtils_GetCurrentFps() == 0)
+            {
+                if (NFinalizeDeath.unsafeForceSaveGameNoDialog() == LoadSaveManager.eLoadSaveErrorCode.kNoError)
+                {
+                    return;
+                }
+                else CopyFullSimDesc(true);
+                return;
+            }
+
             try
             {
                 var ah = Household.ActiveHousehold;
@@ -16845,6 +17003,96 @@ System.NullReferenceException: A null value was found where an object instance w
             }
         }
 
+        public static SimDescription SimDesc_Find(ulong simDescriptionId)
+        {
+            if (simDescriptionId == 0) 
+                return null;
+
+            var v = Household.sHouseholdList;
+            var cacheIsSV = GameStates.IsStartingVacation;
+            var prthousehold = Household.PreviousTravelerHousehold;
+
+            for (int i = 0, maxCount = v.Count; i < maxCount; i++) // fast code
+            {
+                Household sHousehold = v._items[i];
+                if (sHousehold == null)
+                    continue;
+
+                if (sHousehold != prthousehold || (cacheIsSV && GameStates.TravelerIds.Contains(simDescriptionId)))
+                {
+                    var vA = sHousehold.AllSimDescriptions;
+                    for (int iA = 0, maxCountA = vA.Count; iA < maxCountA; iA++)
+                    {
+                        var allSimDescription = vA._items[iA];
+                        if (allSimDescription.mSimDescriptionId == simDescriptionId)
+                        {
+                            return allSimDescription;
+                        }
+                    }
+                }
+            }
+
+            foreach (Urnstone urnstone in SC_GetObjects<Urnstone>())
+            {
+                if (urnstone.DeadSimsDescription != null && urnstone.DeadSimsDescription.Household == null && urnstone.DeadSimsDescription.mSimDescriptionId == simDescriptionId)
+                {
+                    return urnstone.DeadSimsDescription;
+                }
+            }
+
+            if (IntroTutorial.SimsRemovedFromHousehold != null)
+            {
+                foreach (Sim item in IntroTutorial.SimsRemovedFromHousehold)
+                {
+                    if (item == null || item.SimDescription == null)
+                        continue;
+
+                    if (item.SimDescription.mSimDescriptionId == simDescriptionId)
+                    {
+                        return item.SimDescription;
+                    }
+                }
+            }
+
+            return GameStates.GetEarlyDepatureSim(simDescriptionId);
+        }
+
+        public static void SetSafeSimDesc(SimDescription itemSimDesc, SimDescriptionCore copySimDescCore)
+        {
+            if (itemSimDesc == null)
+                return;
+            try
+            {
+                itemSimDesc.AgingState = null;
+                itemSimDesc.mTraitManager = null;
+                itemSimDesc.OccultManager = null;
+                itemSimDesc.mDeathStyle = SimDescription.DeathType.None;
+                itemSimDesc.mLifetimeHappiness = 0;
+                itemSimDesc.IsGhost = false;
+                itemSimDesc.LifetimeWish = 0;
+
+                itemSimDesc.mSimDescriptionId = 0;
+                itemSimDesc.mIsValidDescription = false;
+                SimDesc_NullToEmpty(itemSimDesc);
+                itemSimDesc.mHomeWorld = GameUtils.GetCurrentWorld();
+
+                if (copySimDescCore != null && copySimDescCore.mTraitManager != null)
+                {
+                    itemSimDesc.mIsValidDescription = true;
+                    itemSimDesc.TraitManager = new TraitManager(copySimDescCore.TraitManager);
+                    itemSimDesc.TraitManager.SetSimDescription(itemSimDesc);
+                    itemSimDesc.CopyAllOutfits(copySimDescCore);
+                    itemSimDesc.CopyCoreFileds(copySimDescCore);
+                    SimOutfit outfit = copySimDescCore.GetOutfit(OutfitCategories.Everyday, 0);
+                    itemSimDesc.Init(outfit);
+                    itemSimDesc.CopyPetFields(itemSimDesc);
+                }
+            }
+            catch (StackOverflowException) { throw; }
+            catch (ResetException) { throw; }
+            catch { }
+        }
+
         public static SimDescription SimDesc_Empty(SimDescriptionCore copySimDescCore) 
         {
             var listNiecDisposedSimDesc = ListCollon.NiecDisposedSimDescriptions;
@@ -16903,7 +17151,7 @@ System.NullReferenceException: A null value was found where an object instance w
         {
             var listNiecDisposedSimDesc = ListCollon.NiecDisposedSimDescriptions;
             if (listNiecDisposedSimDesc == null || listNiecDisposedSimDesc.Count == 0)
-                return AddNiecSimDescriptions( defaultOutfit != null ? new SimDescription(defaultOutfit) : new SimDescription());
+                return AddNiecSimDescriptions( defaultOutfit != null ? new SimDescription(defaultOutfit) : new SimDescription() );
 
             foreach (var itemSimDesc in listNiecDisposedSimDesc.ToArray())
             {
@@ -17320,8 +17568,8 @@ System.NullReferenceException: A null value was found where an object instance w
         public static bool WaitCheckAccept(string Message) {
             if (!ModalDialog.EnableModalDialogs)
                 return false;
-            if (Message == null && Simulator.CheckYieldingContext(false)) { 
-                Message = "Message is null ST:\n" + Get_Stack_Trace();
+            if (Message == null && Simulator.CheckYieldingContext(false)) {
+                Message = "Message is null StackTrace:\n" + Get_Stack_Trace();
             }
             return Simulator.CheckYieldingContext(false) && (bool)NiecTask.CreateWaitPerform (
                 delegate
@@ -17486,21 +17734,28 @@ System.NullReferenceException: A null value was found where an object instance w
             }
 
             Lot TargetLot = GetLot(Location);
-            if (TargetLot == null || TargetLot is WorldLot)
+            if (TargetLot == null || SC_GetObjectsOnLot <Gangway>(TargetLot).Length > 0 || TargetLot is WorldLot)
             {
                 Houseboat houseboat = FindObjectDistanceIsBool<Houseboat>(IsNotPortInHouseBoat, campos, 5f);
                 if (houseboat != null)
                 {
                     TargetLot = GetLot(houseboat.mHouseboatLotId);
                 }
-
                 if (TargetLot == null || TargetLot is WorldLot)
                 {
-                    TargetLot = GetPickMouseGameObjectLot();
+                    TargetLot = GetPickMouseGameObjectAsLotID();
+                }
+                if (TargetLot == null || TargetLot is WorldLot)
+                {
+                    TargetLot = GetPickMouseGameObjectAsLot();
                 }
                 if (TargetLot == null || TargetLot is WorldLot)
                 {
                     TargetLot = NiecRunCommand.HitTargetLot();
+                }
+                if (TargetLot == null || TargetLot is WorldLot)
+                {
+                    TargetLot = GetPickMouseGameObjectLot();
                 }
                 if (TargetLot == null)
                 {
@@ -17563,9 +17818,34 @@ System.NullReferenceException: A null value was found where an object instance w
             }
             return null;
         }
+        public static Lot GetPickMouseGameObjectAsLot()
+        {
+            var proxy = ScriptCore.Simulator.Simulator_GetTaskImpl(GetTargetObjectDontHaveScript(), false) as IScriptProxy;
+            if (proxy != null)
+            {
+                var targetLot = proxy.Target as GameObject;
+                if (targetLot != null)
+                    return targetLot.LotCurrent;
+            }
+            return null;
+        }
+        public static Lot GetPickMouseGameObjectAsLotID()
+        {
+            if (LotManager.sLots == null)
+                return null;
+
+            ulong lotID = ScriptCore.Objects.Objects_GetLotId(GetTargetObjectDontHaveScript());
+            if (lotID != 0)
+            {
+                Lot lot;
+                LotManager.sLots.TryGetValue(lotID, out lot);
+                return lot;
+            }
+            return null;
+        }
         public static ulong GetTargetObjectDontHaveScript()
         {
-            if (ScriptCore.CameraController.Camera_GetTarget() == Vector3.Empty)
+            if (ScriptCore.CameraController.Camera_GetTarget() == __Vector3_Em)
                 return 0;
 
             SceneMgrWindow t = UIManager.GetSceneWindow();
@@ -18456,6 +18736,10 @@ System.NullReferenceException: A null value was found where an object instance w
                                 UnSafe_OrgToNull_SimDesc(ItemAsSim);
                             if (!NiecHelperSituation.isdgmods)
                             {
+                                if (ObjectID.mValue == 0 && NInjetMethed.DoneIBimDestroy)
+                                {
+                                    return true;
+                                }
                                 UnSafeForceDeAttachAndDestroyAllSlotsWithObjectID(ObjectID, false);
                             }
                         }
@@ -18509,33 +18793,39 @@ System.NullReferenceException: A null value was found where an object instance w
         {
             try
             {
-                if (Target.mInteractionQueue != null)
+                var iq = Target.mInteractionQueue;
+                if (iq != null)
                 {
-                    if (Target.mInteractionQueue.mInteractionList.Count != 0)
+                    var iys = iq.mInteractionList;
+                    if (iys != null && iys.Count != 0)
                     {
                         InteractionInstance ii = Target.CurrentInteraction;
                         InteractionPriority pr = new InteractionPriority((InteractionPriorityLevel)0);
-                        foreach (var item in Target.mInteractionQueue.mInteractionList.ToArray())
+
+                        foreach (var item in iys.ToArray())
                         {
                             if (item == null)
                                 continue;
+
                             item.mCancelled = true;
                             item.mbOnStopCalled = true;
                             item.mMustRun = false;
                             item.mPriority = pr;
+
                             if (ii != item)
-                                Target.mInteractionQueue.mInteractionList.Remove(item);
+                                iys.Remove(item);
                         }
                     }
-                    Target.mInteractionQueue.mCurrentTransitionInteraction = null;
-                    if (Target.mInteractionQueue.mRunningInteractions.Count != 0)
-                        Target.mInteractionQueue.mRunningInteractions.Clear();
+
+                    iq.mCurrentTransitionInteraction = null;
+                    var iysa = iq.mRunningInteractions;
+                    if (iysa != null && iysa.Count != 0)
+                        iysa.Clear();
                 }
             }
             catch (StackOverflowException) { throw; }
             catch (ResetException) { throw; }
-            catch
-            { }
+            catch { }
 
         }
 
@@ -18858,24 +19148,26 @@ public static
         {
             try
             {
-                if (Target.mInteractionQueue != null)
+                var iq = Target.mInteractionQueue;
+                if (iq != null)
                 {
-                    Target.mInteractionQueue.mCurrentTransitionInteraction = null;
-                    if (Target.mInteractionQueue.mInteractionList != null && Target.mInteractionQueue.mInteractionList.Count != 0)
+                    iq.mCurrentTransitionInteraction = null;
+                    var it = iq.mInteractionList;
+                    if (it != null && it.Count != 0)
                     {
-                        Target.mInteractionQueue.mInteractionList.Clear();
+                        it.Clear();
                     }
-                    if (Target.mInteractionQueue.mRunningInteractions.Count != 0)
+                    var itr = iq.mInteractionList;
+                    if (itr != null && itr.Count != 0)
                     {
-                        Target.mInteractionQueue.mRunningInteractions.Clear();
+                        itr.Clear();
                     }
                    
                 }
             }
             catch (StackOverflowException) { throw; }
             catch (ResetException) { throw; }
-            catch
-            { }
+            catch { }
 
         }
 
@@ -19147,7 +19439,9 @@ public static
 
         public static bool FixCantRemoveHousehold(SimDescription sim, bool forceremove, bool forcedellothome)
         {
-            if (sim == null) return false;
+            if (sim == null) 
+                return false;
+
             try
             {
                 Household holde = sim.Household;
@@ -19155,11 +19449,13 @@ public static
                 {
                     if (holde.IsServiceNpcHousehold)
                     {
-                        if (holde.mLotHome != null) holde.mLotHome.mHousehold = null;
-                        holde.mLotHome = null;
+                        if (holde.mLotHome != null) 
+                            holde.mLotHome.mHousehold = null;
 
+                        holde.mLotHome = null;
                         holde.mLotId = 0uL;
                     }
+
                     if (forceremove)
                     {
                         try
@@ -19168,9 +19464,10 @@ public static
                             {
                                 sim.VirtualLotHome.VirtualMoveOut(sim);
                             }
-                            if (sim.CreatedSim != null)
+
+                            Sim createdSim = sim.CreatedSim;
+                            if (createdSim != null)
                             {
-                                Sim createdSim = sim.CreatedSim;
                                 if (createdSim.LotCurrent != null)
                                 {
                                     createdSim.UpdateVisibleLotsForActiveHousehold(createdSim.LotCurrent);
@@ -19193,22 +19490,13 @@ public static
                                     hm.mPetSimDescriptions.Remove(sim);
                                 if (hm.mAllSimDescriptions != null)
                                     hm.mAllSimDescriptions.Remove(sim);
-                                //hm.RemoveAt(hm.mAllSimDescriptions.IndexOf(sim));
                             }
                             catch (StackOverflowException) { throw; }
                             catch (ResetException) { throw; }
                             catch (Exception)
-                            {
-                                /*
-                                if (hm.mSimDescriptions != null)
-                                    hm.mSimDescriptions.Remove(sim);
-                                if (hm.mPetSimDescriptions != null)
-                                    hm.mPetSimDescriptions.Remove(sim);
-                                if (hm.mAllSimDescriptions != null)
-                                    hm.mAllSimDescriptions.Remove(sim);
-                                */
-                            }
+                            { }
                         }
+
                         try
                         {
                             sim.OnHouseholdChanged(null, true);
@@ -19216,22 +19504,7 @@ public static
                         catch (StackOverflowException) { throw; }
                         catch (ResetException) { throw; }
                         catch { }
-                        /*
-                        try
-                        {
-                            if (Sims3.UI.Responder.Instance != null)
-                            {
-                                HudModel hudModel = Sims3.UI.Responder.Instance.HudModel as HudModel;
-                                if (sim.CreatedSim != null)
-                                {
-                                    hudModel.OnHouseholdSimChanged(Sims3.Gameplay.CAS.HouseholdEvent.kSimRemoved, sim.CreatedSim, holde);
-                                }
-                            }
-                        }
-                        catch (ResetException)
-                        { throw; }
-                        catch { }
-                        */
+                        
                         try
                         {
                             holde.HouseholdSimRemovedChangeFutureDescendants(sim);
@@ -19239,17 +19512,46 @@ public static
                         catch (StackOverflowException) { throw; }
                         catch (ResetException) { throw; }
                         catch { }
+
                         try
                         {
                             if (ParentsLeavingTownSituation.Adults != null && ParentsLeavingTownSituation.Adults.Contains(sim.SimDescriptionId))
                             {
-                                ParentsLeavingTownSituation parentsLeavingTownSituation = ParentsLeavingTownSituation.FindParentsGoneSituationForHousehold(holde);
-                                parentsLeavingTownSituation.BringParentsBack();
+                                var parentsLeavingTownSituation = ParentsLeavingTownSituation.FindParentsGoneSituationForHousehold(holde);
+                                if (parentsLeavingTownSituation != null) // ea bug
+                                    parentsLeavingTownSituation.BringParentsBack();
+                                else
+                                {
+                                    foreach (var item in ParentsLeavingTownSituation.sAdultsInventories)
+                                    {
+                                        var find = SimDesc_Find(item.key);
+                                        if (find == null)
+                                        {
+                                            ParentsLeavingTownSituation.sAdultsInventories.Remove(item.key);
+                                        }
+                                    }
+
+                                    if (ParentsLeavingTownSituation.sAdultsInventories.Count == 0)
+                                        ParentsLeavingTownSituation.sAdultsInventories = null;
+
+                                    foreach (var item in ParentsLeavingTownSituation.sAdultBotsTraitChips)
+                                    {
+                                        var find = SimDesc_Find(item.key);
+                                        if (find == null)
+                                        {
+                                            ParentsLeavingTownSituation.sAdultsInventories.Remove(item.key);
+                                        }
+                                    }
+
+                                    if (ParentsLeavingTownSituation.sAdultBotsTraitChips.Count == 0)
+                                        ParentsLeavingTownSituation.sAdultBotsTraitChips = null;
+                                }
                             }
                         }
                         catch (StackOverflowException) { throw; }
                         catch (ResetException) { throw; }
                         catch { }
+
                         try
                         {
                             holde.RemoveDescriptionIdFromPetAddedToHousehold(sim.SimDescriptionId);
@@ -19281,7 +19583,8 @@ public static
                             {
                                 if (holde.LotHome != null) // Test New 130?
                                 {
-                                    Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    //Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    ClearServicesForLot(holde.LotHome);
                                     Bill.DestroyAllBillsForHousehold(sim.CreatedSim, holde.LotHome);
                                     holde.LotHome.CleanUpForMoving();
                                 }
@@ -19311,8 +19614,8 @@ public static
                             { }
 
                             holde.mLotHome = null;
-
                             holde.mLotId = 0uL;
+
                         }
                         if (holde.mMembers != null && holde.mMembers.Count == 0)
                         {
@@ -19321,7 +19624,8 @@ public static
                             {
                                 if (holde.LotHome != null) // Test New 130?
                                 {
-                                    Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    //Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    ClearServicesForLot(holde.LotHome);
                                     Bill.DestroyAllBillsForHousehold(sim.CreatedSim, holde.LotHome);
                                     holde.LotHome.CleanUpForMoving();
                                 }
@@ -19343,7 +19647,8 @@ public static
                             try
                             {
 
-                                if (holde.mLotHome != null) holde.mLotHome.mHousehold = null;
+                                if (holde.mLotHome != null)
+                                    holde.mLotHome.mHousehold = null;
                             }
                             catch (StackOverflowException) { throw; }
                             catch (ResetException) { throw; }
@@ -19351,8 +19656,8 @@ public static
                             { }
 
                             holde.mLotHome = null;
-
                             holde.mLotId = 0uL;
+
                             try
                             {
                                 holde.Dispose();
@@ -19361,6 +19666,7 @@ public static
                             catch (ResetException) { throw; }
                             catch (Exception)
                             { }
+
                         }
                         else if (holde.mMembers != null && holde.mMembers.mAllSimDescriptions != null && holde.mMembers.mAllSimDescriptions.Contains(sim) && holde.mMembers.mAllSimDescriptions.Count == 1)
                         {
@@ -19368,7 +19674,8 @@ public static
                             {
                                 if (holde.LotHome != null) // Test New 130?
                                 {
-                                    Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    //Sims3.Gameplay.Services.Services.ClearServicesForLot(holde.LotHome);
+                                    ClearServicesForLot(holde.LotHome);
                                     Bill.DestroyAllBillsForHousehold(sim.CreatedSim, holde.LotHome);
                                     holde.LotHome.CleanUpForMoving();
                                 }
@@ -19397,8 +19704,8 @@ public static
                             { }
 
                             holde.mLotHome = null;
-
                             holde.mLotId = 0uL;
+
                             try
                             {
                                 holde.Dispose();
@@ -19409,6 +19716,7 @@ public static
                             { }
                         }
                     }
+
                     sim.mHousehold = null;
                     return true;
                 }
@@ -19532,7 +19840,9 @@ public static
 
         public static bool _RunInteraction(InteractionInstance i)
         {
-            if (i == null) return false;
+            if (i == null) 
+                return false;
+
             try
             {
                 Sim instanceActor = i.InstanceActor;
@@ -19541,8 +19851,9 @@ public static
                 else
                     return i.Run();
             }
-            finally { i.Cleanup(); }
+            finally { if (i != null) i.Cleanup(); }
         }
+
         public static bool _RunInteractionWithoutCleanUp(InteractionInstance i)
         {
             if (i == null) 
@@ -19712,21 +20023,51 @@ public static
         //}
         public static InteractionInstance _GetCurrentInteraction(Sim sim)
         {
-            if (sim.mInteractionQueue != null)  // Custom 3:08 18/05/2019
+            var iq = sim.mInteractionQueue;
+            if (iq != null)
             {
-                return sim.mInteractionQueue.GetCurrentInteraction();
+                var mList = iq.mInteractionList;
+                if (mList == null)
+                    return null;
+
+                if (!iq.mIsHeadInteractionActive || mList.Count == 0)
+                    return null;
+
+                return mList._items[0];
             }
             return null;
         }
+
         public static InteractionInstance _GetCHeadInteraction(Sim sim)
         {
             //if (sim.mInteractionQueue != null)  // Custom 3:08 18/05/2019
             //{
             //    return sim.mInteractionQueue.GetHeadInteraction();
             //}
-            if (sim.mInteractionQueue != null && sim.mInteractionQueue.mInteractionList != null && sim.mInteractionQueue.mInteractionList._items != null && sim.mInteractionQueue.mInteractionList._items.Length > 0)  // Custom 3:08 18/05/2019
+
+            //if (sim.mInteractionQueue != null && sim.mInteractionQueue.mInteractionList != null && sim.mInteractionQueue.mInteractionList._items != null && sim.mInteractionQueue.mInteractionList._items.Length > 0)  // Custom 3:08 18/05/2019
+            //{
+            //    return sim.mInteractionQueue.mInteractionList._items[0];
+            //}
+
+            //return null;
+
+            var iq = sim.mInteractionQueue;
+            if (iq != null)
             {
-                return sim.mInteractionQueue.mInteractionList._items[0];
+                var mList = iq.mInteractionList;
+                if (mList == null)
+                    return null;
+
+                var t = mList._items;
+                if (t == null)
+                    return null;
+
+                if (t.Length == 0)
+                {
+                    return null;
+                }
+                return t[0];
             }
             return null;
         }
@@ -19871,12 +20212,22 @@ public static
         }
 
         public static 
+            void ClearServicesForLot(Lot lot)
+        {
+            var t = Services.AllServices;
+            if (lot == null || t == null)
+                return;
+            foreach (Service allService in t)
+            {
+                if (allService == null)
+                    continue;
+                allService.ClearServiceForLot(lot);
+            }
+        }
+
+        public static 
             Sim CustomApplyDeviantBehaviorToSim_GetValidPunisher (Sim ownerPunishment)
         {
-
-
-            //ulong faf = 0xF0005000F0000800;
-            //faf.ToString();
 
 
             if (ownerPunishment.LotCurrent == null) 
@@ -20162,6 +20513,9 @@ public static
             }
         }
 
+        // no name :)
+        public static bool sdireuytertheirtgor = false;
+
         public static void UnusedGetFuncPtr()
         {
             if (btada)
@@ -20181,6 +20535,16 @@ public static
                 nullv.Kill(SimDescription.DeathType.BluntForceTrauma, null, false);
                 nullv.LoopIdle();
                 nullv.PlayReaction(Sims3.Gameplay.ActorSystems.ReactionTypes.None, new Sims3.Gameplay.Interactions.InteractionPriority(), null, null, default(ResourceKey), Sims3.Gameplay.ThoughtBalloons.ThoughtBalloonAxis.kAutoSelect, Sims3.Gameplay.ActorSystems.ReactionSpeed.None, null, null, false, 0, false, false);
+                nullv.SetSacsDefaultParameters(null, null);
+                nullv.ChooseStandingIdle(null, null);
+                nullv.ChooseSeatedIdle(null, null);
+                nullv.ExitDynamicIdle(null, null);
+                nullv.PlayDynamicIdle(null, null);
+                nullv.PlayCustomIdle(null, null);
+                nullv.StandingBridgeOriginUsed();
+                nullv.IsPointInLotSafelyRoutable(null, default(Vector3));
+                nullv.HandToolAllowIntersection(null, default(Matrix44), false);
+                M(nullv.HasBeenDestroyed);
                 Bim nullvX = null;
                 nullvX.Simulate();
 
@@ -20198,6 +20562,7 @@ public static
 
 
                 SimDescription simd = null;
+                simd.ExportContent(null, null, null);
                 simd.Dispose(false, false, false, false, false);
                 simd.Instantiate(default(Vector3), default(ResourceKey), false, false);
                 simd.MakeUniqueId();
@@ -20217,7 +20582,8 @@ public static
                 Sims3.Gameplay.Services.FirefighterSituation.IsSimOnFire(null);
 
                 Household.Cleanup();
-
+                Household hod = null;
+                M(hod.AllSimDescriptions);
                 Sims3.Gameplay.Core.LotManager.CleanUpLotsAndInventories();
 
                 World.OnStartupApp();
@@ -20265,7 +20631,70 @@ public static
 
                 ScriptCore.TaskControl.GetMethodChecksum(new RuntimeMethodHandle(new IntPtr(0)), out usada);
 
+                EditTownModel tEditTownModel = null;
+                M(tEditTownModel.ValidActiveHousehold);
+                tEditTownModel.IsValidActiveHouseholdAtHome();
+
+                PlayFlowModel tPlayFlowModel = null;
+                M(tPlayFlowModel.GameEntryLive);
+
+                HudModel hud = null;
+                hud.LoadingScreenDisposed();
+                hud.IsInteractionCancellableByPlayer(0);
+
+                Sims3.Gameplay.ObjectComponents.RoutingComponent.PushSimsStatic(null, null, 0, 0, false, false, default(Sims3.Gameplay.Interactions.InteractionPriority), false);
+
+                SwimmingInPool.SelfInteractionCanHappenInPool(null);
+                Sims3.Gameplay.Scuba.ScubaDiving.SelfInteractionCanHappenWhileDiving(null);
+
+                new SimDescription();
+                new SimDescription((SimDescriptionCore)null);
+                new SimDescription((SimOutfit)null);
+
+                ResortWorker.ValidateWorkers();
+                ResortWorkerBar.ValidateWorkers();
+
+                ScriptCore.GameUtils.GameUtils_GetWorldName();
+                ScriptCore.GameUtils.GameUtils_GetWorldType();
+
+                Sims3.Gameplay.UI.PieMenu.CreateSimHead();
+
+                Photography.OnTriggerTakePhotograph();
+
+                Sims3.UI.NotificationManager tasdaw = null;
+                tasdaw.Add(null, NotificationManager.TNSCategory.Unknown);
             }
+        }
+
+        public static void LoopFixSimList_command()
+        {
+            NiecTask.Perform(() =>
+            {
+                NiecTask.SimulateAgainRuntimeFound();
+                NiecTask.SetNeedNoErrorRuntime(true);
+
+                Simulator.Sleep(1);
+
+                while (true)
+                {
+                    for (int i = 0; i < 1100; i++)
+                    {
+                        Simulator.Sleep(0);
+                        try
+                        {
+                            NiecRunCommand.fixsimlist_command();
+                        }
+                        catch (ResetException) { return; }
+                        catch (Exception)
+                        {
+                            for (int ix = 0; ix < 400; ix++)
+                            {
+                                Simulator.Sleep(0);
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         public static void TestRunSEDInitProductFlags()
@@ -20537,6 +20966,8 @@ public static
             return b0;
         }
 
+        public static bool DoneSafePreventGetAssembliesPro = false;
+
         // Kill Mono Security :D
         public static
             bool SafePreventGetAssembliesPro()
@@ -20585,7 +21016,7 @@ public static
                 Assert("SafePreventGetAssembliesPro: copy_ptr_func_to_func(m00, m00_i) failed.");
                 return false;
             }
-
+            DoneSafePreventGetAssembliesPro = true;
             return true;
         }
 
@@ -20650,6 +21081,23 @@ public static
 #endif
         }
 
+/*
+DebugString: "IL_0000  > (sizeof)   -> IL_0002, sp 0,                 vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0006    ldc.i4.8   -> IL_0005, sp 1, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0007    bne.un.s   -> IL_0006, sp 2, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0009    ldarg.0    -> IL_0008, sp 0,                 vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_000a    brfalse.s  -> IL_000a, sp 1, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_000c    ldstr      -> IL_000c, sp 0,                 vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0011    call       -> IL_000e, sp 1, O  String       vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0016    box        -> IL_0010, sp 2, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_001b    call       -> IL_0012, sp 2, O  Boolean      vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0020    call       -> IL_0014, sp 1, O  String       vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0025  > ldc.i4.1   -> IL_0016, sp 0,                 vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0026    ret        -> IL_0017, sp 1, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0027  > ldc.i4.0   -> IL_0018, sp 0,                 vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+DebugString: "IL_0028    ret        -> IL_0019, sp 1, I4              vt_sp 0 (max 0) NiecMod.Nra.NFinalizeDeath::GameIs64Bit"
+ */
+
         public unsafe static bool GameIs64Bit(bool shouldAssert)
         {
             if (sizeof(void*) == 0x8)
@@ -20658,8 +21106,7 @@ public static
                     Assert("Sims 3 64 bit Found!\nNiecModIs64Bit?: " + NiecModIs64Bit());
                 return true;
             }
-            return false;
-
+            return false; // IL_0027  > ldc.i4.0   -> IL_0018, sp 0
         }
 
         public unsafe static bool GameIsARMArch(bool shouldAssert)
@@ -20720,7 +21167,7 @@ public static
             var b1 = niec_script_func.niecmod_script_set_custom_native_function(m01.mhandle, new IntPtr() { value = (void*)func_address });
             var b2 = false;
             var b3 = false;
-
+            var b4 = false;
             type = typeof(ScriptCore.UTFConnectorSimulator);
             var m02 = (MonoMethod)type.GetMethod("Simulator_SetYieldingDisabledImpl", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -20761,7 +21208,30 @@ public static
                 niec_native_func.OutputDebugString("Object address: 0x" + ((uint)m02.obj_address()).ToString("X"));
             }
 
-            if (b0 || b1)
+            ETMYX(false);
+            object objT = null;
+            if (objT != null)
+            {
+                ScriptCore.Simulator.Simulator_SetYieldingDisabledImpl(objT != null);
+                ScriptCore.UTFConnectorSimulator.Simulator_SetYieldingDisabledImpl(objT != null);
+            }
+
+            var myM01 = (MonoMethod)typeof(NFinalizeDeath).GetMethod("ETMYX", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (myM01 == null)
+            {
+                NFinalizeDeath.Assert("PreventSetYieldingDisabled: (MonoMethod)typeof(NFinalizeDeath).GetMethod(\"ETMYX\"); is null.");
+                return false;
+            }
+
+            if (!niec_script_func.niecmod_script_copy_ptr_func_to_func(myM01, m01, false, false, false, false))
+            {
+                NFinalizeDeath.Assert("PreventSetYieldingDisabled: copy_ptr_func_to_func(myM01, m01) failed.");
+            }
+            else b4 = true;
+
+            niec_script_func.niecmod_script_copy_ptr_func_to_func(myM01, m02, false, false, false, false);
+
+            if (b0 || b4 || b1)
             {
                 func_address_ret_all = func_address;
                 niec_native_func.OutputDebugString("Done!");
@@ -21485,7 +21955,6 @@ public static
             Simulator.CloseScriptErrorFile(key);
             
             return result;
-            //return "E:\\My OAS\\Niec And Linc\\NiecMod\\Interactions\\Overrides\\OverrideClass.cs";
         }
 
         public static void NResetAllAnimation(Sim _this)
@@ -21964,7 +22433,7 @@ public static
             if (simDesc != null)
             {
                 var listsimdesc = ListCollon.NiecSimDescriptions;
-                if (listsimdesc != null && niec_std.array_indexof(listsimdesc._items, simDesc) == -1) //!listsimdesc.Contains(simDesc))
+                if (listsimdesc != null && niec_std.array_indexof(listsimdesc._items, simDesc, listsimdesc._size) == -1) //!listsimdesc.Contains(simDesc))
                     listsimdesc.Add(simDesc);
             }
             return simDesc;
@@ -21996,6 +22465,39 @@ public static
             simDesc.LastName = SimUtils.GetRandomFamilyName(WorldName.Egypt);
 
             return simDesc;
+        }
+
+        public static 
+            void ClonePregnancy(Pregnancy dst, Pregnancy src)
+        {
+            dst.DadDescriptionId = src.DadDescriptionId;
+            dst.mBabySexOffset = src.mBabySexOffset;
+            dst.mChanceOfRandomOccultMutation = src.mChanceOfRandomOccultMutation;
+            dst.mContractionBroadcast = src.mContractionBroadcast;
+            dst.mContractionsAlarm = src.mContractionsAlarm;
+            dst.mCurrentMoodScore = src.mCurrentMoodScore;
+            dst.mDad = src.mDad;
+            dst.mDadDeathType = src.mDadDeathType;
+            dst.mDadOccultType = src.mDadOccultType;
+            dst.mDadWasGhostFromPotion = src.mDadWasGhostFromPotion;
+            dst.mDoctorAdviceGivenBonus = src.mDoctorAdviceGivenBonus;
+            dst.mFixupForeignPregnancy = src.mFixupForeignPregnancy;
+            dst.mForcedTrait = src.mForcedTrait;
+            dst.mGender = src.mGender;
+            dst.mHasRequestedWalkStyle = src.mHasRequestedWalkStyle;
+            dst.mHasShownPregnancy = src.mHasShownPregnancy;
+            dst.mHourOfPregnancy = src.mHourOfPregnancy;
+            dst.mMom = src.mMom;
+            dst.mMomDeathType = src.mMomDeathType;
+            dst.mMomOccultType = src.mMomOccultType;
+            dst.mMomWasGhostFromPotion = src.mMomWasGhostFromPotion;
+            dst.mMultipleBabiesMultiplier = src.mMultipleBabiesMultiplier;
+            dst.mPregnancyScore = src.mPregnancyScore;
+            dst.mRandomGenSeed = src.mRandomGenSeed;
+            dst.mStereoStartTime = src.mStereoStartTime;
+            dst.mTimeMoodSampled = src.mTimeMoodSampled;
+            dst.mTvStartTime = src.mTvStartTime;
+            dst.PreggersAlarm = src.PreggersAlarm;
         }
 
         public static 
@@ -23704,7 +24206,7 @@ public static
             }
             if (NJOClass.unsaferunpe && Random_Chance(35))
             {
-                if (!GetNull<nobjecoD>().boolFalse())
+                if (GetNull<NiecObjectPlus>().IsDone())
                     return false;
             }
             if (Simulator.CheckYieldingContext(false))
@@ -24482,6 +24984,8 @@ public static
 
                 if (!SMC.HandleEventsAsynchronously)
                     SMC.mHandleEventsAsynchronously = true;
+
+                SMC.mPendingException = null;
             }
         }
 
@@ -24786,6 +25290,14 @@ public static
             NFinalizeDeath.btada = false;
         }
 
+        public static void ETMYX(bool unused) // not IL empty Required 
+        {
+            if (unused)
+            {
+                ETMY();
+            }
+        }
+
         public static SimDescription MakeSim(SimBuilder builder, CASAgeGenderFlags age, CASAgeGenderFlags gender, ResourceKey skinTone, float skinToneIndex, Color[] hairColors, WorldName homeWorld, uint outfitCategoriesToBuild, bool isAlien)
         {
             if (age == CASAgeGenderFlags.None)
@@ -24819,6 +25331,17 @@ public static
             Color activeEyebrowColor = hairColors[4];
             SimDescriptionCore simDescriptionCore = new SimDescriptionCore();
             simDescriptionCore.HomeWorld = homeWorld;
+
+            if (!NiecHelperSituation.__acorewIsnstalled__ && !IsOpenDGSInstalled)
+            {
+                try
+                {
+                    ACoreS_Census.SpeciallyUnMark(simDescriptionCore);
+                }
+                catch (Exception)
+                { }
+            }
+
             bool useDyeColor = age == CASAgeGenderFlags.Elder;
             GeneticColor[] hairColors2 = simDescriptionCore.HairColors;
             for (int i = 0; i < 4; i++)

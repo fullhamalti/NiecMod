@@ -97,6 +97,8 @@ namespace NiecMod.Nra
     [Persistable(false)]
     public class NGameObject : GameObject
     {
+        public static bool isAwcore = AssemblyCheckByNiec.IsInstalled("AweCore");
+        public static List<object> gcList = new List<object>(5000);
         private static object OV = null;
 
         public static void InitNCreate()
@@ -138,7 +140,10 @@ namespace NiecMod.Nra
             if (mProduct != null)
                 mbProductInited = true;
 
-            while (mActorsUsingMe.Remove(null)) {}
+            if (mActorsUsingMe != null)
+            {
+                while (mActorsUsingMe.Remove(null)) { }
+            }
 
             if (postLoad)
             {
@@ -164,7 +169,7 @@ namespace NiecMod.Nra
                 }
                 catch (Exception)
                 {
-                    if (!NiecHelperSituation.__acorewIsnstalled__)
+                    if (!isAwcore)
                     {
                         if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || SCOSR.IsScriptCore2020())
                         {
@@ -182,7 +187,7 @@ namespace NiecMod.Nra
                 }
                 catch (Exception)
                 {
-                    if (!NiecHelperSituation.__acorewIsnstalled__)
+                    if (!isAwcore)
                     {
                         if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || SCOSR.IsScriptCore2020())
                         {
@@ -201,7 +206,7 @@ namespace NiecMod.Nra
             }
             catch (Exception)
             {
-                if (!NiecHelperSituation.__acorewIsnstalled__)
+                if (!isAwcore)
                 {
                     if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || SCOSR.IsScriptCore2020())
                     {
@@ -275,7 +280,7 @@ namespace NiecMod.Nra
             catch (Exception)
             {
                 mLotCurrent = LotManager.sWorldLot; 
-                if (!NiecHelperSituation.__acorewIsnstalled__)
+                if (!isAwcore)
                 {
                     if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || SCOSR.IsScriptCore2020())
                     {
@@ -283,7 +288,41 @@ namespace NiecMod.Nra
                     }
                 }
             }
-           
+            if (isAwcore)
+            {
+                Sim obj_Sim = ((object)this) as Sim;
+                if (obj_Sim != null)
+                {
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mAutonomy);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mBuffManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mMoodManager);
+                    if (obj_Sim.mInteractionQueue != null)
+                    {
+                        NFinalizeDeath.AddItemToList(gcList, obj_Sim.mInteractionQueue);
+                        NFinalizeDeath.AddItemToList(gcList, obj_Sim.mInteractionQueue.mInteractionList);
+                    }
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mLookAtManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mIdleManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mThoughtBalloonManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mSocialComponent);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mSnubManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mMapTagManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mDreamsAndPromisesManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mDreamsAndPromisesManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mDeepSnowEffectManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mFlags);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.SleepDreamManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mCelebrity);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mActorsUsingMe);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mClothingReactionBroadcaster);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mOpportunityManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mPosture);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mActiveSwitchOutfitHelper);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mMapTagManager);
+                    NFinalizeDeath.AddItemToList(gcList, obj_Sim.mSimCommodityInteractionMap);
+
+                }
+            }
             return GetScriptExecuteType();
         }
     }

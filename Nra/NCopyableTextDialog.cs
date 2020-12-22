@@ -109,9 +109,14 @@ namespace NiecMod.Nra
             public UICopyableTextDialog(string titleText, string promptText, string defaultEntryText, int maxLength, Vector2 position, PauseMode pauseMode)
                 : base(kMultiLayoutName, kWinExportID, true, pauseMode, null)
             {
+                niec_native_func.OutputDebugString("UICopyableTextDialog:create called");
+                niec_native_func.OutputDebugString(titleText);
+                niec_native_func.OutputDebugString(promptText);
+                niec_native_func.OutputDebugString(defaultEntryText);
+
                 if (mModalDialogWindow == null)
                 {
-                    niec_std.assert("mModalDialogWindow == null");
+                    niec_std.assert("UICopyableTextDialog:create mModalDialogWindow == null");
                     return;
                 }
 
@@ -317,6 +322,7 @@ namespace NiecMod.Nra
 
         public void SafeShow(string title)
         {
+            
             if (Simulator.CheckYieldingContext(false))
             {
                 UICopyableTextDialog.Show(title ?? "", "", Text, kUseDefaultMax, Vector2.Origin, ModalDialog.PauseMode.PauseSimulator);

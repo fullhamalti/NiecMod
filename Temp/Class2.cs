@@ -193,7 +193,7 @@ namespace NiecMod.Commom.Proxies
 
 
 
-
+        public static bool oerew = false;
 
 
 
@@ -201,7 +201,8 @@ namespace NiecMod.Commom.Proxies
         {
             if (_this == null)
                 throw new NullReferenceException();
-            writer.WriteInt32(3921240069u, _this.Count);
+            // writer.WriteInt32(3921240069u, _this.Count);
+            oerew = false;
             uint num = 0u;
             foreach (SimDescription allSimDescription in _this.AllSimDescriptionList)
             {
@@ -247,9 +248,40 @@ namespace NiecMod.Commom.Proxies
                         allSimDescription.CareerManager.mSimDescription = allSimDescription;
                         needFix = true;
                     }
+                    if (allSimDescription.VisaManager == null)
+                    {
+                        allSimDescription.VisaManager = new Sims3.Gameplay.Visa.VisaManager(allSimDescription);
+                        needFix = true;
+                    }
+                    else
+                        allSimDescription.VisaManager.mSimDescription = allSimDescription;
+
+                    if (allSimDescription.CelebrityManager == null)
+                    {
+                        allSimDescription.CelebrityManager = new Sims3.Gameplay.CelebritySystem.CelebrityManager(allSimDescription.SimDescriptionId);
+                        needFix = true;
+                    }
+
                     if (needFix)
                         allSimDescription.Fixup();
 
+                    if (needFix && allSimDescription.CelebrityManager == null) {
+                        allSimDescription.Fixup();
+                    }
+
+                    if (allSimDescription.CelebrityManager == null)
+                    {
+                        if (Nra.NFinalizeDeath.IsOpenDGSInstalled)
+                            break;
+                        if (!oerew)
+                        {
+                            Nra.NFinalizeDeath.AssertX(false, "allSimDescription.CelebrityManager == null\nST:\n" + Nra.NDebugger.GetCurrentStackLite());
+                            oerew = true;
+                        }
+
+                        if (!NiecMod.Nra.BimDesc.DoneECMK)
+                            continue;
+                    }
                 }
                 catch (Exception)
                 {
@@ -277,6 +309,7 @@ namespace NiecMod.Commom.Proxies
                 }
 
             }
+            writer.WriteInt32(3921240069u, (int)num);
             return true;
         }
 

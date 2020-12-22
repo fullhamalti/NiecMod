@@ -29,7 +29,7 @@ namespace NiecMod.Nra
                 IsScriptCore2020cacheb1 = true;
                 IsScriptCore2020cacheb0 = Type.GetType("ScriptCore.SData, ScriptCore", false) != null;
             }
-            return IsScriptCore2020cacheb0;
+            return NSC_ETRAP.IsDone || IsScriptCore2020cacheb0;
         }
 
         public static bool IsDone()
@@ -48,6 +48,28 @@ namespace NiecMod.Nra
         public static bool ShouldInjectedMethodOnScriptError = false;
         private static Sims3.SimIFace.VisualEffect mGrimReaperSmoke = null;
 
+        public static object GetFuncNROnErrorTrap()
+        {
+            var p = Type.GetType("NRaas.ErrorTrap, NRaasErrorTrap");
+            if (p == null)
+                return null;
+
+            var r = (MethodInfo)NFinalizeDeath.GetGoodMethods(
+                p, 
+                new Type[] { typeof(ScriptCore.ScriptProxy), typeof(Exception) },
+                "OnScriptError",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            );
+
+            if (r == null)
+                return null;
+
+            // Required if no create method pointer.
+            Delegate.CreateDelegate(typeof(SCOSR._SafeScriptError), r);
+
+            return r;
+        }
+
 
         public static bool ShouldACoreScipt2020()
         {
@@ -57,13 +79,16 @@ namespace NiecMod.Nra
         public static
             void StartUpSafeErrorTrapAdded()
         {
+            if (NSC_ETRAP.IsDone)
+                return;
+
             if (AssemblyCheckByNiec.IsInstalled("NRaasErrorTrap") || ShouldACoreScipt2020())
             {
                 NiecTask.Perform(delegate
                 {
                     if (!NFinalizeDeath.GameIs64Bit(true) && ShouldACoreScipt2020() && !NiecHelperSituation.isdgmods)
                     {
-                        if (NFinalizeDeath.func_address_GetAssemblies != 0)
+                        if (!NFinalizeDeath.DoneSafePreventGetAssembliesPro && NFinalizeDeath.func_address_GetAssemblies != 0)
                         {
                             NFinalizeDeath.RemovePreventGetAssemblies();
                         }
@@ -87,6 +112,7 @@ namespace NiecMod.Nra
                                 OnScriptError(null, null);
                                 dontcall = false;
 
+                                // Required if no create method pointer.
                                 Delegate.CreateDelegate(typeof(SCOSR._SafeScriptError), m);
 
                                 if (!niec_script_func.niecmod_script_copy_ptr_func_to_func(myM, m, false, false, true, false))
@@ -209,7 +235,9 @@ namespace NiecMod.Nra
             return false;
         }
 
-        public static bool dontcall = false;
+        public static void Empty_OnScriptError(ScriptCore.ScriptProxy proxy, Exception ex) { }
+
+        internal static bool dontcall = false;
         public static bool safeerrorbool = false;
 
         public static void OnScriptError(ScriptCore.ScriptProxy proxy, Exception ex)
@@ -605,23 +633,23 @@ namespace NiecMod.Nra
 
            
 
-            var roleMangerTask = proxyTarget as Sims3.Gameplay.Roles.RoleManagerTask;
-            if (!Instantiator.NACSDCInject && roleMangerTask != null && Simulator.CheckYieldingContext(false) && (ShouldInjectedMethodOnScriptError ? Type.GetType("NRaas.RegisterSpace.Tasks.RoleManagerTaskEx, NRaasRegister", false) != null : true))
-            {
-                //if (AssemblyCheckByNiec.IsInstalled("NRaasRegister") &&
-                //    Simulator.CheckYieldingContext(false))
-                {
-                   //Simulator.Sleep(uint.MaxValue);
-                    while (true)
-                    {
-                        Simulator.Sleep(0);
-                        for (int i = 0; i < 3; i++)
-                        {
-                            NiecRunCommand.native_testcpu_debug(null, null);
-                        }
-                    }
-                }
-            }
+            //var roleMangerTask = proxyTarget as Sims3.Gameplay.Roles.RoleManagerTask;
+            //if (NiecHelperSituation.__acorewIsnstalled__  && Instantiator.NACSDCInject && roleMangerTask != null && Simulator.CheckYieldingContext(false) && (ShouldInjectedMethodOnScriptError ? Type.GetType("NRaas.RegisterSpace.Tasks.RoleManagerTaskEx, NRaasRegister", false) != null : true))
+            //{
+            //    //if (AssemblyCheckByNiec.IsInstalled("NRaasRegister") &&
+            //    //    Simulator.CheckYieldingContext(false))
+            //    {
+            //       //Simulator.Sleep(uint.MaxValue);
+            //        while (true)
+            //        {
+            //            Simulator.Sleep(0);
+            //            for (int i = 0; i < 3; i++)
+            //            {
+            //                NiecRunCommand.native_testcpu_debug(null, null);
+            //            }
+            //        }
+            //    }
+            //}
 
             if (_SafeOnScriptError != null && ex != null)
             {
